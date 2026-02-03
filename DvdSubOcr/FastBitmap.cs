@@ -3,6 +3,7 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace DvdSubOcr;
+
 public class FastBitmap
 {
     private const int BytesPerPixel = 4; // Format32bppArgb

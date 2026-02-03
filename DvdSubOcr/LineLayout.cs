@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 
 namespace DvdSubOcr;
+
 static public class LineLayout
 {
     static Dictionary<char, float> baseLines = new Dictionary<char, float>();
@@ -18,13 +19,13 @@ static public class LineLayout
         HashSet<char> untrusted = new HashSet<char>();
 
         var diacriticsBuilder = new Dictionary<char, int>();
-        foreach(char c in SubConstants.DiacriticCharacters)
+        foreach (char c in SubConstants.DiacriticCharacters)
         {
-            if(SubConstants.DiacriticLowCharacters.Contains(c))
+            if (SubConstants.DiacriticLowCharacters.Contains(c))
             {
                 diacriticsBuilder.Add(c, -1);
             }
-            else if(SubConstants.DiacriticHighCharacters.Contains(c))
+            else if (SubConstants.DiacriticHighCharacters.Contains(c))
             {
                 diacriticsBuilder.Add(c, 1);
             }
@@ -35,9 +36,9 @@ static public class LineLayout
         }
         diacritics = diacriticsBuilder.ToFrozenDictionary();
 
-        foreach(string characterString in CharacterSelector.AllCharacters)
+        foreach (string characterString in CharacterSelector.AllCharacters)
         {
-            foreach(char c in characterString)
+            foreach (char c in characterString)
             {
                 float calcBase, calcTop;
                 FindCharacterBounds(c, out calcBase, out calcTop);
@@ -199,9 +200,9 @@ static public class LineLayout
         baselineSlush['„'] = 6;
         baselineSlush['"'] = 8;
 
-        foreach(char c in SubConstants.TrustedForHeightCharacters)
+        foreach (char c in SubConstants.TrustedForHeightCharacters)
         {
-            if(!baseLines.ContainsKey(c))
+            if (!baseLines.ContainsKey(c))
             {
                 float calcBase, calcTop;
                 FindCharacterBounds(c, out calcBase, out calcTop);
@@ -209,14 +210,14 @@ static public class LineLayout
                 baseLines[c] = calcBase;
                 topLines[c] = calcTop;
             }
-            if(!baselineSlush.ContainsKey(c))
+            if (!baselineSlush.ContainsKey(c))
             {
                 baselineSlush[c] = 6;
             }
 
             trustedForHeight.Add(c);
         }
-        foreach(char c in SubConstants.UntrustedForBaselineCharacters)
+        foreach (char c in SubConstants.UntrustedForBaselineCharacters)
         {
             untrusted.Add(c);
         }
@@ -245,7 +246,7 @@ static public class LineLayout
     static void AddWeight(SortedList<int, int> list, int key, int value)
     {
         int count;
-        if(list.TryGetValue(key, out count))
+        if (list.TryGetValue(key, out count))
         {
             list[key] = count + value;
         }
@@ -259,15 +260,15 @@ static public class LineLayout
     {
         const int TestWidth = 80;
         const int TestHeight = 40;
-        using(Bitmap bmp = new Bitmap(TestWidth, TestHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb))
+        using (Bitmap bmp = new Bitmap(TestWidth, TestHeight, System.Drawing.Imaging.PixelFormat.Format24bppRgb))
         {
             baseLineOffset = 0.0f;
             topLineOffset = (Char.IsLetter(c) && Char.IsLower(c)) ? .6f : 1.0f;
 
-            using(Graphics g = Graphics.FromImage(bmp))
+            using (Graphics g = Graphics.FromImage(bmp))
             {
                 g.Clear(Color.Black);
-                using(Font font = new Font("Arial", 18.0f))
+                using (Font font = new Font("Arial", 18.0f))
                 {
                     string testString = "E " + new String(c, 1);
                     StringFormat format = new StringFormat(StringFormatFlags.NoClip | StringFormatFlags.NoWrap);
@@ -281,32 +282,32 @@ static public class LineLayout
             int stride = bdata.Stride;
             unsafe
             {
-                byte* pdata = (byte *)bdata.Scan0.ToPointer();
+                byte* pdata = (byte*)bdata.Scan0.ToPointer();
                 byte* middleLine = pdata + stride * TestHeight / 2;
                 byte* leftEdgeE = middleLine;
                 int leftEdge = 0;
-                while(*leftEdgeE < 128)
+                while (*leftEdgeE < 128)
                 {
                     leftEdgeE += 3;
                     leftEdge++;
                 }
                 byte* topEdgeE = leftEdgeE - stride;
                 int topEdge = TestHeight / 2;
-                while(*topEdgeE >= 128)
+                while (*topEdgeE >= 128)
                 {
                     topEdgeE -= stride;
                     topEdge++;
                 }
                 byte* bottomEdgeE = leftEdgeE + stride;
                 int bottomEdge = TestHeight / 2 - 1;
-                while(*bottomEdgeE >= 128)
+                while (*bottomEdgeE >= 128)
                 {
                     bottomEdgeE += stride;
                     bottomEdge--;
                 }
                 byte* rightEdgeE = topEdgeE + 3 + stride;
                 int rightEdge = leftEdge + 1;
-                while(*rightEdgeE >= 128)
+                while (*rightEdgeE >= 128)
                 {
                     rightEdgeE += 3;
                     rightEdge++;
@@ -318,12 +319,12 @@ static public class LineLayout
                 int remainTopEdge = TestHeight;
                 byte* remainLine = remainOrigin;
                 bool foundData = false;
-                for(int line = 0; line < TestHeight; line++)
+                for (int line = 0; line < TestHeight; line++)
                 {
                     byte* remainPos = remainLine;
-                    for(int x = 0; x < remainWidth; x++)
+                    for (int x = 0; x < remainWidth; x++)
                     {
-                        if(*remainPos >= 128)
+                        if (*remainPos >= 128)
                         {
                             foundData = true;
                             break;
@@ -331,7 +332,7 @@ static public class LineLayout
                         remainPos += 3;
                     }
 
-                    if(foundData)
+                    if (foundData)
                     {
                         break;
                     }
@@ -339,17 +340,17 @@ static public class LineLayout
                     remainLine += stride;
                 }
 
-                if(foundData)
+                if (foundData)
                 {
                     int remainBottomEdge = 0;
                     remainLine = remainOrigin + (TestHeight - 1) * stride;
                     foundData = false;
-                    for(int line = 0; line < TestHeight; line++)
+                    for (int line = 0; line < TestHeight; line++)
                     {
                         byte* remainPos = remainLine;
-                        for(int x = 0; x < remainWidth; x++)
+                        for (int x = 0; x < remainWidth; x++)
                         {
-                            if(*remainPos >= 128)
+                            if (*remainPos >= 128)
                             {
                                 foundData = true;
                                 break;
@@ -357,7 +358,7 @@ static public class LineLayout
                             remainPos += 3;
                         }
 
-                        if(foundData)
+                        if (foundData)
                         {
                             break;
                         }
@@ -365,7 +366,7 @@ static public class LineLayout
                         remainLine -= stride;
                     }
 
-                    if(foundData)
+                    if (foundData)
                     {
                         float heightE = Convert.ToSingle(topEdge - bottomEdge);
                         baseLineOffset = Convert.ToSingle(remainBottomEdge - bottomEdge) / heightE;
@@ -382,7 +383,7 @@ static public class LineLayout
     {
         float baseLineOffset;
         float topLineOffset;
-        if(!baseLines.TryGetValue(c, out baseLineOffset))
+        if (!baseLines.TryGetValue(c, out baseLineOffset))
         {
             FindCharacterBounds(c, out baseLineOffset, out topLineOffset);
             baseLines[c] = baseLineOffset;
@@ -391,7 +392,7 @@ static public class LineLayout
         }
         topLineOffset = topLines[c];
 
-        if(!float.IsNaN(averageHeight) && !trustedForHeight.Contains(c))
+        if (!float.IsNaN(averageHeight) && !trustedForHeight.Contains(c))
         {
             float middleLine = (baseLineOffset + topLineOffset) / 2;
             float middleChar = (bounds.Top + bounds.Bottom) / 2.0f;
@@ -415,11 +416,11 @@ static public class LineLayout
         float heightTotal = 0.0f;
         int heightCount = 0;
         int maximumHeight = 0;
-        for(int index = 0; index < blocks.Count; index++)
+        for (int index = 0; index < blocks.Count; index++)
         {
             BlockEncode block = blocks[index];
             EncodeMatch match = matches[index];
-            if((match != null) && (match.OcrEntry.OcrCharacter != OcrCharacter.Unmatched))
+            if ((match != null) && (match.OcrEntry.OcrCharacter != OcrCharacter.Unmatched))
             {
                 Rectangle bounds = match.OcrEntry.CalculateBounds();
                 maximumHeight = Math.Max(maximumHeight, bounds.Height);
@@ -427,7 +428,7 @@ static public class LineLayout
                 characterBounds.Add(new CharacterInLine(block, match, bounds));
 
                 char c = match.OcrEntry.OcrCharacter.Value;
-                if(trustedForHeight.Contains(c))
+                if (trustedForHeight.Contains(c))
                 {
                     heightTotal += bounds.Height / (topLines[c] - baseLines[c]);
                     heightCount++;
@@ -436,16 +437,16 @@ static public class LineLayout
         }
 
         float averageHeight = float.NaN;
-        if(heightCount != 0)
+        if (heightCount != 0)
         {
             averageHeight = heightTotal / heightCount;
         }
 
         SortedList<int, int> baselineCandidates = new SortedList<int, int>();
-        foreach(CharacterInLine charLine in characterBounds)
+        foreach (CharacterInLine charLine in characterBounds)
         {
             char c = charLine.Match.OcrEntry.OcrCharacter.Value;
-            if(!untrustedForBaseline.Contains(c))
+            if (!untrustedForBaseline.Contains(c))
             {
                 int baseline = CalculateBaseline(charLine.Bounds, c, averageHeight);
 
@@ -462,14 +463,14 @@ static public class LineLayout
         int lastIndex = -100;
         int lastMax = -1;
         List<int> peaks = [];
-        foreach(KeyValuePair<int, int> pair in baselineCandidates)
+        foreach (KeyValuePair<int, int> pair in baselineCandidates)
         {
-            if(pair.Key != lastIndex + 1)
+            if (pair.Key != lastIndex + 1)
             {
                 peaks.Add(pair.Key);
                 lastMax = pair.Value;
             }
-            else if(pair.Value > lastMax)
+            else if (pair.Value > lastMax)
             {
                 peaks[peaks.Count - 1] = pair.Key;
                 lastMax = pair.Value;
@@ -484,7 +485,7 @@ static public class LineLayout
         }*/
 
         bool hasPeaks = (peaks.Count != 0);
-        if(!hasPeaks)
+        if (!hasPeaks)
         {
             peaks.Add(0);
         }
@@ -492,7 +493,7 @@ static public class LineLayout
         List<Rectangle>[] lineTextBounds = new List<Rectangle>[peaks.Count];
         List<int>[] lineBlockIndexes = new List<int>[peaks.Count];
         List<EncodeMatch>[] lineEncodes = new List<EncodeMatch>[peaks.Count];
-        for(int index = 0; index < peaks.Count; index++)
+        for (int index = 0; index < peaks.Count; index++)
         {
             lineText[index] = [];
             lineTextBounds[index] = [];
@@ -502,41 +503,41 @@ static public class LineLayout
         Rectangle[] lineBounds = new Rectangle[peaks.Count];
 
         List<KeyValuePair<int, EncodeMatch>> errorMatches = new List<KeyValuePair<int, EncodeMatch>>();
-        for(int index = 0; index < blocks.Count; index++)
+        for (int index = 0; index < blocks.Count; index++)
         {
             BlockEncode block = blocks[index];
             EncodeMatch match = matches[index];
-            if((match != null) && (match.OcrEntry.OcrCharacter != OcrCharacter.Unmatched))
+            if ((match != null) && (match.OcrEntry.OcrCharacter != OcrCharacter.Unmatched))
             {
                 char c = match.OcrEntry.OcrCharacter.Value;
                 Rectangle bounds = match.OcrEntry.CalculateBounds();
                 bounds.Offset(block.Origin + new Size(subtitleOrigin));
-                if(hasPeaks)
+                if (hasPeaks)
                 {
                     int baseline = CalculateBaseline(bounds, c, averageHeight);
                     int slush;
-                    if(!baselineSlush.TryGetValue(c, out slush))
+                    if (!baselineSlush.TryGetValue(c, out slush))
                     {
                         slush = 10;
                     }
-                    if(maximumHeight >= SubConstants.NormalFontHeight)
+                    if (maximumHeight >= SubConstants.NormalFontHeight)
                     {
-                        slush = Convert.ToInt32(slush * 
+                        slush = Convert.ToInt32(slush *
                             Convert.ToSingle(maximumHeight) / SubConstants.NormalFontHeight);
                     }
 
                     int peakIndex = 0;
                     int foundPeakIndex = -1;
                     int nearestPeak = -1;
-                    foreach(int peak in peaks)
+                    foreach (int peak in peaks)
                     {
                         int nearness = Math.Abs(peak - baseline);
-                        if(nearness <= slush)
+                        if (nearness <= slush)
                         {
                             foundPeakIndex = peakIndex;
                             break;
                         }
-                        if(useNearestBaseline && ((nearestPeak == -1) || (nearness < nearestPeak)))
+                        if (useNearestBaseline && ((nearestPeak == -1) || (nearness < nearestPeak)))
                         {
                             nearestPeak = nearness;
                             foundPeakIndex = peakIndex;
@@ -544,13 +545,13 @@ static public class LineLayout
                         peakIndex++;
                     }
 
-                    if(foundPeakIndex != -1)
+                    if (foundPeakIndex != -1)
                     {
                         lineText[foundPeakIndex].Add(match.OcrEntry.OcrCharacter);
                         lineTextBounds[foundPeakIndex].Add(bounds);
                         lineBlockIndexes[foundPeakIndex].Add(index);
                         lineEncodes[foundPeakIndex].Add(match);
-                        if(lineBounds[foundPeakIndex].IsEmpty)
+                        if (lineBounds[foundPeakIndex].IsEmpty)
                         {
                             lineBounds[foundPeakIndex] = bounds;
                         }
@@ -571,7 +572,7 @@ static public class LineLayout
                     lineTextBounds[0].Add(bounds);
                     lineBlockIndexes[0].Add(index);
                     lineEncodes[0].Add(match);
-                    if(lineBounds[0].IsEmpty)
+                    if (lineBounds[0].IsEmpty)
                     {
                         lineBounds[0] = bounds;
                     }
@@ -583,17 +584,17 @@ static public class LineLayout
             }
         }
 
-        if(!useNearestBaseline)
+        if (!useNearestBaseline)
         {
             TestCharacterOrdering(lineText, lineTextBounds, lineBlockIndexes, lineEncodes, errorMatches);
         }
         ReorderLineContainingTones(lineText, lineTextBounds);
 
         List<SubtitleLine> lines = [];
-        for(int index = 0; index < peaks.Count; index++)
+        for (int index = 0; index < peaks.Count; index++)
         {
             int totalColors = 0;
-            foreach(int blockIndex in lineBlockIndexes[index])
+            foreach (int blockIndex in lineBlockIndexes[index])
             {
                 totalColors |= blocks[blockIndex].ColorBitFlags;
             }
@@ -611,43 +612,43 @@ static public class LineLayout
         return ((c >= '\x0e01') && (c < '\x0e60'));
     }
 
-    static void TestCharacterOrdering(List<OcrCharacter>[] lineText, 
+    static void TestCharacterOrdering(List<OcrCharacter>[] lineText,
         List<Rectangle>[] lineTextBounds, List<int>[] lineBlockIndexes,
         List<EncodeMatch>[] lineEncodes, List<KeyValuePair<int, EncodeMatch>> errorMatches)
     {
-        for(int lineIndex = 0; lineIndex < lineText.Length; lineIndex++)
+        for (int lineIndex = 0; lineIndex < lineText.Length; lineIndex++)
         {
             List<OcrCharacter> line = lineText[lineIndex];
             bool wasThai = false;
-            for(int charIndex = 0; charIndex < line.Count; charIndex++)
+            for (int charIndex = 0; charIndex < line.Count; charIndex++)
             {
                 bool isBad = false;
                 OcrCharacter ocr = line[charIndex];
-                switch(ocr.Value)
+                switch (ocr.Value)
                 {
-                case '่':
-                    if(((charIndex == 0) || !wasThai) &&
-                       ((charIndex >= line.Count - 1) || !IsThaiCharacter(line[charIndex + 1].Value)))
-                    {
-                        isBad = true;
-                        wasThai = false;
-                    }
-                    break;
-                case '\'':
-                    if(((charIndex != 0) && wasThai ) ||
-                       ((charIndex < line.Count - 1) && IsThaiCharacter(line[charIndex + 1].Value)))
-                    {
-                        isBad = true;
-                        wasThai = true;
-                    }
-                    break;
+                    case '่':
+                        if (((charIndex == 0) || !wasThai) &&
+                           ((charIndex >= line.Count - 1) || !IsThaiCharacter(line[charIndex + 1].Value)))
+                        {
+                            isBad = true;
+                            wasThai = false;
+                        }
+                        break;
+                    case '\'':
+                        if (((charIndex != 0) && wasThai) ||
+                           ((charIndex < line.Count - 1) && IsThaiCharacter(line[charIndex + 1].Value)))
+                        {
+                            isBad = true;
+                            wasThai = true;
+                        }
+                        break;
                 }
 
-                if(isBad)
+                if (isBad)
                 {
                     int blockIndex = lineBlockIndexes[lineIndex][charIndex];
                     EncodeMatch match = lineEncodes[lineIndex][charIndex];
-                    errorMatches.Add(new KeyValuePair<int,EncodeMatch>(blockIndex, match));
+                    errorMatches.Add(new KeyValuePair<int, EncodeMatch>(blockIndex, match));
                     lineText[lineIndex].RemoveAt(charIndex);
                     lineTextBounds[lineIndex].RemoveAt(charIndex);
                     lineBlockIndexes[lineIndex].RemoveAt(charIndex);
@@ -664,28 +665,28 @@ static public class LineLayout
 
     static void ReorderLineContainingTones(List<OcrCharacter>[] lineText, List<Rectangle>[] lineTextBounds)
     {
-        for(int lineIndex = 0; lineIndex < lineText.Length; lineIndex++)
+        for (int lineIndex = 0; lineIndex < lineText.Length; lineIndex++)
         {
             List<OcrCharacter> line = lineText[lineIndex];
             List<Rectangle> lineBounds = lineTextBounds[lineIndex];
 
             bool hasDiacrits = false;
             // first re-order accents that were placed before the characters they affect - accents come after characters
-            for(int index = 0; index < line.Count - 1; index++)
+            for (int index = 0; index < line.Count - 1; index++)
             {
                 OcrCharacter ocr = line[index];
-                if(diacritics.ContainsKey(ocr.Value))
+                if (diacritics.ContainsKey(ocr.Value))
                 {
                     hasDiacrits = true;
                     OcrCharacter ocrNext = line[index + 1];
-                    if(!diacritics.ContainsKey(ocrNext.Value))
+                    if (!diacritics.ContainsKey(ocrNext.Value))
                     {
                         Rectangle rect = lineBounds[index];
                         Rectangle rectNext = lineBounds[index + 1];
                         int midDiacritic = rect.Left + rect.Width / 2;
-                        if(midDiacritic > rectNext.Left)
+                        if (midDiacritic > rectNext.Left)
                         {
-                            if(!ocrNext.Italic || SubConstants.DiacriticLowCharacters.Contains(ocr.Value))
+                            if (!ocrNext.Italic || SubConstants.DiacriticLowCharacters.Contains(ocr.Value))
                             {
                                 line[index] = ocrNext;
                                 line[index + 1] = ocr;
@@ -701,19 +702,19 @@ static public class LineLayout
                 }
             }
 
-            if(!hasDiacrits)
+            if (!hasDiacrits)
             {
                 continue;
             }
 
             // make sure the italic-ness of accents matches that of characters
             bool isItalic = line[0].Italic;
-            for(int index = 1; index < line.Count; index++)
+            for (int index = 1; index < line.Count; index++)
             {
                 OcrCharacter ocr = line[index];
-                if(diacritics.ContainsKey(ocr.Value))
+                if (diacritics.ContainsKey(ocr.Value))
                 {
-                    if(ocr.Italic != isItalic)
+                    if (ocr.Italic != isItalic)
                     {
                         line[index] = new OcrCharacter(ocr.Value, isItalic);
                     }
@@ -726,17 +727,17 @@ static public class LineLayout
 
             // order the accents
             int lastNonAccent = -1;
-            for(int index = 0; index < line.Count - 1; index++)
+            for (int index = 0; index < line.Count - 1; index++)
             {
                 OcrCharacter ocr = line[index];
                 int ocrLevel;
-                if(diacritics.TryGetValue(ocr.Value, out ocrLevel))
+                if (diacritics.TryGetValue(ocr.Value, out ocrLevel))
                 {
                     OcrCharacter ocrNext = line[index + 1];
                     int ocrNextLevel;
-                    if(diacritics.TryGetValue(ocrNext.Value, out ocrNextLevel))
+                    if (diacritics.TryGetValue(ocrNext.Value, out ocrNextLevel))
                     {
-                        if(ocrLevel > ocrNextLevel)
+                        if (ocrLevel > ocrNextLevel)
                         {
                             Rectangle rect = lineBounds[index];
                             Rectangle rectNext = lineBounds[index + 1];
@@ -754,18 +755,18 @@ static public class LineLayout
                 }
             }
 
-            for(int index = 0; index < line.Count - 1; index++)
+            for (int index = 0; index < line.Count - 1; index++)
             {
                 OcrCharacter ocr = line[index];
-                if(ocr.Value == 'ํ')
+                if (ocr.Value == 'ํ')
                 {
                     int diacritCount = 1;
-                    while((index + diacritCount < line.Count) && diacritics.ContainsKey(line[index + diacritCount].Value))
+                    while ((index + diacritCount < line.Count) && diacritics.ContainsKey(line[index + diacritCount].Value))
                     {
                         diacritCount++;
                     }
 
-                    if((index + diacritCount < line.Count) && (line[index + diacritCount].Value == 'า'))
+                    if ((index + diacritCount < line.Count) && (line[index + diacritCount].Value == 'า'))
                     {
                         OcrCharacter ocrCombo = line[index + diacritCount];
                         line[index + diacritCount] = new OcrCharacter('ำ', ocrCombo.Italic);
@@ -773,10 +774,10 @@ static public class LineLayout
                         lineBounds.RemoveAt(index);
                     }
                 }
-                else if(ocr.Value == 'เ')
+                else if (ocr.Value == 'เ')
                 {
                     OcrCharacter ocrNext = line[index + 1];
-                    if(ocrNext.Value == 'เ')
+                    if (ocrNext.Value == 'เ')
                     {
                         Rectangle ocrRect = lineBounds[index];
                         Rectangle ocrNextRect = lineBounds[index + 1];
@@ -789,13 +790,13 @@ static public class LineLayout
             }
 
             // reverse position of tone marks after Sara Am
-            for(int index = 0; index < line.Count - 1; index++)
+            for (int index = 0; index < line.Count - 1; index++)
             {
                 OcrCharacter ocr = line[index];
-                if(ocr.Value == 'ำ')
+                if (ocr.Value == 'ำ')
                 {
                     OcrCharacter ocrNext = line[index + 1];
-                    if(SubConstants.DiacriticHighCharacters.Contains(ocrNext.Value))
+                    if (SubConstants.DiacriticHighCharacters.Contains(ocrNext.Value))
                     {
                         Rectangle ocrRect = lineBounds[index];
                         Rectangle ocrNextRect = lineBounds[index + 1];

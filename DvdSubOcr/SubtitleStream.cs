@@ -1,6 +1,7 @@
 using DvdNavigatorCrm;
 
 namespace DvdSubOcr;
+
 public class SubtitleStream
 {
     public SubtitleStream(int id, SubpictureAttributes attribs)

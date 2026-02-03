@@ -1,6 +1,7 @@
 using System.Drawing;
 
 namespace DvdNavigatorCrm;
+
 public interface IStreamDefinition
 {
     int StreamId { get; }

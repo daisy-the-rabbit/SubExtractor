@@ -1,10 +1,11 @@
 using System.ComponentModel;
+using System.Data;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
-using System.Data;
 using System.Windows.Forms;
 
 namespace DvdSubOcr;
+
 public partial class CharacterSelector : UserControl
 {
     SolidBrush backgroundBrush = new SolidBrush(SystemColors.Control);
@@ -84,7 +85,7 @@ public partial class CharacterSelector : UserControl
         get { return this.selectedCharacter; }
         set
         {
-            if(value != this.selectedCharacter)
+            if (value != this.selectedCharacter)
             {
                 this.selectedCharacter = value;
                 Invalidate();
@@ -94,7 +95,7 @@ public partial class CharacterSelector : UserControl
 
     public void Clear()
     {
-        if(this.selectedCharacter != null)
+        if (this.selectedCharacter != null)
         {
             this.selectedCharacter = null;
             Invalidate();
@@ -108,10 +109,10 @@ public partial class CharacterSelector : UserControl
         get { return this.isItalics; }
         set
         {
-            if(value != this.isItalics)
+            if (value != this.isItalics)
             {
                 this.isItalics = value;
-                if(this.hoveredCharacter != null)
+                if (this.hoveredCharacter != null)
                 {
                     this.hoveredCharacter = new OcrCharacter(
                         this.hoveredCharacter.Value, value);
@@ -125,13 +126,13 @@ public partial class CharacterSelector : UserControl
 
     protected virtual void OnSelectedCharacterChanged(OcrCharacter newSelection)
     {
-        if(newSelection != this.selectedCharacter)
+        if (newSelection != this.selectedCharacter)
         {
             OcrCharacter old = this.selectedCharacter;
             this.selectedCharacter = newSelection;
 
             EventHandler<SelectedCharacterArgs> temp = SelectedCharacterChanged;
-            if(temp != null)
+            if (temp != null)
             {
                 temp(this, new SelectedCharacterArgs(old, newSelection));
             }
@@ -147,12 +148,12 @@ public partial class CharacterSelector : UserControl
         //base.OnClick(e);
         Point mouse = PointToClient(Control.MousePosition);
         Point p = new Point(mouse.X / CellWidth, mouse.Y / CellHeight);
-        if((p.Y >= 0) && (p.Y < AllCharacters.Length))
+        if ((p.Y >= 0) && (p.Y < AllCharacters.Length))
         {
-            if((p.X >= 0) && (p.X < AllCharacters[p.Y].Length))
+            if ((p.X >= 0) && (p.X < AllCharacters[p.Y].Length))
             {
                 OcrCharacter c = new OcrCharacter(AllCharacters[p.Y][p.X], this.isItalics);
-                if(c.Equals(this.selectedCharacter))
+                if (c.Equals(this.selectedCharacter))
                 {
                     OnSelectedCharacterChanged(null);
                 }
@@ -175,9 +176,9 @@ public partial class CharacterSelector : UserControl
     {
         base.OnMouseMove(e);
         Point p = new Point(e.X / CellWidth, e.Y / CellHeight);
-        if((p.Y >= 0) && (p.Y < AllCharacters.Length))
+        if ((p.Y >= 0) && (p.Y < AllCharacters.Length))
         {
-            if((p.X >= 0) && (p.X < AllCharacters[p.Y].Length))
+            if ((p.X >= 0) && (p.X < AllCharacters[p.Y].Length))
             {
                 this.hoveredCharacter = new OcrCharacter(AllCharacters[p.Y][p.X], this.isItalics);
                 Invalidate();
@@ -192,17 +193,17 @@ public partial class CharacterSelector : UserControl
     {
         int cellWidth = this.CellWidth;
         int x = cellWidth / 2;
-        foreach(char c in characters)
+        foreach (char c in characters)
         {
             Font fontUsed = this.isItalics ? this.fontItalics : this.font;
-            if((this.selectedCharacter != null) && (c == this.selectedCharacter.Value))
+            if ((this.selectedCharacter != null) && (c == this.selectedCharacter.Value))
             {
                 fontUsed = this.selectedCharacter.Italic ? this.fontItalics : this.font;
                 Rectangle rect = new Rectangle(
                     x - cellWidth / 2, yOffset - CellHeight / 2, cellWidth, CellHeight);
                 g.FillRectangle(this.selectedCellBrush, rect);
             }
-            if((this.hoveredCharacter != null) && (c == this.hoveredCharacter.Value))
+            if ((this.hoveredCharacter != null) && (c == this.hoveredCharacter.Value))
             {
                 fontUsed = this.hoveredCharacter.Italic ? this.fontItalics : this.font;
                 Rectangle rect = new Rectangle(
@@ -210,18 +211,18 @@ public partial class CharacterSelector : UserControl
                 g.FillRectangle(this.hoveredCellBrush, rect);
             }
             int realX = x;
-            switch(c)
+            switch (c)
             {
-            case 'V':
-                realX -= DpiHelper.Scale(1, this.DeviceDpi);
-                break;
-            case 'X':
-                realX += DpiHelper.Scale(1, this.DeviceDpi);
-                break;
+                case 'V':
+                    realX -= DpiHelper.Scale(1, this.DeviceDpi);
+                    break;
+                case 'X':
+                    realX += DpiHelper.Scale(1, this.DeviceDpi);
+                    break;
             }
-            if(SpecialCharacters.Contains(c))
+            if (SpecialCharacters.Contains(c))
             {
-                if(fontUsed == this.fontItalics)
+                if (fontUsed == this.fontItalics)
                 {
                     fontUsed = this.fontSpecialItalics;
                 }
@@ -245,7 +246,7 @@ public partial class CharacterSelector : UserControl
 
         int cellHeight = this.CellHeight;
         int y = cellHeight / 2;
-        foreach(string characterString in AllCharacters)
+        foreach (string characterString in AllCharacters)
         {
             DrawRow(e.Graphics, characterString, y);
             y += cellHeight;

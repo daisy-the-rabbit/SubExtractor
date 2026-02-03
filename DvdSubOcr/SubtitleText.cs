@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class SubtitleText
 {
     List<SubtitleLine> lines;
@@ -13,12 +14,12 @@ public class SubtitleText
 
     public IList<SubtitleLine> Lines { get { return this.lines.AsReadOnly(); } }
 
-    public IList<KeyValuePair<int, EncodeMatch>> Errors 
-    { 
-        get 
-        { 
-            return this.errors.AsReadOnly(); 
-        } 
+    public IList<KeyValuePair<int, EncodeMatch>> Errors
+    {
+        get
+        {
+            return this.errors.AsReadOnly();
+        }
     }
 }
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using DvdNavigatorCrm;
 
 namespace DvdSubOcr;
+
 public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 {
     bool? isEmpty;
@@ -15,7 +16,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         this.StreamId = streamId;
         this.yuvPalette = yuvPalette;
         this.data = data;
-        if(this.Size.IsEmpty)
+        if (this.Size.IsEmpty)
         {
             this.isEmpty = true;
         }
@@ -25,22 +26,22 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
     public bool TestIfEmpty()
     {
-        if(!this.isEmpty.HasValue)
+        if (!this.isEmpty.HasValue)
         {
-            if(this.data.Length < 100)
+            if (this.data.Length < 100)
             {
-                using(SubtitleBitmap subtitle = DecodeBitmap())
+                using (SubtitleBitmap subtitle = DecodeBitmap())
                 {
                     List<int> validColors = [];
-                    for(int index = 0; index < 4; index++)
+                    for (int index = 0; index < 4; index++)
                     {
-                        if(subtitle.Bitmap.Palette.Entries[index].A != 0)
+                        if (subtitle.Bitmap.Palette.Entries[index].A != 0)
                         {
                             validColors.Add(index);
                         }
                     }
 
-                    if(validColors.Count == 0)
+                    if (validColors.Count == 0)
                     {
                         return true;
                     }
@@ -78,92 +79,92 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         Dictionary<int, int[]> paletteAlphasOverTime = new Dictionary<int, int[]>();
         int nextControl = controlSequenceOffset;
         bool isForced = false;
-        while(nextControl + 4 < dataLength)
+        while (nextControl + 4 < dataLength)
         {
             int time = (BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl)) * 1024 + 89) / 90;
             int afterNextControl = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl + 2));
-            if(afterNextControl == nextControl)
+            if (afterNextControl == nextControl)
             {
                 afterNextControl = dataLength;
             }
             bool endCodeFound = false;
             nextControl += 4;
-            while((nextControl < afterNextControl) && !endCodeFound)
+            while ((nextControl < afterNextControl) && !endCodeFound)
             {
                 int colors;
                 int offset;
                 int[] indices;
                 int[] alphas;
                 int control = byteBuffer[nextControl++];
-                switch(control)
+                switch (control)
                 {
-                case 0:
-                    startTime = Math.Min(startTime, time);
-                    isForced = true;
-                    break;
-                case 1:
-                    startTime = Math.Min(startTime, time);
-                    break;
-                case 2:
-                    endTime = Math.Max(time, endTime);
-                    break;
-                case 3:
-                    if(!paletteIndicesOverTime.TryGetValue(time, out indices))
-                    {
-                        indices = new int[4];
-                        paletteIndicesOverTime[time] = indices;
-                    }
-                    colors = byteBuffer[nextControl++];
-                    indices[3] = colors >> 4;
-                    indices[2] = colors & 0x0f;
-                    colors = byteBuffer[nextControl++];
-                    indices[1] = colors >> 4;
-                    indices[0] = colors & 0x0f;
-                    break;
-                case 4:
-                    if(!paletteAlphasOverTime.TryGetValue(time, out alphas))
-                    {
-                        alphas = new int[4];
-                        paletteAlphasOverTime[time] = alphas;
-                    }
-                    colors = byteBuffer[nextControl++];
-                    alphas[3] = colors >> 4;
-                    alphas[2] = colors & 0x0f;
-                    colors = byteBuffer[nextControl++];
-                    alphas[1] = colors >> 4;
-                    alphas[0] = colors & 0x0f;
-                    for(int index = 0; index < 4; index++)
-                    {
-                        alphas[index] += alphas[index] << 4;
-                    }
-                    break;
-                case 5:
-                    x1 = byteBuffer[nextControl++] << 4;
-                    offset = byteBuffer[nextControl++];
-                    x1 += offset >> 4;
-                    x2 = (offset & 0x0f) << 8;
-                    x2 += byteBuffer[nextControl++];
-                    y1 = byteBuffer[nextControl++] << 4;
-                    offset = byteBuffer[nextControl++];
-                    y1 += offset >> 4;
-                    y2 = (offset & 0x0f) << 8;
-                    y2 += byteBuffer[nextControl++];
-                    //Debug.WriteLine(string.Format("x1 {0} x2 {1} y1 {2} y2 {3}", 
-                    //	x1, x2, y1, y2));
-                    break;
-                case 6:
-                    topDataOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl));
-                    nextControl += 2;
-                    bottomDataOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl));
-                    nextControl += 2;
-                    break;
-                case 7:
-                    break;
-                case 0xff:
-                    endCodeFound = true;
-                    break;
-                default:
-                    break;
+                    case 0:
+                        startTime = Math.Min(startTime, time);
+                        isForced = true;
+                        break;
+                    case 1:
+                        startTime = Math.Min(startTime, time);
+                        break;
+                    case 2:
+                        endTime = Math.Max(time, endTime);
+                        break;
+                    case 3:
+                        if (!paletteIndicesOverTime.TryGetValue(time, out indices))
+                        {
+                            indices = new int[4];
+                            paletteIndicesOverTime[time] = indices;
+                        }
+                        colors = byteBuffer[nextControl++];
+                        indices[3] = colors >> 4;
+                        indices[2] = colors & 0x0f;
+                        colors = byteBuffer[nextControl++];
+                        indices[1] = colors >> 4;
+                        indices[0] = colors & 0x0f;
+                        break;
+                    case 4:
+                        if (!paletteAlphasOverTime.TryGetValue(time, out alphas))
+                        {
+                            alphas = new int[4];
+                            paletteAlphasOverTime[time] = alphas;
+                        }
+                        colors = byteBuffer[nextControl++];
+                        alphas[3] = colors >> 4;
+                        alphas[2] = colors & 0x0f;
+                        colors = byteBuffer[nextControl++];
+                        alphas[1] = colors >> 4;
+                        alphas[0] = colors & 0x0f;
+                        for (int index = 0; index < 4; index++)
+                        {
+                            alphas[index] += alphas[index] << 4;
+                        }
+                        break;
+                    case 5:
+                        x1 = byteBuffer[nextControl++] << 4;
+                        offset = byteBuffer[nextControl++];
+                        x1 += offset >> 4;
+                        x2 = (offset & 0x0f) << 8;
+                        x2 += byteBuffer[nextControl++];
+                        y1 = byteBuffer[nextControl++] << 4;
+                        offset = byteBuffer[nextControl++];
+                        y1 += offset >> 4;
+                        y2 = (offset & 0x0f) << 8;
+                        y2 += byteBuffer[nextControl++];
+                        //Debug.WriteLine(string.Format("x1 {0} x2 {1} y1 {2} y2 {3}", 
+                        //	x1, x2, y1, y2));
+                        break;
+                    case 6:
+                        topDataOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl));
+                        nextControl += 2;
+                        bottomDataOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl));
+                        nextControl += 2;
+                        break;
+                    case 7:
+                        break;
+                    case 0xff:
+                        endCodeFound = true;
+                        break;
+                    default:
+                        break;
                 }
             }
             nextControl = afterNextControl;
@@ -173,13 +174,13 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         // subtitles, we're just going to show them at their max alpha for the whole time
         int timeAtMaxAlpha = -1;
         int[] paletteAlphas = null;
-        if(paletteAlphasOverTime.Count != 0)
+        if (paletteAlphasOverTime.Count != 0)
         {
             int maxAlpha = -1;
-            foreach(KeyValuePair<int, int[]> alphaPair in paletteAlphasOverTime)
+            foreach (KeyValuePair<int, int[]> alphaPair in paletteAlphasOverTime)
             {
                 int combinedAlpha = alphaPair.Value[0] + alphaPair.Value[1] + alphaPair.Value[2] + alphaPair.Value[3];
-                if(combinedAlpha > maxAlpha)
+                if (combinedAlpha > maxAlpha)
                 {
                     maxAlpha = combinedAlpha;
                     timeAtMaxAlpha = alphaPair.Key;
@@ -194,22 +195,22 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
             paletteAlphas = [0xff, 0xff, 0xff, 0xff];
         }
 
-        if(timeAtMaxAlpha == -1)
+        if (timeAtMaxAlpha == -1)
         {
             Debug.WriteLine("timeAtMaxAlpha == -1");
             //return;
         }
 
-        if(!paletteIndicesOverTime.TryGetValue(timeAtMaxAlpha, out paletteIndices))
+        if (!paletteIndicesOverTime.TryGetValue(timeAtMaxAlpha, out paletteIndices))
         {
-            if(paletteIndicesOverTime.Count != 0)
+            if (paletteIndicesOverTime.Count != 0)
             {
                 paletteIndices = paletteIndicesOverTime[0];
             }
             else
             {
                 Debug.WriteLine("No Palette Indexes!!");
-                if(paletteIndices == null)
+                if (paletteIndices == null)
                 {
                     Debug.WriteLine("No Palette Indexes EVER!!");
                     return null;
@@ -224,14 +225,14 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         Rectangle zeroedBitmapRect = new Rectangle(0, 0, x2 - x1 + 1, y2 - y1 + 1);
 
         //bool noEndTime = false;
-        if(endTime == startTime)
+        if (endTime == startTime)
         {
             //noEndTime = true;
             //Debug.WriteLine("DvdSubDecoder::CreateSubPicture FAKE END TIME of +n Seconds");
             //Debug.WriteLine("No End Time");
             endTime = startTime + SubConstants.MaximumMillisecondsOnScreen;
         }
-        if(bitmapRect.IsEmpty || (endTime - startTime <= 0) || (topDataOffset == 0) || (bottomDataOffset == 0))
+        if (bitmapRect.IsEmpty || (endTime - startTime <= 0) || (topDataOffset == 0) || (bottomDataOffset == 0))
         {
             Debug.WriteLine($"Invalid SubPicture found: {bitmapRect} Times {startTime} {endTime} Offsets {topDataOffset} {bottomDataOffset}");
             return null;
@@ -239,25 +240,25 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
         //Debug.WriteLine(string.Format("StartTime {0} EndTime {1} pts {2}", startTime, endTime, currentPts));
 
-        if(yuvPalette.Count != 16)
+        if (yuvPalette.Count != 16)
         {
             throw new ArgumentException("YuvPalette");
         }
 
         Color[] rgbPalette = new Color[yuvPalette.Count];
-        for(int index = 0; index < yuvPalette.Count; index++)
+        for (int index = 0; index < yuvPalette.Count; index++)
         {
             rgbPalette[index] = RGBFromYUV(yuvPalette[index] & 0xffffff);
         }
 
         Color[] bmpPalette = new Color[4];
-        for(int index = 0; index < 4; index++)
+        for (int index = 0; index < 4; index++)
         {
             bmpPalette[index] = Color.FromArgb(paletteAlphas[index],
                 rgbPalette[paletteIndices[index]]);
         }
 
-        if(onlyDecodeHeaderInformation)
+        if (onlyDecodeHeaderInformation)
         {
             return new SubtitleInformation(x1, y1, bitmapRect.Width, bitmapRect.Height,
                 currentPts + startTime, Convert.ToSingle(endTime - startTime),
@@ -277,12 +278,12 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
             //Debug.WriteLine(string.Format("Top {0} bytes Bottom {1} bytes", topNibbles.Length,
             //	bottomNibbles.Length));
 
-            fixed(byte* ptrTop = topNibbles, ptrBottom = bottomNibbles, ptrByteBuffer = byteBuffer/*,
+            fixed (byte* ptrTop = topNibbles, ptrBottom = bottomNibbles, ptrByteBuffer = byteBuffer/*,
                 outBuffer = tempBuffer*/)
             {
                 byte* srcTop = ptrByteBuffer + topDataOffset;
                 byte* nibbledTop = ptrTop;
-                for(int count = bottomDataOffset - topDataOffset; count != 0; count--)
+                for (int count = bottomDataOffset - topDataOffset; count != 0; count--)
                 {
                     *nibbledTop++ = (byte)(*srcTop >> 4);
                     *nibbledTop++ = (byte)(*srcTop++ & 0x0f);
@@ -290,7 +291,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                 byte* srcBottom = ptrByteBuffer + bottomDataOffset;
                 byte* nibbledBottom = ptrBottom;
-                for(int count = controlSequenceOffset - bottomDataOffset; count != 0; count--)
+                for (int count = controlSequenceOffset - bottomDataOffset; count != 0; count--)
                 {
                     *nibbledBottom++ = (byte)(*srcBottom >> 4);
                     *nibbledBottom++ = (byte)(*srcBottom++ & 0x0f);
@@ -301,16 +302,16 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                 byte* lineStart = (byte*)buffer.Data.ToPointer();
                 //int* lineStart = (int*)outBuffer;
-                for(int line = 0; line < zeroedBitmapRect.Height; line++)
+                for (int line = 0; line < zeroedBitmapRect.Height; line++)
                 {
                     byte* dest = lineStart;
                     int bytesLeft = zeroedBitmapRect.Width;
                     int colorIndex = 0;
-                    while(bytesLeft != 0)
+                    while (bytesLeft != 0)
                     {
                         int count;
                         byte* savedNibbleTop = nibbledTop;
-                        if((*(uint*)(nibbledTop) & 0xc0f0f0f) == 0)
+                        if ((*(uint*)(nibbledTop) & 0xc0f0f0f) == 0)
                         {
                             count = bytesLeft;
                             colorIndex = *(nibbledTop + 3) & 0x3;
@@ -319,7 +320,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                         else
                         {
                             count = *nibbledTop & 0xc;
-                            if(count != 0)
+                            if (count != 0)
                             {
                                 count >>= 2;
                                 colorIndex = *nibbledTop++ & 0x3;
@@ -327,7 +328,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                             else
                             {
                                 count = *nibbledTop++;
-                                if(count != 0)
+                                if (count != 0)
                                 {
                                     count <<= 2;
                                     colorIndex = *nibbledTop++;
@@ -337,7 +338,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                                 else
                                 {
                                     count = *nibbledTop++;
-                                    if(count >= 0x4)
+                                    if (count >= 0x4)
                                     {
                                         count <<= 2;
                                         colorIndex = *nibbledTop++;
@@ -359,7 +360,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                         //int color = bmpPalette[colorIndex].ToArgb();
                         byte color = (byte)colorIndex;
                         bytesLeft -= count;
-                        while(count != 0)
+                        while (count != 0)
                         {
                             *dest++ = color;
                             count--;
@@ -367,7 +368,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                     }
                     nibbledTop += (((long)nibbledTop) & 1);
 
-                    if(++line == zeroedBitmapRect.Height)
+                    if (++line == zeroedBitmapRect.Height)
                     {
                         break;
                     }
@@ -377,11 +378,11 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                     bytesLeft = zeroedBitmapRect.Width;
                     colorIndex = 0;
-                    while(bytesLeft != 0)
+                    while (bytesLeft != 0)
                     {
                         int count;
                         byte* savedNibbleBottom = nibbledBottom;
-                        if((*(uint*)(nibbledBottom) & 0xc0f0f0f) == 0)
+                        if ((*(uint*)(nibbledBottom) & 0xc0f0f0f) == 0)
                         {
                             count = bytesLeft;
                             colorIndex = *(nibbledBottom + 3) & 0x3;
@@ -390,7 +391,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                         else
                         {
                             count = *nibbledBottom & 0xc;
-                            if(count != 0)
+                            if (count != 0)
                             {
                                 count >>= 2;
                                 colorIndex = *nibbledBottom++ & 0x3;
@@ -398,7 +399,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                             else
                             {
                                 count = *nibbledBottom++;
-                                if(count != 0)
+                                if (count != 0)
                                 {
                                     count <<= 2;
                                     colorIndex = *nibbledBottom++;
@@ -408,7 +409,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                                 else
                                 {
                                     count = *nibbledBottom++;
-                                    if(count >= 0x4)
+                                    if (count >= 0x4)
                                     {
                                         count <<= 2;
                                         colorIndex = *nibbledBottom++;
@@ -430,7 +431,7 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                         //int color = bmpPalette[colorIndex].ToArgb();
                         byte color = (byte)colorIndex;
                         bytesLeft -= count;
-                        while(count != 0)
+                        while (count != 0)
                         {
                             *dest++ = color;
                             count--;

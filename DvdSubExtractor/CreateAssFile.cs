@@ -1,12 +1,13 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class CreateAssFile
 {
     ExtractData data;
@@ -23,7 +24,7 @@ public class CreateAssFile
             ass.CreateSubtitleFile();
             return true;
         }
-        catch(IOException ex)
+        catch (IOException ex)
         {
             MessageBox.Show(ex.Message, ex.GetType().Name);
         }
@@ -38,10 +39,10 @@ public class CreateAssFile
         this.options = options;
 
         this.headers = AssHeader.Clone() as string[];
-        if(this.data.WorkingData.VideoAttributes.HorizontalResolution != 0)
+        if (this.data.WorkingData.VideoAttributes.HorizontalResolution != 0)
         {
             // if cropping to change from 16x9 to 4x3, put that in the file
-            if((this.data.WorkingData.VideoAttributes.AspectRatio == VideoAspectRatio._16by9) &&
+            if ((this.data.WorkingData.VideoAttributes.AspectRatio == VideoAspectRatio._16by9) &&
                 (this.options.Crop.X > this.data.WorkingData.VideoAttributes.HorizontalResolution / 10))
             {
                 headers[4] = $"PlayResX: {this.data.WorkingData.VideoAttributes.HorizontalResolution * 3 / 4}";
@@ -87,7 +88,7 @@ public class CreateAssFile
 
     //const string AssStyleDescription = "Style: {0},{1},{2},&H00E2DFE4,&H000000FF,&H20000000,&HC8000000,{3},0,0,0,100,100,0,0,1,{4},{5},2,40,40,15,1";
 
-    static string CreateAssStyle(string name, string fontName, int fontSize, 
+    static string CreateAssStyle(string name, string fontName, int fontSize,
         Color textColor, Color borderColor, Color shadowColor,
         bool isBold, float borderWidth, float shadowWidth, int horizontalMargin, int verticalMargin, int scaleX)
     {
@@ -125,12 +126,12 @@ public class CreateAssFile
     {
         int bitFlag = 1;
         Color brightestColor = Color.Black;
-        for(int index = 0; index < rgbPalette.Count; index++)
+        for (int index = 0; index < rgbPalette.Count; index++)
         {
-            if((colorIndex & bitFlag) == bitFlag)
+            if ((colorIndex & bitFlag) == bitFlag)
             {
                 Color color = rgbPalette[index];
-                if(brightestColor.R + brightestColor.G + brightestColor.B < color.R + color.G + color.B)
+                if (brightestColor.R + brightestColor.G + brightestColor.B < color.R + color.G + color.B)
                 {
                     brightestColor = color;
                 }
@@ -155,12 +156,12 @@ public class CreateAssFile
 
         Color mostCommonColor = Properties.Settings.Default.SubtitleForeColor;
         Dictionary<Color, int> colorsUsed = new Dictionary<Color, int>();
-        foreach(KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
+        foreach (KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
         {
-            if(entry.Value.Count != 0)
+            if (entry.Value.Count != 0)
             {
                 ISubtitleData subData = work.Subtitles[entry.Key];
-                foreach(SubtitleLine line in entry.Value)
+                foreach (SubtitleLine line in entry.Value)
                 {
                     Color brightest = FindBrightestColor(line.ColorIndex, subData.RgbPalette);
                     int count;
@@ -171,36 +172,36 @@ public class CreateAssFile
         }
 
         KeyValuePair<Color, int> colorMax = new KeyValuePair<Color, int>(mostCommonColor, 0);
-        foreach(KeyValuePair<Color, int> entry in colorsUsed)
+        foreach (KeyValuePair<Color, int> entry in colorsUsed)
         {
-            if(entry.Value > colorMax.Value)
+            if (entry.Value > colorMax.Value)
             {
                 colorMax = entry;
             }
         }
         mostCommonColor = colorMax.Key;
 
-        Color defaultColor = (Properties.Settings.Default.SubtitleColorScheme == 1) ? 
+        Color defaultColor = (Properties.Settings.Default.SubtitleColorScheme == 1) ?
             mostCommonColor : Properties.Settings.Default.SubtitleForeColor;
 
         Dictionary<SubtitleLine, string> lineStyleNames = new Dictionary<SubtitleLine, string>();
         Dictionary<OcrFont, string> usedFontStyleNames = new Dictionary<OcrFont, string>();
         int styleIndex = 2;
         Dictionary<OcrFont, string> fontStyleNames = new Dictionary<OcrFont, string>();
-        foreach(OcrFont font in work.FontList.AllFonts)
+        foreach (OcrFont font in work.FontList.AllFonts)
         {
             string styleName = $"Dialogue{styleIndex++}";
             fontStyleNames[font] = styleName;
         }
 
-        foreach(IList<SubtitleLine> lineList in work.AllLinesBySubtitle.Values)
+        foreach (IList<SubtitleLine> lineList in work.AllLinesBySubtitle.Values)
         {
-            foreach(SubtitleLine line in lineList)
+            foreach (SubtitleLine line in lineList)
             {
                 OcrFont dominantFont =
                     this.data.WorkingData.FontList.FindDominantFontForLine(line);
                 lineStyleNames[line] = fontStyleNames[dominantFont];
-                if(!usedFontStyleNames.ContainsKey(dominantFont))
+                if (!usedFontStyleNames.ContainsKey(dominantFont))
                 {
                     usedFontStyleNames[dominantFont] = fontStyleNames[dominantFont];
                 }
@@ -209,17 +210,17 @@ public class CreateAssFile
 
         Size videoSize = this.data.WorkingData.VideoAttributes.Size;
         List<SubtitleBlock> allSubs = [];
-        foreach(KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
+        foreach (KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
         {
-            if(entry.Value.Count != 0)
+            if (entry.Value.Count != 0)
             {
                 ISubtitleData subData = work.Subtitles[entry.Key];
                 string comment = entry.Value[0].Comment;
 
                 double ptsAdjustment = this.options.OverallPtsAdjustment;
-                foreach(KeyValuePair<double, double> offsetEntry in this.ptsOffsets)
+                foreach (KeyValuePair<double, double> offsetEntry in this.ptsOffsets)
                 {
-                    if(subData.Pts >= offsetEntry.Key)
+                    if (subData.Pts >= offsetEntry.Key)
                     {
                         ptsAdjustment += offsetEntry.Value;
                     }
@@ -236,31 +237,31 @@ public class CreateAssFile
                 Point origin = subData.Origin;
 
                 bool isMaxDuration = false;
-                if(duration >= SubConstants.MaximumMillisecondsOnScreen)
+                if (duration >= SubConstants.MaximumMillisecondsOnScreen)
                 {
                     duration = Math.Min(duration, SubConstants.MaximumMillisecondsOnScreen);
                     isMaxDuration = true;
                 }
-                if(entry.Key < work.Subtitles.Count - 1)
+                if (entry.Key < work.Subtitles.Count - 1)
                 {
                     double nextPts = work.Subtitles[entry.Key + 1].Pts + ptsAdjustment;
-                    if(isMaxDuration)
+                    if (isMaxDuration)
                     {
                         // don't allow overlapping timestamps for srt subtitles
                         duration = Math.Min(duration, nextPts - pts);
                     }
-                    else if(duration > 0)
+                    else if (duration > 0)
                     {
-                        if(Math.Abs(pts + duration - nextPts) <= SubConstants.PtsSlushMilliseconds)
+                        if (Math.Abs(pts + duration - nextPts) <= SubConstants.PtsSlushMilliseconds)
                         {
                             duration = nextPts - pts;
                         }
                     }
                 }
 
-                if(duration > 0)
+                if (duration > 0)
                 {
-                    if(this.options.Adjust25to24)
+                    if (this.options.Adjust25to24)
                     {
                         pts = pts * 25.0 / 24.0;
                         duration = duration * 25.0 / 24.0;
@@ -268,16 +269,16 @@ public class CreateAssFile
 
                     Point originOffset = new Point(-this.options.Crop.X, -this.options.Crop.Y);
                     List<SubtitleEntry> newEntryList = new List<SubtitleEntry>(
-                        AddDialogueEntries("", entry.Value, lineStyleNames, pts, duration, origin, originOffset, videoSize, 
-                        subData.RgbPalette, mostCommonColor, 
+                        AddDialogueEntries("", entry.Value, lineStyleNames, pts, duration, origin, originOffset, videoSize,
+                        subData.RgbPalette, mostCommonColor,
                         this.options.PositionAllSubs == LineBreaksAndPositions.KeepBreaksAndPositions, this.options.RemoveSDH));
 
-                    if(this.options.PositionAllSubs == LineBreaksAndPositions.KeepBreaks)
+                    if (this.options.PositionAllSubs == LineBreaksAndPositions.KeepBreaks)
                     {
                         newEntryList.ForEach(act => act.IsDiscontinuity = true);
                     }
 
-                    if(!String.IsNullOrWhiteSpace(comment) && (newEntryList.Count > 0))
+                    if (!String.IsNullOrWhiteSpace(comment) && (newEntryList.Count > 0))
                     {
                         SubtitleEntry firstEntry = newEntryList[0];
 
@@ -314,31 +315,31 @@ public class CreateAssFile
         string colorCommonStyle = $@"{{\c&H{defaultColor.B:X2}{defaultColor.G:X2}{defaultColor.R:X2}&}}";
 
         // try to extend the duration of identical lines in consequetive blocks
-        for(int index = 0; index < allSubs.Count; index++)
+        for (int index = 0; index < allSubs.Count; index++)
         {
             SubtitleBlock block1 = allSubs[index];
-            foreach(SubtitleEntry entry1 in block1.Entries)
+            foreach (SubtitleEntry entry1 in block1.Entries)
             {
                 double newDuration = block1.Duration;
-                for(int index2 = index + 1; index2 < allSubs.Count; index2++)
+                for (int index2 = index + 1; index2 < allSubs.Count; index2++)
                 {
                     SubtitleBlock block2 = allSubs[index2];
                     bool foundExtension = false;
 
-                    if(Math.Abs(block1.Pts + newDuration - block2.Pts) <
+                    if (Math.Abs(block1.Pts + newDuration - block2.Pts) <
                         SubConstants.PtsSlushMilliseconds)
                     {
-                        for(int entryIndex = 0; entryIndex < block2.Entries.Count; entryIndex++)
+                        for (int entryIndex = 0; entryIndex < block2.Entries.Count; entryIndex++)
                         {
                             SubtitleEntry entry2 = block2.Entries[entryIndex];
-                            if((entry2.Text == entry1.Text) && (entry2.OriginalColor == entry1.OriginalColor) &&
+                            if ((entry2.Text == entry1.Text) && (entry2.OriginalColor == entry1.OriginalColor) &&
                                 ((entry2.IsDefaultLocation && entry1.IsDefaultLocation) ||
                                     (entry2.OriginalOrigin == entry1.OriginalOrigin)))
                             {
                                 newDuration = block2.Pts + block2.Duration - block1.Pts;
                                 TimeSpan timeStart = new TimeSpan(Convert.ToInt64(block1.Pts * 10000));
                                 TimeSpan timeEnd = timeStart + new TimeSpan(Convert.ToInt64(newDuration * 10000));
-                                if(entry1.IsDefaultLocation && !entry2.IsDefaultLocation)
+                                if (entry1.IsDefaultLocation && !entry2.IsDefaultLocation)
                                 {
                                     entry1.TimeText = BuildDialogueTimeEntry(entry2.FontStyleName, "", timeStart, timeEnd);
                                     entry1.FontStyleName = entry2.FontStyleName;
@@ -348,12 +349,12 @@ public class CreateAssFile
                                 else
                                 {
                                     entry1.TimeText = BuildDialogueTimeEntry(entry1.FontStyleName, "", timeStart, timeEnd);
-                                    if(entry2.StyleText.Length > entry1.StyleText.Length)
+                                    if (entry2.StyleText.Length > entry1.StyleText.Length)
                                     {
                                         entry1.StyleText = entry2.StyleText;
                                     }
                                 }
-                                if(entry2.IsDiscontinuity && !entry1.IsDiscontinuity)
+                                if (entry2.IsDiscontinuity && !entry1.IsDiscontinuity)
                                 {
                                     entry1.IsDiscontinuity = true;
                                     entry1.NeedsHyphenation = entry2.NeedsHyphenation;
@@ -364,7 +365,7 @@ public class CreateAssFile
                             }
                             else
                             {
-                                if((entry1.Text == entry2.Text) && (entry1.StyleText == entry2.StyleText))
+                                if ((entry1.Text == entry2.Text) && (entry1.StyleText == entry2.StyleText))
                                 {
                                     Console.WriteLine("");
                                 }
@@ -372,40 +373,40 @@ public class CreateAssFile
                         }
                     }
 
-                    if(!foundExtension)
+                    if (!foundExtension)
                     {
                         break;
                     }
                 }
 
-                if(entry1.IsDiscontinuity && entry1.NeedsHyphenation)
+                if (entry1.IsDiscontinuity && entry1.NeedsHyphenation)
                 {
                     entry1.Text = SubConstants.ChangeOfSpeakerPrefix + entry1.Text;
                 }
             }
 
             // combine entries that have the same time span
-            for(int entryIndex1 = 0; entryIndex1 < block1.Entries.Count; entryIndex1++)
+            for (int entryIndex1 = 0; entryIndex1 < block1.Entries.Count; entryIndex1++)
             {
                 SubtitleEntry entry1 = block1.Entries[entryIndex1];
-                if(!entry1.IsDefaultLocation)
+                if (!entry1.IsDefaultLocation)
                 {
                     continue;
                 }
 
-                for(int entryIndex2 = entryIndex1 + 1; entryIndex2 < block1.Entries.Count; entryIndex2++)
+                for (int entryIndex2 = entryIndex1 + 1; entryIndex2 < block1.Entries.Count; entryIndex2++)
                 {
                     SubtitleEntry entry2 = block1.Entries[entryIndex2];
-                    if(!entry2.IsDefaultLocation)
+                    if (!entry2.IsDefaultLocation)
                     {
                         continue;
                     }
 
-                    if((entry1.TimeText == entry2.TimeText) && (entry1.FontStyleName == entry2.FontStyleName))
+                    if ((entry1.TimeText == entry2.TimeText) && (entry1.FontStyleName == entry2.FontStyleName))
                     {
-                        if(entry1.StyleText == entry2.StyleText)
+                        if (entry1.StyleText == entry2.StyleText)
                         {
-                            if(entry2.IsDiscontinuity)
+                            if (entry2.IsDiscontinuity)
                             {
                                 entry1.Text = entry1.Text.TrimEnd('\r', '\n') + "\\N" + entry2.Text;
                             }
@@ -416,12 +417,12 @@ public class CreateAssFile
                         }
                         else
                         {
-                            if(entry2.StyleText.Length == 0)
+                            if (entry2.StyleText.Length == 0)
                             {
                                 entry2.StyleText = colorCommonStyle;
                             }
 
-                            if(entry2.IsDiscontinuity)
+                            if (entry2.IsDiscontinuity)
                             {
                                 entry1.Text = entry1.Text.TrimEnd('\r', '\n') + "\\N" + entry2.StyleText + entry2.Text;
                             }
@@ -447,11 +448,11 @@ public class CreateAssFile
             }
             : SubConstants.FontScaleNormal;
 
-        using(StreamWriter fstream = new StreamWriter(this.fileFullPath, false, Encoding.UTF8))
+        using (StreamWriter fstream = new StreamWriter(this.fileFullPath, false, Encoding.UTF8))
         {
-            if(headers != null)
+            if (headers != null)
             {
-                foreach(string line in headers)
+                foreach (string line in headers)
                 {
                     fstream.WriteLine(line);
                 }
@@ -460,7 +461,7 @@ public class CreateAssFile
             int horizMargin = (this.data.WorkingData.VideoAttributes.AspectRatio == VideoAspectRatio._16by9) ?
                 Properties.Settings.Default.SubtitleHorizontal16x9Margin :
                 Properties.Settings.Default.SubtitleHorizontal4x3Margin;
-            if((this.data.WorkingData.VideoAttributes.HorizontalResolution != 0) &&
+            if ((this.data.WorkingData.VideoAttributes.HorizontalResolution != 0) &&
                 (this.data.WorkingData.VideoAttributes.AspectRatio == VideoAspectRatio._16by9) &&
                 (this.options.Crop.X > this.data.WorkingData.VideoAttributes.HorizontalResolution / 10))
             {
@@ -471,7 +472,7 @@ public class CreateAssFile
             float fontOutline = Properties.Settings.Default.SubtitleFontOutline;
             float fontShadow = Properties.Settings.Default.SubtitleFontShadow;
 
-            if(this.options.Is1080p)
+            if (this.options.Is1080p)
             {
                 defaultFontSize *= 2.0f;
                 horizMargin *= 2;
@@ -495,23 +496,23 @@ public class CreateAssFile
                 Convert.ToDouble(Properties.Settings.Default.FontSizeAdjustmentPercent) / 100.0;
 
             HashSet<string> stylesWithEntries = new HashSet<string>();
-            foreach(SubtitleBlock subBlock in allSubs)
+            foreach (SubtitleBlock subBlock in allSubs)
             {
-                foreach(SubtitleEntry subEntry in subBlock.Entries)
+                foreach (SubtitleEntry subEntry in subBlock.Entries)
                 {
-                    if(!stylesWithEntries.Contains(subEntry.FontStyleName))
+                    if (!stylesWithEntries.Contains(subEntry.FontStyleName))
                     {
                         stylesWithEntries.Add(subEntry.FontStyleName);
                     }
                 }
             }
 
-            foreach(KeyValuePair<OcrFont, string> entry in usedFontStyleNames)
+            foreach (KeyValuePair<OcrFont, string> entry in usedFontStyleNames)
             {
-                if(stylesWithEntries.Contains(entry.Value))
+                if (stylesWithEntries.Contains(entry.Value))
                 {
                     int fontHeight = entry.Key.MatchingRealFont.Height;
-                    if(fontHeightConversion != 1.0)
+                    if (fontHeightConversion != 1.0)
                     {
                         fontHeight = Convert.ToInt32(Convert.ToDouble(fontHeight) * fontHeightConversion);
                     }
@@ -529,14 +530,14 @@ public class CreateAssFile
                 }
             }
 
-            foreach(string line in AssHeaderAfterStyle)
+            foreach (string line in AssHeaderAfterStyle)
             {
                 fstream.WriteLine(line);
             }
 
-            foreach(SubtitleBlock subBlock in allSubs)
+            foreach (SubtitleBlock subBlock in allSubs)
             {
-                foreach(SubtitleEntry subEntry in subBlock.Entries)
+                foreach (SubtitleEntry subEntry in subBlock.Entries)
                 {
                     fstream.Write(subEntry.TimeText);
                     fstream.Write(subEntry.StyleText);
@@ -550,20 +551,20 @@ public class CreateAssFile
     {
         Color brightestColor = FindBrightestColor(colorIndex, rgbPalette);
         string colorOverride = "";
-        if(brightestColor != mostCommonColor)
+        if (brightestColor != mostCommonColor)
         {
             colorOverride = $@"{{\c&H{brightestColor.B:X2}{brightestColor.G:X2}{brightestColor.R:X2}&}}";
         }
         //if(brightestColor.B + brightestColor.G + brightestColor.R < 200)
         int bitCount = 0;
-        for(int bitFlag = 0x8000; bitFlag > 0; bitFlag >>= 1)
+        for (int bitFlag = 0x8000; bitFlag > 0; bitFlag >>= 1)
         {
-            if((colorIndex & bitFlag) != 0)
+            if ((colorIndex & bitFlag) != 0)
             {
                 bitCount++;
             }
         }
-        if(bitCount == 1)
+        if (bitCount == 1)
         {
             // if there is no shading or border around the original DVD subtitle, turn off our own border
             colorOverride += @"{\bord0}";
@@ -574,11 +575,11 @@ public class CreateAssFile
     static void AppendSubtitleLineToString(StringBuilder sb, IList<OcrCharacter> lineText)
     {
         bool isItalic = false;
-        foreach(OcrCharacter ocr in lineText)
+        foreach (OcrCharacter ocr in lineText)
         {
-            if(ocr.Italic != isItalic)
+            if (ocr.Italic != isItalic)
             {
-                if(isItalic)
+                if (isItalic)
                 {
                     sb.Append(@"{\i0}");
                 }
@@ -590,7 +591,7 @@ public class CreateAssFile
             }
             sb.Append(ocr.Value);
         }
-        if(isItalic)
+        if (isItalic)
         {
             sb.Append(@"{\i0}");
         }
@@ -598,58 +599,58 @@ public class CreateAssFile
 
     public static void FixSubtitleLineHyphens(IList<OcrCharacter> lineText)
     {
-        if(lineText.Count >= 2)
+        if (lineText.Count >= 2)
         {
-            switch(lineText[0].Value)
+            switch (lineText[0].Value)
             {
-            case '-':
-                switch(lineText[1].Value)
-                {
-                case ' ':
-                    if((lineText.Count >= 3) && (lineText[0].Italic != lineText[2].Italic))
-                    {
-                        lineText[0] = new OcrCharacter(lineText[0].Value, lineText[2].Italic);
-                    }
-                    break;
                 case '-':
-                case '—':
-                    if((lineText.Count >= 3) && (lineText[2].Value == ' '))
+                    switch (lineText[1].Value)
                     {
-                        lineText.RemoveAt(1);
-                        if(lineText.Count >= 3)
-                        {
-                            if(lineText[0].Italic != lineText[2].Italic)
+                        case ' ':
+                            if ((lineText.Count >= 3) && (lineText[0].Italic != lineText[2].Italic))
                             {
                                 lineText[0] = new OcrCharacter(lineText[0].Value, lineText[2].Italic);
                             }
-                            if(lineText[1].Italic != lineText[2].Italic)
+                            break;
+                        case '-':
+                        case '—':
+                            if ((lineText.Count >= 3) && (lineText[2].Value == ' '))
                             {
-                                lineText[1] = new OcrCharacter(lineText[1].Value, lineText[2].Italic);
+                                lineText.RemoveAt(1);
+                                if (lineText.Count >= 3)
+                                {
+                                    if (lineText[0].Italic != lineText[2].Italic)
+                                    {
+                                        lineText[0] = new OcrCharacter(lineText[0].Value, lineText[2].Italic);
+                                    }
+                                    if (lineText[1].Italic != lineText[2].Italic)
+                                    {
+                                        lineText[1] = new OcrCharacter(lineText[1].Value, lineText[2].Italic);
+                                    }
+                                }
                             }
+                            break;
+                        default:
+                            lineText.Insert(1, new OcrCharacter(' ', lineText[1].Italic));
+                            if (lineText[0].Italic != lineText[2].Italic)
+                            {
+                                lineText[0] = new OcrCharacter(lineText[0].Value, lineText[2].Italic);
+                            }
+                            break;
+                    }
+                    break;
+                case '—':
+                    if (lineText[1].Value == ' ')
+                    {
+                        lineText.RemoveAt(1);
+                        if ((lineText.Count >= 2) && (lineText[0].Italic != lineText[1].Italic))
+                        {
+                            lineText[0] = new OcrCharacter(lineText[0].Value, lineText[1].Italic);
                         }
                     }
                     break;
                 default:
-                    lineText.Insert(1, new OcrCharacter(' ', lineText[1].Italic));
-                    if(lineText[0].Italic != lineText[2].Italic)
-                    {
-                        lineText[0] = new OcrCharacter(lineText[0].Value, lineText[2].Italic);
-                    }
                     break;
-                }
-                break;
-            case '—':
-                if(lineText[1].Value == ' ')
-                {
-                    lineText.RemoveAt(1);
-                    if((lineText.Count >= 2) && (lineText[0].Italic != lineText[1].Italic))
-                    {
-                        lineText[0] = new OcrCharacter(lineText[0].Value, lineText[1].Italic);
-                    }
-                }
-                break;
-            default:
-                break;
             }
         }
     }
@@ -677,7 +678,7 @@ public class CreateAssFile
         int leftAllowed = Convert.ToInt32(videoSize.Width * SubConstants.LeftCenterMinimum);
         int rightAllowed = Convert.ToInt32(videoSize.Width * SubConstants.RightCenterMaximum);
         int edgeSlush = SubConstants.DvdLineEdgeSlush;
-        if(videoSize.Width > SubConstants.DefaultDvdHorizontalPixels * 3 / 2)
+        if (videoSize.Width > SubConstants.DefaultDvdHorizontalPixels * 3 / 2)
         {
             edgeSlush *= 2;
         }
@@ -688,34 +689,34 @@ public class CreateAssFile
 
         List<SdhSubLine> subLines = new List<SdhSubLine>(
             allLines.ConvertAll(line => new SdhSubLine { Text = line.Text, RectangleIndex = line.RectangleIndex, OriginalLine = line }));
-        if(removeSDH != RemoveSDH.None)
+        if (removeSDH != RemoveSDH.None)
         {
             subLines.Reverse();
             SdhSubLine.RemoveSDH(subLines);
 
             HashSet<int> carryRect = new HashSet<int>();
             Dictionary<int, int> linesPerRect = new Dictionary<int, int>();
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(!linesPerRect.ContainsKey(sdh.RectangleIndex))
+                if (!linesPerRect.ContainsKey(sdh.RectangleIndex))
                 {
                     linesPerRect[sdh.RectangleIndex] = 0;
                 }
 
-                if(sdh.Text.Count != 0)
+                if (sdh.Text.Count != 0)
                 {
                     bool addCount = false;
-                    if(sdh.LineStartRemoved || SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
+                    if (sdh.LineStartRemoved || SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
                     {
                         addCount = true;
                     }
-                    else if(carryRect.Contains(sdh.RectangleIndex))
+                    else if (carryRect.Contains(sdh.RectangleIndex))
                     {
                         addCount = true;
                         sdh.LineStartRemoved = true;
                     }
 
-                    if(addCount)
+                    if (addCount)
                     {
                         linesPerRect[sdh.RectangleIndex] = linesPerRect[sdh.RectangleIndex] + 1;
                         carryRect.Remove(sdh.RectangleIndex);
@@ -723,16 +724,16 @@ public class CreateAssFile
                 }
                 else
                 {
-                    if(sdh.LineStartRemoved)
+                    if (sdh.LineStartRemoved)
                     {
                         carryRect.Add(sdh.RectangleIndex);
                     }
                 }
             }
 
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(sdh.LineStartRemoved && (sdh.Text.Count != 0) && (linesPerRect[sdh.RectangleIndex] > 1) &&
+                if (sdh.LineStartRemoved && (sdh.Text.Count != 0) && (linesPerRect[sdh.RectangleIndex] > 1) &&
                     !SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
                 {
                     List<OcrCharacter> newText = new List<OcrCharacter>(sdh.Text);
@@ -746,7 +747,7 @@ public class CreateAssFile
         }
 
         List<LineState> states = [];
-        foreach(SdhSubLine subLine in subLines)
+        foreach (SdhSubLine subLine in subLines)
         {
             SubtitleLine line = subLine.OriginalLine;
             LineState state = new LineState();
@@ -762,25 +763,25 @@ public class CreateAssFile
             states.Add(state);
         }
 
-        if(!positionAllLines)
+        if (!positionAllLines)
         {
             // extend default (non-positioned, placed bottom center of screen) state of lines up and down if there are 
             // other lines just above or below which have the same left edge or if both lines have a line breaking character at the start like '-'
-            for(int index1 = 0; index1 < subLines.Count - 1; index1++)
+            for (int index1 = 0; index1 < subLines.Count - 1; index1++)
             {
                 LineState state1 = states[index1];
-                if(state1.IsDefaultWithoutY)
+                if (state1.IsDefaultWithoutY)
                 {
-                    for(int index2 = index1 + 1; index2 < subLines.Count; index2++)
+                    for (int index2 = index1 + 1; index2 < subLines.Count; index2++)
                     {
                         LineState state2 = states[index2];
-                        if(state2.MidY < state1.MidYAbove)
+                        if (state2.MidY < state1.MidYAbove)
                         {
                             break;
                         }
-                        if(!state2.IsDefaultWithoutY)
+                        if (!state2.IsDefaultWithoutY)
                         {
-                            if((Math.Abs(state1.LeftEdge - state2.LeftEdge) <= edgeSlush) || (Math.Abs(state1.RightEdge - state2.RightEdge) <= edgeSlush))
+                            if ((Math.Abs(state1.LeftEdge - state2.LeftEdge) <= edgeSlush) || (Math.Abs(state1.RightEdge - state2.RightEdge) <= edgeSlush))
                             {
                                 state2.IsDefaultWithoutY = true;
                             }
@@ -788,21 +789,21 @@ public class CreateAssFile
                     }
                 }
             }
-            for(int index1 = subLines.Count - 1; index1 > 0; index1--)
+            for (int index1 = subLines.Count - 1; index1 > 0; index1--)
             {
                 LineState state1 = states[index1];
-                if(state1.IsDefaultWithoutY)
+                if (state1.IsDefaultWithoutY)
                 {
-                    for(int index2 = index1 - 1; index2 >= 0; index2--)
+                    for (int index2 = index1 - 1; index2 >= 0; index2--)
                     {
                         LineState state2 = states[index2];
-                        if(state1.MidY < state2.MidYAbove)
+                        if (state1.MidY < state2.MidYAbove)
                         {
                             break;
                         }
-                        if(!state2.IsDefaultWithoutY)
+                        if (!state2.IsDefaultWithoutY)
                         {
-                            if((Math.Abs(state1.LeftEdge - state2.LeftEdge) <= edgeSlush) || (Math.Abs(state1.RightEdge - state2.RightEdge) <= edgeSlush))
+                            if ((Math.Abs(state1.LeftEdge - state2.LeftEdge) <= edgeSlush) || (Math.Abs(state1.RightEdge - state2.RightEdge) <= edgeSlush))
                             {
                                 state2.IsDefaultWithoutY = true;
                             }
@@ -811,11 +812,11 @@ public class CreateAssFile
                 }
             }
             int midYAllowed = Convert.ToInt32(videoSize.Height * SubConstants.UnpositionedSubtitleMaxVertical);
-            for(int index = 0; index < subLines.Count; index++)
+            for (int index = 0; index < subLines.Count; index++)
             {
                 SubtitleLine line = subLines[index].OriginalLine;
                 LineState state = states[index];
-                if(state.IsDefaultWithoutY && (state.MidY >= midYAllowed))
+                if (state.IsDefaultWithoutY && (state.MidY >= midYAllowed))
                 {
                     state.IsDefault = true;
                     midYAllowed = state.MidYAbove;
@@ -831,12 +832,12 @@ public class CreateAssFile
 
         int midYAllowedForCentering = Convert.ToInt32(videoSize.Height * SubConstants.CenteredSubtitleMinVertical);
         List<SdhSubLine> defaultPositionLines = [];
-        for(int index = 0; index < subLines.Count; index++)
+        for (int index = 0; index < subLines.Count; index++)
         {
             SubtitleLine line = subLines[index].OriginalLine;
             LineState state = states[index];
 
-            if(state.IsDefault)
+            if (state.IsDefault)
             {
                 defaultPositionLines.Add(subLines[index]);
             }
@@ -845,7 +846,7 @@ public class CreateAssFile
                 string fontStyleName = fontStyleNames[line];
                 string timeLine = BuildDialogueTimeEntry(fontStyleName, prefix, timeStart, timeEnd);
                 string positionTag;
-                if(state.Centered && (state.MidY < midYAllowedForCentering))
+                if (state.Centered && (state.MidY < midYAllowedForCentering))
                 {
                     positionTag = $@"{{\an5\pos({state.MidX + originOffset.X},{state.MidY + originOffset.Y})}}";
                 }
@@ -873,15 +874,15 @@ public class CreateAssFile
 
         defaultPositionLines.Reverse();
         int oldColorIndex = -2;
-        foreach(SdhSubLine line in defaultPositionLines)
+        foreach (SdhSubLine line in defaultPositionLines)
         {
-            if(oldColorIndex == -2)
+            if (oldColorIndex == -2)
             {
                 oldColorIndex = line.OriginalLine.ColorIndex;
             }
             else
             {
-                if(line.OriginalLine.ColorIndex != oldColorIndex)
+                if (line.OriginalLine.ColorIndex != oldColorIndex)
                 {
                     oldColorIndex = -1;
                     break;
@@ -889,7 +890,7 @@ public class CreateAssFile
             }
         }
 
-        foreach(SdhSubLine subLine in defaultPositionLines)
+        foreach (SdhSubLine subLine in defaultPositionLines)
         {
             StringBuilder sb = new StringBuilder();
             FixSubtitleLineHyphens(subLine.Text);

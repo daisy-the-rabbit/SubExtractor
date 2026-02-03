@@ -1,6 +1,7 @@
 using System.IO;
 
 namespace DvdNavigatorCrm;
+
 public class SubtitleStorage : ISubtitleStorage, IDisposable
 {
     public const string DvdOcrSubdirectory = "DvdSubExtractor";
@@ -23,7 +24,7 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
 
     SubtitleStorage(string filePath)
     {
-        if(!Directory.Exists(Path.GetDirectoryName(filePath)))
+        if (!Directory.Exists(Path.GetDirectoryName(filePath)))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(filePath));
         }
@@ -32,7 +33,7 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
         {
             this.writer = new BinaryWriter(this.fileStream, Encoding.Unicode);
         }
-        catch(Exception)
+        catch (Exception)
         {
             Dispose();
             throw;
@@ -46,7 +47,7 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
         {
             this.reader = new BinaryReader(this.fileStream, Encoding.Unicode);
         }
-        catch(Exception)
+        catch (Exception)
         {
             Dispose();
             throw;
@@ -66,103 +67,103 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
     {
         try
         {
-            while(true)
+            while (true)
             {
                 uint magic = this.reader.ReadUInt32();
-                if(magic != MagicPacket)
+                if (magic != MagicPacket)
                 {
                     throw new InvalidDataException($"Missing Magic Packet at {this.fileStream.Position}");
                 }
 
                 int id = this.reader.ReadInt32();
-                switch(id)
+                switch (id)
                 {
-                case IdHeader:
-                    this.client.AddHeader(this.reader.ReadString(), this.reader.ReadInt32(),
-                        this.reader.ReadInt32(), this.reader.ReadInt32());
-                    break;
-                case IdVideoAudio:
-                    {
-                        VideoAttributes video = new VideoAttributes()
+                    case IdHeader:
+                        this.client.AddHeader(this.reader.ReadString(), this.reader.ReadInt32(),
+                            this.reader.ReadInt32(), this.reader.ReadInt32());
+                        break;
+                    case IdVideoAudio:
                         {
-                            CodingMode = (VideoCodingMode)reader.ReadInt32(),
-                            Standard = (VideoStandard)reader.ReadInt32(),
-                            AspectRatio = (VideoAspectRatio)reader.ReadInt32(),
-                            ClosedCaptionLine21Field1 = reader.ReadBoolean(),
-                            ClosedCaptionLine21Field2 = reader.ReadBoolean(),
-                            VerticalResolution = reader.ReadInt32(),
-                            HorizontalResolution = reader.ReadInt32(),
-                            IsLetterBoxed = reader.ReadBoolean(),
-                            PalStandard = (PalStandard)reader.ReadInt32(),
-                        };
-                        int streamCount = this.reader.ReadInt32();
-                        List<AudioStreamItem> items = [];
-                        for(int index = 0; index < streamCount; index++)
-                        {
-                            int audioStreamId = this.reader.ReadInt32();
-                            AudioAttributes attribs = new AudioAttributes()
+                            VideoAttributes video = new VideoAttributes()
                             {
-                                TrackId = reader.ReadInt32(),
-                                CodingMode = (AudioCodingMode)reader.ReadInt32(),
-                                Language = reader.ReadString(),
-                                Channels = reader.ReadInt32(),
-                                CodeExtension = (AudioCodeExtension)reader.ReadInt32()
+                                CodingMode = (VideoCodingMode)reader.ReadInt32(),
+                                Standard = (VideoStandard)reader.ReadInt32(),
+                                AspectRatio = (VideoAspectRatio)reader.ReadInt32(),
+                                ClosedCaptionLine21Field1 = reader.ReadBoolean(),
+                                ClosedCaptionLine21Field2 = reader.ReadBoolean(),
+                                VerticalResolution = reader.ReadInt32(),
+                                HorizontalResolution = reader.ReadInt32(),
+                                IsLetterBoxed = reader.ReadBoolean(),
+                                PalStandard = (PalStandard)reader.ReadInt32(),
                             };
-                            items.Add(new AudioStreamItem(audioStreamId, attribs));
+                            int streamCount = this.reader.ReadInt32();
+                            List<AudioStreamItem> items = [];
+                            for (int index = 0; index < streamCount; index++)
+                            {
+                                int audioStreamId = this.reader.ReadInt32();
+                                AudioAttributes attribs = new AudioAttributes()
+                                {
+                                    TrackId = reader.ReadInt32(),
+                                    CodingMode = (AudioCodingMode)reader.ReadInt32(),
+                                    Language = reader.ReadString(),
+                                    Channels = reader.ReadInt32(),
+                                    CodeExtension = (AudioCodeExtension)reader.ReadInt32()
+                                };
+                                items.Add(new AudioStreamItem(audioStreamId, attribs));
 
+                            }
+                            this.client.AddVideoAudioInfo(video, items);
                         }
-                        this.client.AddVideoAudioInfo(video, items);
-                    }
-                    break;
-                case IdCellStart:
-                    {
-                        double ptsOffset = this.reader.ReadDouble();
-                        SaverCellType cellType = (SaverCellType)this.reader.ReadInt32();
-                        long filePosition = this.reader.ReadInt64();
-                        double firstCellPts = this.reader.ReadDouble();
-                        double firstAudioPts = this.reader.ReadDouble();
-                        double firstVideoPts = this.reader.ReadDouble();
-                        this.client.AddCellStartOffsets(ptsOffset, cellType, filePosition, firstCellPts, firstAudioPts, firstVideoPts);
-                    }
-                    break;
-                case IdStream:
-                    {
-                        int streamId = this.reader.ReadInt32();
-                        SubpictureAttributes attribs = new SubpictureAttributes()
+                        break;
+                    case IdCellStart:
                         {
-                            Language = this.reader.ReadString(),
-                            CodeExtension = (SubpictureCodeExtension)this.reader.ReadInt32(),
-                            SubpictureFormat = (SubpictureFormat)this.reader.ReadInt32()
-                        };
-                        this.client.AddStream(streamId, attribs);
-                    }
-                    break;
-                case IdPalette:
-                    {
-                        int paletteCount = this.reader.ReadInt32();
-                        List<int> palette = [];
-                        for(int index = 0; index < paletteCount; index++)
-                        {
-                            palette.Add(this.reader.ReadInt32());
+                            double ptsOffset = this.reader.ReadDouble();
+                            SaverCellType cellType = (SaverCellType)this.reader.ReadInt32();
+                            long filePosition = this.reader.ReadInt64();
+                            double firstCellPts = this.reader.ReadDouble();
+                            double firstAudioPts = this.reader.ReadDouble();
+                            double firstVideoPts = this.reader.ReadDouble();
+                            this.client.AddCellStartOffsets(ptsOffset, cellType, filePosition, firstCellPts, firstAudioPts, firstVideoPts);
                         }
-                        this.client.AddPalette(palette);
-                    }
-                    break;
-                case IdSubtitlePacket:
-                    {
-                        int streamId = this.reader.ReadInt32();
-                        int byteCount = this.reader.ReadInt32();
-                        this.client.AddSubtitlePacket(streamId,
-                            this.reader.ReadBytes(byteCount),
-                            0, byteCount, this.reader.ReadDouble());
-                    }
-                    break;
-                default:
-                    throw new InvalidDataException($"Unknown Id {id}");
+                        break;
+                    case IdStream:
+                        {
+                            int streamId = this.reader.ReadInt32();
+                            SubpictureAttributes attribs = new SubpictureAttributes()
+                            {
+                                Language = this.reader.ReadString(),
+                                CodeExtension = (SubpictureCodeExtension)this.reader.ReadInt32(),
+                                SubpictureFormat = (SubpictureFormat)this.reader.ReadInt32()
+                            };
+                            this.client.AddStream(streamId, attribs);
+                        }
+                        break;
+                    case IdPalette:
+                        {
+                            int paletteCount = this.reader.ReadInt32();
+                            List<int> palette = [];
+                            for (int index = 0; index < paletteCount; index++)
+                            {
+                                palette.Add(this.reader.ReadInt32());
+                            }
+                            this.client.AddPalette(palette);
+                        }
+                        break;
+                    case IdSubtitlePacket:
+                        {
+                            int streamId = this.reader.ReadInt32();
+                            int byteCount = this.reader.ReadInt32();
+                            this.client.AddSubtitlePacket(streamId,
+                                this.reader.ReadBytes(byteCount),
+                                0, byteCount, this.reader.ReadDouble());
+                        }
+                        break;
+                    default:
+                        throw new InvalidDataException($"Unknown Id {id}");
                 }
             }
         }
-        catch(EndOfStreamException)
+        catch (EndOfStreamException)
         {
         }
     }
@@ -204,7 +205,7 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
         this.writer.Write((int)video.PalStandard);
 
         this.writer.Write(audio.Count);
-        foreach(AudioStreamItem item in audio)
+        foreach (AudioStreamItem item in audio)
         {
             this.writer.Write(item.StreamId);
             this.writer.Write(item.AudioAttributes.TrackId);
@@ -230,7 +231,7 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
         this.writer.Write(MagicPacket);
         this.writer.Write(IdPalette);
         this.writer.Write(yuvColors.Count);
-        foreach(int color in yuvColors)
+        foreach (int color in yuvColors)
         {
             this.writer.Write(color);
         }
@@ -250,17 +251,17 @@ public class SubtitleStorage : ISubtitleStorage, IDisposable
 
     public void Dispose()
     {
-        if(this.writer != null)
+        if (this.writer != null)
         {
             this.writer.Dispose();
             this.writer = null;
         }
-        if(this.reader != null)
+        if (this.reader != null)
         {
             this.reader.Dispose();
             this.reader = null;
         }
-        if(this.fileStream != null)
+        if (this.fileStream != null)
         {
             this.fileStream.Dispose();
             this.fileStream = null;

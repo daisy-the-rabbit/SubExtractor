@@ -1,16 +1,17 @@
 using System.Diagnostics;
 
 namespace DvdSubOcr;
+
 public class FontKerning
 {
     static Dictionary<char, int> leftKerning;  // pixels letter bleeds to the left
     static Dictionary<char, int> rightKerning; // pixels letter bleeds to the right
     static Dictionary<char, int> leftItalicKerning;  // pixels letter bleeds to the left
     static Dictionary<char, int> rightItalicKerning; // pixels letter bleeds to the right
-    static Dictionary<char, int> defaultLeftKerning;  
-    static Dictionary<char, int> defaultRightKerning; 
-    static Dictionary<char, int> defaultLeftItalicKerning;  
-    static Dictionary<char, int> defaultRightItalicKerning; 
+    static Dictionary<char, int> defaultLeftKerning;
+    static Dictionary<char, int> defaultRightKerning;
+    static Dictionary<char, int> defaultLeftItalicKerning;
+    static Dictionary<char, int> defaultRightItalicKerning;
     static object initializer = BuildKerningMaps();
 
     SortedList<int, int> separations = new SortedList<int, int>();
@@ -26,7 +27,7 @@ public class FontKerning
     public static int GetDefaultLeftKerning(bool italic, char c)
     {
         int value;
-        if(italic)
+        if (italic)
         {
             defaultLeftItalicKerning.TryGetValue(c, out value);
         }
@@ -40,7 +41,7 @@ public class FontKerning
     public static int GetDefaultRightKerning(bool italic, char c)
     {
         int value;
-        if(italic)
+        if (italic)
         {
             defaultRightItalicKerning.TryGetValue(c, out value);
         }
@@ -62,10 +63,10 @@ public class FontKerning
     static void BuildDiffs(StringBuilder sb, IDictionary<char, int> defaults, IDictionary<char, int> current)
     {
         sb.Append('{');
-        foreach(var item in current)
+        foreach (var item in current)
         {
             int defaultValue;
-            if(!defaults.TryGetValue(item.Key, out defaultValue) || (item.Value != defaultValue))
+            if (!defaults.TryGetValue(item.Key, out defaultValue) || (item.Value != defaultValue))
             {
                 sb.Append($"({item.Key},{item.Value})");
             }
@@ -75,18 +76,18 @@ public class FontKerning
 
     static int ReadDiffs(String s, int index, IDictionary<char, int> current)
     {
-        if(s[index++] != '{')
+        if (s[index++] != '{')
         {
             throw new ArgumentException();
         }
-        while(s[index] != '}')
+        while (s[index] != '}')
         {
-            if(s[index++] != '(')
+            if (s[index++] != '(')
             {
                 throw new ArgumentException();
             }
             char c = s[index++];
-            if(s[index++] != ',')
+            if (s[index++] != ',')
             {
                 throw new ArgumentException();
             }
@@ -108,7 +109,7 @@ public class FontKerning
             BuildDiffs(sb, defaultRightKerning, rightKerning);
             BuildDiffs(sb, defaultLeftItalicKerning, leftItalicKerning);
             BuildDiffs(sb, defaultRightItalicKerning, rightItalicKerning);
-            if(sb.Length <= 8)
+            if (sb.Length <= 8)
             {
                 return "";
             }
@@ -117,7 +118,7 @@ public class FontKerning
         set
         {
             RestoreDefaultKernings();
-            if(!string.IsNullOrWhiteSpace(value))
+            if (!string.IsNullOrWhiteSpace(value))
             {
                 int index = ReadDiffs(value, 0, leftKerning);
                 index = ReadDiffs(value, index, rightKerning);
@@ -141,7 +142,7 @@ public class FontKerning
 
     public IDictionary<int, int> Separations { get; private set; }
     public bool IsItalic { get; private set; }
-    
+
     public IList<int> Peaks
     {
         get
@@ -153,7 +154,7 @@ public class FontKerning
 
     public void AddTextWeights(IList<OcrCharacter> text, IList<Rectangle> textBounds)
     {
-        if(text.Count == 0)
+        if (text.Count == 0)
         {
             return;
         }
@@ -162,15 +163,15 @@ public class FontKerning
 
         Rectangle leftRect = Rectangle.Empty;
         OcrCharacter leftText = null;
-        for(int index = 0; index < text.Count; index++)
+        for (int index = 0; index < text.Count; index++)
         {
             OcrCharacter rightText = text[index];
-            if(LineLayout.IsDiacritic(rightText.Value) || (textBounds[index].Width == 0))
+            if (LineLayout.IsDiacritic(rightText.Value) || (textBounds[index].Width == 0))
             {
                 continue;
             }
 
-            if(leftText == null)
+            if (leftText == null)
             {
                 leftText = text[index];
                 leftRect = textBounds[index];
@@ -179,11 +180,11 @@ public class FontKerning
 
             Rectangle rightRect = textBounds[index];
 
-            if((this.IsItalic == leftText.Italic) && (leftText.Italic == rightText.Italic) && (rightText.Value != 'ำ'))
+            if ((this.IsItalic == leftText.Italic) && (leftText.Italic == rightText.Italic) && (rightText.Value != 'ำ'))
             {
                 int diff = rightRect.Left - leftRect.Right;
 
-                if((diff < -20) || (diff > 20))
+                if ((diff < -20) || (diff > 20))
                 {
                     //Debug.WriteLine("Weird diff");
                 }
@@ -204,7 +205,7 @@ public class FontKerning
 
     void UpdatePeaks()
     {
-        if(this.peaksUpToDate || (this.separations.Count == 0))
+        if (this.peaksUpToDate || (this.separations.Count == 0))
         {
             return;
         }
@@ -213,9 +214,9 @@ public class FontKerning
         this.peaks.Clear();
         int peakIndex = -1000;
         int peakValue = 0;
-        foreach(KeyValuePair<int, int> pair in this.separations)
+        foreach (KeyValuePair<int, int> pair in this.separations)
         {
-            if(pair.Value >= peakValue)
+            if (pair.Value >= peakValue)
             {
                 peakIndex = pair.Key;
                 peakValue = pair.Value;
@@ -229,25 +230,25 @@ public class FontKerning
         int lastIndex;
         int lastValue;
         bool foundValley;
-        while(true)
+        while (true)
         {
             valleyIndex = peakIndex + 1;
             valleyValue = peakValue;
             lastIndex = peakIndex;
             lastValue = -1;
             foundValley = false;
-            foreach(KeyValuePair<int, int> pair in this.separations)
+            foreach (KeyValuePair<int, int> pair in this.separations)
             {
-                if(pair.Key > peakIndex)
+                if (pair.Key > peakIndex)
                 {
-                    if(pair.Key != lastIndex + 1)
+                    if (pair.Key != lastIndex + 1)
                     {
                         valleyIndex = pair.Key - 1;
                         valleyValue = 0;
                         foundValley = true;
                         break;
                     }
-                    if((pair.Value >= lastValue) && (lastValue * 2 < peakValue))
+                    if ((pair.Value >= lastValue) && (lastValue * 2 < peakValue))
                     {
                         valleyIndex = lastIndex;
                         valleyValue = lastValue;
@@ -259,23 +260,23 @@ public class FontKerning
                 lastValue = pair.Value;
             }
 
-            if(!foundValley)
+            if (!foundValley)
             {
                 break;
             }
 
             int peak2Index = valleyIndex + 1;
             int peak2Value = 0;
-            foreach(KeyValuePair<int, int> pair in this.separations)
+            foreach (KeyValuePair<int, int> pair in this.separations)
             {
-                if((pair.Key > valleyIndex) && (pair.Value >= peak2Value))
+                if ((pair.Key > valleyIndex) && (pair.Value >= peak2Value))
                 {
                     peak2Index = pair.Key;
                     peak2Value = pair.Value;
                 }
             }
 
-            if((peak2Value >= valleyValue * 5 / 4) && (peak2Value >= valleyValue + 3))
+            if ((peak2Value >= valleyValue * 5 / 4) && (peak2Value >= valleyValue + 3))
             {
                 this.peaks.Add(peak2Index);
                 return;
@@ -293,18 +294,18 @@ public class FontKerning
         valleyValue = peakValue;
         lastIndex = peakIndex;
         lastValue = -1;
-        foreach(KeyValuePair<int, int> pair in this.separations.Reverse())
+        foreach (KeyValuePair<int, int> pair in this.separations.Reverse())
         {
-            if(pair.Key < peakIndex)
+            if (pair.Key < peakIndex)
             {
-                if(pair.Key != lastIndex - 1)
+                if (pair.Key != lastIndex - 1)
                 {
                     valleyIndex = pair.Key + 1;
                     valleyValue = 0;
                     foundValley = true;
                     break;
                 }
-                if((pair.Value >= lastValue) && (lastValue * 2 < peakValue))
+                if ((pair.Value >= lastValue) && (lastValue * 2 < peakValue))
                 {
                     valleyIndex = lastIndex;
                     valleyValue = lastValue;
@@ -316,21 +317,21 @@ public class FontKerning
             lastValue = pair.Value;
         }
 
-        if(foundValley)
+        if (foundValley)
         {
             int peakMinus2Index = valleyIndex - 1;
             int peakMinus2Value = 0;
-            foreach(KeyValuePair<int, int> pair in this.separations.Reverse())
+            foreach (KeyValuePair<int, int> pair in this.separations.Reverse())
             {
-                if((pair.Key < valleyIndex) && (pair.Value >= peakMinus2Value))
+                if ((pair.Key < valleyIndex) && (pair.Value >= peakMinus2Value))
                 {
                     peakMinus2Index = pair.Key;
                     peakMinus2Value = pair.Value;
                 }
             }
-            if((peakMinus2Value >= valleyValue * 5 / 4) && (peakMinus2Value >= valleyValue + 3))
+            if ((peakMinus2Value >= valleyValue * 5 / 4) && (peakMinus2Value >= valleyValue + 3))
             {
-                if((peaks.Count > 0) && (Math.Abs(peaks[0] - peakMinus2Index) > 1))
+                if ((peaks.Count > 0) && (Math.Abs(peaks[0] - peakMinus2Index) > 1))
                 {
                     this.peaks.Insert(0, peakMinus2Index);
                 }
@@ -356,7 +357,7 @@ public class FontKerning
          * Unadjusted spelling errors
          * THA T (in italics) (Black Heaven 1)
         */
-        if(leftKerning == null)
+        if (leftKerning == null)
         {
             leftKerning = new Dictionary<char, int>();
             rightKerning = new Dictionary<char, int>();
@@ -542,7 +543,7 @@ public class FontKerning
     public static void AddWeight(SortedList<int, int> list, int key, int value)
     {
         int count;
-        if(list.TryGetValue(key, out count))
+        if (list.TryGetValue(key, out count))
         {
             list[key] = count + value;
         }
@@ -556,30 +557,30 @@ public class FontKerning
     {
         int diff = 0;
         int kern;
-        if(leftText.Italic)
+        if (leftText.Italic)
         {
-            if(rightItalicKerning.TryGetValue(leftText.Value, out kern))
+            if (rightItalicKerning.TryGetValue(leftText.Value, out kern))
             {
                 diff += kern;
             }
         }
         else
         {
-            if(rightKerning.TryGetValue(leftText.Value, out kern))
+            if (rightKerning.TryGetValue(leftText.Value, out kern))
             {
                 diff += kern;
             }
         }
-        if(rightText.Italic)
+        if (rightText.Italic)
         {
-            if(leftItalicKerning.TryGetValue(rightText.Value, out kern))
+            if (leftItalicKerning.TryGetValue(rightText.Value, out kern))
             {
                 diff += kern;
             }
         }
         else
         {
-            if(leftKerning.TryGetValue(rightText.Value, out kern))
+            if (leftKerning.TryGetValue(rightText.Value, out kern))
             {
                 diff += kern;
             }

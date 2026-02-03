@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Windows.Forms;
 
 namespace DvdSubOcr;
+
 public class OcrMap
 {
     const char MapConnector = '#';
@@ -44,7 +45,7 @@ public class OcrMap
     {
         string simpleName = SimplifyMovieName(name);
         int movieId;
-        if(!this.reverseMovieNameMap.TryGetValue(simpleName, out movieId))
+        if (!this.reverseMovieNameMap.TryGetValue(simpleName, out movieId))
         {
             movieId = ++maxMovieId;
             this.movieNameMap[maxMovieId] = simpleName;
@@ -87,7 +88,7 @@ public class OcrMap
         get { return useSpanishSpecialChars; }
         set
         {
-            if(value != useSpanishSpecialChars)
+            if (value != useSpanishSpecialChars)
             {
                 useSpanishSpecialChars = value;
                 movieSpecificChars.Clear();
@@ -97,15 +98,15 @@ public class OcrMap
 
     static bool CheckForMovie(OcrCharacter ocr)
     {
-        if(movieSpecificChars.Count == 0)
+        if (movieSpecificChars.Count == 0)
         {
-            foreach(char c in SubConstants.MovieSpecificChars)
+            foreach (char c in SubConstants.MovieSpecificChars)
             {
                 movieSpecificChars.Add(c);
             }
-            if(useSpanishSpecialChars)
+            if (useSpanishSpecialChars)
             {
-                foreach(char c in SubConstants.MovieSpecificSpanishChars)
+                foreach (char c in SubConstants.MovieSpecificSpanishChars)
                 {
                     movieSpecificChars.Add(c);
                 }
@@ -117,9 +118,9 @@ public class OcrMap
     BlockReducer FindReduc(string fullEncode)
     {
         BlockReducer reduc;
-        if(!this.fullToReduc.TryGetValue(fullEncode, out reduc))
+        if (!this.fullToReduc.TryGetValue(fullEncode, out reduc))
         {
-            if(!this.tempFullToReduc.TryGetValue(fullEncode, out reduc))
+            if (!this.tempFullToReduc.TryGetValue(fullEncode, out reduc))
             {
                 reduc = new BlockReducer(new BlockEncode(fullEncode));
                 this.tempFullToReduc[fullEncode] = reduc;
@@ -131,14 +132,14 @@ public class OcrMap
     public IEnumerable<OcrEntry> FindMatches(string fullEncode, int movieId, bool isHighDef, int? extraPieces = null)
     {
         IList<OcrEntry> result;
-        if(this.ocrMap.TryGetValue(fullEncode, out result))
+        if (this.ocrMap.TryGetValue(fullEncode, out result))
         {
-            foreach(OcrEntry entry in result)
+            foreach (OcrEntry entry in result)
             {
                 bool checkForMovie = CheckForMovie(entry.OcrCharacter);
-                if(!checkForMovie || entry.MovieIds.Contains(movieId))
+                if (!checkForMovie || entry.MovieIds.Contains(movieId))
                 {
-                    if(!extraPieces.HasValue || (entry.ExtraPieceCount == extraPieces.Value))
+                    if (!extraPieces.HasValue || (entry.ExtraPieceCount == extraPieces.Value))
                     {
                         yield return entry;
                     }
@@ -146,32 +147,32 @@ public class OcrMap
             }
         }
 
-        if(!isHighDef)
+        if (!isHighDef)
         {
             yield break;
         }
 
         BlockReducer reduc = FindReduc(fullEncode);
         Dictionary<OcrEntry, int> matchPossibles = new Dictionary<OcrEntry, int>();
-        foreach(KeyValuePair<string, int> reducedEncode in reduc.ReducedEncodes)
+        foreach (KeyValuePair<string, int> reducedEncode in reduc.ReducedEncodes)
         {
             IList<KeyValuePair<string, int>> reducMatches;
-            if(!this.reducToFull.TryGetValue(reducedEncode.Key, out reducMatches))
+            if (!this.reducToFull.TryGetValue(reducedEncode.Key, out reducMatches))
             {
                 continue;
             }
 
-            foreach(KeyValuePair<string, int> reducMat in reducMatches)
+            foreach (KeyValuePair<string, int> reducMat in reducMatches)
             {
                 IList<OcrEntry> matchEntries;
-                if(this.ocrMap.TryGetValue(reducMat.Key, out matchEntries))
+                if (this.ocrMap.TryGetValue(reducMat.Key, out matchEntries))
                 {
-                    foreach(OcrEntry matchEntry in matchEntries)
+                    foreach (OcrEntry matchEntry in matchEntries)
                     {
                         bool checkForMovie = CheckForMovie(matchEntry.OcrCharacter);
-                        if(!checkForMovie || matchEntry.MovieIds.Contains(movieId))
+                        if (!checkForMovie || matchEntry.MovieIds.Contains(movieId))
                         {
-                            if(!extraPieces.HasValue || (matchEntry.ExtraPieceCount == extraPieces.Value))
+                            if (!extraPieces.HasValue || (matchEntry.ExtraPieceCount == extraPieces.Value))
                             {
                                 int matchCount;
                                 matchPossibles.TryGetValue(matchEntry, out matchCount);
@@ -183,19 +184,19 @@ public class OcrMap
             }
         }
 
-        if(matchPossibles.Count != 0)
+        if (matchPossibles.Count != 0)
         {
             List<KeyValuePair<OcrEntry, int>> possibles = new List<KeyValuePair<OcrEntry, int>>(matchPossibles);
             possibles.Sort(
-                delegate(KeyValuePair<OcrEntry, int> a, KeyValuePair<OcrEntry, int> b)
+                delegate (KeyValuePair<OcrEntry, int> a, KeyValuePair<OcrEntry, int> b)
                 {
-                    if(a.Key.ExtraPieceCount != b.Key.ExtraPieceCount)
+                    if (a.Key.ExtraPieceCount != b.Key.ExtraPieceCount)
                     {
                         return -a.Key.ExtraPieceCount.CompareTo(b.Key.ExtraPieceCount);
                     }
                     return -a.Value.CompareTo(b.Value);
                 });
-            foreach(var v in possibles)
+            foreach (var v in possibles)
             {
                 yield return v.Key;
             }
@@ -204,12 +205,12 @@ public class OcrMap
 
     public bool IsMatch(string fullEncode1, string fullEncode2, bool isHighDef)
     {
-        if(!isHighDef)
+        if (!isHighDef)
         {
             return (fullEncode1 == fullEncode2);
         }
 
-        if(fullEncode1 == fullEncode2)
+        if (fullEncode1 == fullEncode2)
         {
             return true;
         }
@@ -217,9 +218,9 @@ public class OcrMap
         BlockReducer reduc1 = FindReduc(fullEncode1);
         BlockReducer reduc2 = FindReduc(fullEncode2);
 
-        foreach(var matchReducEncode in reduc1.ReducedEncodes)
+        foreach (var matchReducEncode in reduc1.ReducedEncodes)
         {
-            if(reduc2.ReducedEncodes.Any(r2 => r2.Key == matchReducEncode.Key))
+            if (reduc2.ReducedEncodes.Any(r2 => r2.Key == matchReducEncode.Key))
             {
                 return true;
             }
@@ -229,17 +230,17 @@ public class OcrMap
 
     public bool IsMatch(Point p1, string fullEncode1, Point p2, string fullEncode2, bool isHighDef)
     {
-        if(!isHighDef)
+        if (!isHighDef)
         {
             return (fullEncode1 == fullEncode2) && (p1 == p2);
         }
 
-        if((Math.Abs(p2.X - p1.X) > 2) || (Math.Abs(p2.Y - p1.Y) > 2))
+        if ((Math.Abs(p2.X - p1.X) > 2) || (Math.Abs(p2.Y - p1.Y) > 2))
         {
             return false;
         }
 
-        if(fullEncode1 == fullEncode2)
+        if (fullEncode1 == fullEncode2)
         {
             return true;
         }
@@ -247,9 +248,9 @@ public class OcrMap
         BlockReducer reduc1 = FindReduc(fullEncode1);
         BlockReducer reduc2 = FindReduc(fullEncode2);
 
-        foreach(var matchReducEncode in reduc1.ReducedEncodes)
+        foreach (var matchReducEncode in reduc1.ReducedEncodes)
         {
-            if(reduc2.ReducedEncodes.Any(r2 => r2.Key == matchReducEncode.Key))
+            if (reduc2.ReducedEncodes.Any(r2 => r2.Key == matchReducEncode.Key))
             {
                 return true;
             }
@@ -267,11 +268,11 @@ public class OcrMap
 
     public IEnumerable<OcrEntry> GetMatchesForMovie(int movieId, bool exactMovieMatchOnly)
     {
-        foreach(KeyValuePair<string, IList<OcrEntry>> match in this.Matches)
+        foreach (KeyValuePair<string, IList<OcrEntry>> match in this.Matches)
         {
-            foreach(OcrEntry entry in match.Value)
+            foreach (OcrEntry entry in match.Value)
             {
-                if((!exactMovieMatchOnly && !CheckForMovie(entry.OcrCharacter)) || 
+                if ((!exactMovieMatchOnly && !CheckForMovie(entry.OcrCharacter)) ||
                     entry.MovieIds.Contains(movieId))
                 {
                     yield return entry;
@@ -284,22 +285,22 @@ public class OcrMap
     {
         IList<OcrEntry> entries;
         bool found = false;
-        if(!this.ocrMap.TryGetValue(newEntry.FullEncode, out entries))
+        if (!this.ocrMap.TryGetValue(newEntry.FullEncode, out entries))
         {
             entries = [];
             ocrMap[newEntry.FullEncode] = entries;
         }
         else
         {
-            for(int index = 0; index < entries.Count; index++)
+            for (int index = 0; index < entries.Count; index++)
             {
                 OcrEntry entry = entries[index];
-                if(newEntry.IsBitPatternEqual(entry) && 
+                if (newEntry.IsBitPatternEqual(entry) &&
                     newEntry.OcrCharacter.Equals(entry.OcrCharacter))
                 {
-                    if(newEntry.OcrCharacter.Equals(entry.OcrCharacter))
+                    if (newEntry.OcrCharacter.Equals(entry.OcrCharacter))
                     {
-                        if(!entry.MovieIds.Contains(movieId))
+                        if (!entry.MovieIds.Contains(movieId))
                         {
                             entry.MovieIds.Add(movieId);
                         }
@@ -307,10 +308,10 @@ public class OcrMap
                     }
                     else
                     {
-                        if(entry.MovieIds.Contains(movieId))
+                        if (entry.MovieIds.Contains(movieId))
                         {
                             entry.MovieIds.Remove(movieId);
-                            if(entry.MovieIds.Count == 0)
+                            if (entry.MovieIds.Count == 0)
                             {
                                 entries.RemoveAt(index);
                                 index--;
@@ -321,19 +322,19 @@ public class OcrMap
             }
         }
 
-        if(!found)
+        if (!found)
         {
-            if(!newEntry.MovieIds.Contains(movieId))
+            if (!newEntry.MovieIds.Contains(movieId))
             {
                 newEntry.MovieIds.Add(movieId);
             }
             entries.Add(newEntry);
         }
 
-        if(isHighDef && (newEntry.OcrCharacter.Value != OcrCharacter.UnmatchedValue))
+        if (isHighDef && (newEntry.OcrCharacter.Value != OcrCharacter.UnmatchedValue))
         {
             AddReducEntry(newEntry.FullEncode);
-            foreach(var v in newEntry.ExtraPieces)
+            foreach (var v in newEntry.ExtraPieces)
             {
                 AddReducEntry(v.Value);
             }
@@ -342,10 +343,10 @@ public class OcrMap
 
     void AddReducToFull(string fullEncode, BlockReducer reduc)
     {
-        foreach(KeyValuePair<string, int> reducEncode in reduc.ReducedEncodes)
+        foreach (KeyValuePair<string, int> reducEncode in reduc.ReducedEncodes)
         {
             IList<KeyValuePair<string, int>> reverseList;
-            if(!this.reducToFull.TryGetValue(reducEncode.Key, out reverseList))
+            if (!this.reducToFull.TryGetValue(reducEncode.Key, out reverseList))
             {
                 reverseList = new List<KeyValuePair<string, int>>();
                 this.reducToFull[reducEncode.Key] = reverseList;
@@ -354,17 +355,17 @@ public class OcrMap
             else
             {
                 bool found = false;
-                for(int index = 0; index < reverseList.Count; index++)
+                for (int index = 0; index < reverseList.Count; index++)
                 {
                     var entry = reverseList[index];
-                    if(entry.Key == fullEncode)
+                    if (entry.Key == fullEncode)
                     {
                         reverseList[index] = new KeyValuePair<string, int>(entry.Key, entry.Value + 1);
                         found = true;
                         break;
                     }
                 }
-                if(!found)
+                if (!found)
                 {
                     reverseList.Add(new KeyValuePair<string, int>(fullEncode, 1));
                 }
@@ -375,9 +376,9 @@ public class OcrMap
     void AddReducEntry(string fullEncode)
     {
         BlockReducer reduc;
-        if(!this.fullToReduc.TryGetValue(fullEncode, out reduc))
+        if (!this.fullToReduc.TryGetValue(fullEncode, out reduc))
         {
-            if(!this.tempFullToReduc.TryGetValue(fullEncode, out reduc))
+            if (!this.tempFullToReduc.TryGetValue(fullEncode, out reduc))
             {
                 reduc = new BlockReducer(new BlockEncode(fullEncode));
             }
@@ -392,17 +393,17 @@ public class OcrMap
 
     void RemoveReducToFull(string fullEncode, BlockReducer reduc)
     {
-        foreach(KeyValuePair<string, int> reducString in reduc.ReducedEncodes)
+        foreach (KeyValuePair<string, int> reducString in reduc.ReducedEncodes)
         {
             IList<KeyValuePair<string, int>> matches;
-            if(this.reducToFull.TryGetValue(reducString.Key, out matches))
+            if (this.reducToFull.TryGetValue(reducString.Key, out matches))
             {
-                for(int index = 0; index < matches.Count; index++)
+                for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
-                    if(match.Key == fullEncode)
+                    if (match.Key == fullEncode)
                     {
-                        if(reducString.Value >= match.Value)
+                        if (reducString.Value >= match.Value)
                         {
                             matches.RemoveAt(index);
                         }
@@ -413,7 +414,7 @@ public class OcrMap
                         break;
                     }
                 }
-                if(matches.Count == 0)
+                if (matches.Count == 0)
                 {
                     this.reducToFull.Remove(reducString.Key);
                 }
@@ -425,28 +426,28 @@ public class OcrMap
     {
         bool found = false;
         IList<OcrEntry> entries;
-        if(this.ocrMap.TryGetValue(oldEntry.FullEncode, out entries))
+        if (this.ocrMap.TryGetValue(oldEntry.FullEncode, out entries))
         {
-            for(int index = 0; index < entries.Count; index++)
+            for (int index = 0; index < entries.Count; index++)
             {
                 OcrEntry entry = entries[index];
-                if(oldEntry.IsBitPatternEqual(entry))
+                if (oldEntry.IsBitPatternEqual(entry))
                 {
                     found = true;
                     entry.MovieIds.Remove(movieId);
-                    if(entry.MovieIds.Count == 0)
+                    if (entry.MovieIds.Count == 0)
                     {
                         entries.RemoveAt(index);
                         index--;
                     }
                 }
             }
-            if(entries.Count == 0)
+            if (entries.Count == 0)
             {
                 this.ocrMap.Remove(oldEntry.FullEncode);
 
                 BlockReducer reduc;
-                if(this.fullToReduc.TryGetValue(oldEntry.FullEncode, out reduc))
+                if (this.fullToReduc.TryGetValue(oldEntry.FullEncode, out reduc))
                 {
                     this.fullToReduc.Remove(oldEntry.FullEncode);
                     RemoveReducToFull(oldEntry.FullEncode, reduc);
@@ -460,24 +461,24 @@ public class OcrMap
     {
         bool found = false;
         IList<OcrEntry> entries;
-        if(this.ocrMap.TryGetValue(oldEntry.FullEncode, out entries))
+        if (this.ocrMap.TryGetValue(oldEntry.FullEncode, out entries))
         {
-            for(int index = 0; index < entries.Count; index++)
+            for (int index = 0; index < entries.Count; index++)
             {
                 OcrEntry entry = entries[index];
-                if(oldEntry.IsBitPatternEqual(entry))
+                if (oldEntry.IsBitPatternEqual(entry))
                 {
                     found = true;
                     entries.RemoveAt(index);
                     index--;
                 }
             }
-            if(entries.Count == 0)
+            if (entries.Count == 0)
             {
                 this.ocrMap.Remove(oldEntry.FullEncode);
 
                 BlockReducer reduc;
-                if(this.fullToReduc.TryGetValue(oldEntry.FullEncode, out reduc))
+                if (this.fullToReduc.TryGetValue(oldEntry.FullEncode, out reduc))
                 {
                     this.fullToReduc.Remove(oldEntry.FullEncode);
                     RemoveReducToFull(oldEntry.FullEncode, reduc);
@@ -490,9 +491,9 @@ public class OcrMap
     public void AddSplit(string fullEncode, int movieId)
     {
         SplitMapEntry entry;
-        if(this.ocrSplits.TryGetValue(fullEncode, out entry))
+        if (this.ocrSplits.TryGetValue(fullEncode, out entry))
         {
-            if(!entry.MovieIds.Contains(movieId))
+            if (!entry.MovieIds.Contains(movieId))
             {
                 entry.MovieIds.Add(movieId);
             }
@@ -502,12 +503,12 @@ public class OcrMap
     public void AddSplit(string fullEncode, OcrSplit split1, OcrSplit split2, int movieId)
     {
         SplitMapEntry entry;
-        if(this.ocrSplits.TryGetValue(fullEncode, out entry))
+        if (this.ocrSplits.TryGetValue(fullEncode, out entry))
         {
-            if((entry.Split1.Equals(split1) && entry.Split2.Equals(split2)) ||
+            if ((entry.Split1.Equals(split1) && entry.Split2.Equals(split2)) ||
                 (entry.Split1.Equals(split2) && entry.Split2.Equals(split1)))
             {
-                if(!entry.MovieIds.Contains(movieId))
+                if (!entry.MovieIds.Contains(movieId))
                 {
                     entry.MovieIds.Add(movieId);
                 }
@@ -528,7 +529,7 @@ public class OcrMap
     public SplitMapEntry FindSplit(string fullEncode)
     {
         SplitMapEntry entry;
-        if(this.ocrSplits.TryGetValue(fullEncode, out entry))
+        if (this.ocrSplits.TryGetValue(fullEncode, out entry))
         {
             return entry;
         }
@@ -538,11 +539,11 @@ public class OcrMap
     public void RemoveSplit(string fullEncode, int movieId)
     {
         SplitMapEntry entry;
-        if(this.ocrSplits.TryGetValue(fullEncode, out entry))
+        if (this.ocrSplits.TryGetValue(fullEncode, out entry))
         {
-            if(entry.MovieIds.Contains(movieId))
+            if (entry.MovieIds.Contains(movieId))
             {
-                if(entry.MovieIds.Count == 1)
+                if (entry.MovieIds.Count == 1)
                 {
                     this.ocrSplits.Remove(fullEncode);
                 }
@@ -563,7 +564,7 @@ public class OcrMap
     {
         get
         {
-            foreach(string word in this.lAndIWords)
+            foreach (string word in this.lAndIWords)
             {
                 yield return word;
             }
@@ -582,7 +583,7 @@ public class OcrMap
 
     public void RemoveLandIWord(string word)
     {
-        if(this.lAndIWords.Contains(word))
+        if (this.lAndIWords.Contains(word))
         {
             this.lAndIWords.Remove(word);
         }
@@ -616,18 +617,18 @@ public class OcrMap
 
     public void Load()
     {
-        if(!File.Exists(StorageFile))
+        if (!File.Exists(StorageFile))
         {
             return;
         }
 
-        using(FileStream fileStream = new FileStream(StorageFile, FileMode.Open, FileAccess.Read))
+        using (FileStream fileStream = new FileStream(StorageFile, FileMode.Open, FileAccess.Read))
         {
-            using(BinaryReader reader = new BinaryReader(fileStream, Encoding.Unicode))
+            using (BinaryReader reader = new BinaryReader(fileStream, Encoding.Unicode))
             {
                 int version = reader.ReadInt32();
 
-                if((version < Version1) || (version > CurrentVersion))
+                if ((version < Version1) || (version > CurrentVersion))
                 {
                     return;
                 }
@@ -639,13 +640,13 @@ public class OcrMap
                 int dupSplitsUsed = 0;
 
                 int movieCount = reader.ReadInt32();
-                for(int index = 0; index < movieCount; index++)
+                for (int index = 0; index < movieCount; index++)
                 {
                     int id = reader.ReadInt32();
                     string name = reader.ReadString();
                     string simpleName = SimplifyMovieName(name);
                     int dupId;
-                    if(this.reverseMovieNameMap.TryGetValue(simpleName, out dupId))
+                    if (this.reverseMovieNameMap.TryGetValue(simpleName, out dupId))
                     {
                         duplicateMovieIds[id] = dupId;
                         System.Diagnostics.Debug.WriteLine(name + " Dup Movie of " + simpleName);
@@ -659,42 +660,42 @@ public class OcrMap
                 }
 
                 int ocrCount = reader.ReadInt32();
-                for(int index = 0; index < ocrCount; index++)
+                for (int index = 0; index < ocrCount; index++)
                 {
                     int entryCount = reader.ReadInt32();
                     string fullEncode = reader.ReadString();
                     List<OcrEntry> entries = [];
                     this.ocrMap[fullEncode] = entries;
-                    for(int entryIndex = 0; entryIndex < entryCount; entryIndex++)
+                    for (int entryIndex = 0; entryIndex < entryCount; entryIndex++)
                     {
                         OcrCharacter ocr = new OcrCharacter(reader.ReadChar(), reader.ReadBoolean());
                         int extraPieceCount = reader.ReadInt32();
                         OcrEntry entry = null;
-                        if(extraPieceCount == 0)
+                        if (extraPieceCount == 0)
                         {
                             entry = new OcrEntry(fullEncode, ocr);
                         }
                         else
                         {
                             List<KeyValuePair<Point, string>> extras = new List<KeyValuePair<Point, string>>();
-                            for(int count = 0; count < extraPieceCount; count++)
+                            for (int count = 0; count < extraPieceCount; count++)
                             {
                                 Point offset = new Point(reader.ReadInt32(), reader.ReadInt32());
                                 string combo = reader.ReadString();
-                                extras.Add(new KeyValuePair<Point,string>(offset, combo));
+                                extras.Add(new KeyValuePair<Point, string>(offset, combo));
                             }
                             entry = new OcrEntry(fullEncode, ocr, extras);
                         }
 
                         int movieIdCount = reader.ReadInt32();
-                        for(int movieIndex = 0; movieIndex < movieIdCount; movieIndex++)
+                        for (int movieIndex = 0; movieIndex < movieIdCount; movieIndex++)
                         {
                             int id = reader.ReadInt32();
                             int dupId;
-                            if(duplicateMovieIds.TryGetValue(id, out dupId))
+                            if (duplicateMovieIds.TryGetValue(id, out dupId))
                             {
                                 dupOcrsFound++;
-                                if(!entry.MovieIds.Contains(dupId))
+                                if (!entry.MovieIds.Contains(dupId))
                                 {
                                     dupOcrsUsed++;
                                     entry.MovieIds.Add(dupId);
@@ -710,7 +711,7 @@ public class OcrMap
                 }
 
                 int ocrSplitCount = reader.ReadInt32();
-                for(int index = 0; index < ocrSplitCount; index++)
+                for (int index = 0; index < ocrSplitCount; index++)
                 {
                     string key = reader.ReadString();
 
@@ -723,14 +724,14 @@ public class OcrMap
 
                     int movieIdCount = reader.ReadInt32();
                     List<int> movieIds = [];
-                    for(int movieIndex = 0; movieIndex < movieIdCount; movieIndex++)
+                    for (int movieIndex = 0; movieIndex < movieIdCount; movieIndex++)
                     {
                         int id = reader.ReadInt32();
                         int dupId;
-                        if(duplicateMovieIds.TryGetValue(id, out dupId))
+                        if (duplicateMovieIds.TryGetValue(id, out dupId))
                         {
                             dupSplitsFound++;
-                            if(!movieIds.Contains(dupId))
+                            if (!movieIds.Contains(dupId))
                             {
                                 dupSplitsUsed++;
                                 movieIds.Add(dupId);
@@ -744,10 +745,10 @@ public class OcrMap
                     this.ocrSplits[key] = new SplitMapEntry(split1, split2, movieIds);
                 }
 
-                if(version > Version1)
+                if (version > Version1)
                 {
                     int lAndICount = reader.ReadInt32();
-                    for(int index = 0; index < lAndICount; index++)
+                    for (int index = 0; index < lAndICount; index++)
                     {
                         string word = reader.ReadString();
                         this.lAndIWords.Add(word);
@@ -756,17 +757,17 @@ public class OcrMap
 
                 this.fullToReduc.Clear();
                 this.reducToFull.Clear();
-                if(version > Version2)
+                if (version > Version2)
                 {
                     int fullToReducCount = reader.ReadInt32();
 
-                    if((version == Version3) || (version == Version4))
+                    if ((version == Version3) || (version == Version4))
                     {
-                        for(int index = 0; index < fullToReducCount; index++)
+                        for (int index = 0; index < fullToReducCount; index++)
                         {
                             string full = reader.ReadString();
                             int reducCount = reader.ReadInt32();
-                            for(int reducIndex = 0; reducIndex < reducCount; reducIndex++)
+                            for (int reducIndex = 0; reducIndex < reducCount; reducIndex++)
                             {
                                 reader.ReadString();
                             }
@@ -776,14 +777,14 @@ public class OcrMap
                     }
                     else
                     {
-                        for(int index = 0; index < fullToReducCount; index++)
+                        for (int index = 0; index < fullToReducCount; index++)
                         {
                             string full = reader.ReadString();
                             int reducCount = reader.ReadInt32();
                             KeyValuePair<string, int>[] reducs = new KeyValuePair<string, int>[reducCount];
-                            for(int reducIndex = 0; reducIndex < reducCount; reducIndex++)
+                            for (int reducIndex = 0; reducIndex < reducCount; reducIndex++)
                             {
-                                reducs[reducIndex] = new KeyValuePair<string,int>(reader.ReadString(), reader.ReadInt32());
+                                reducs[reducIndex] = new KeyValuePair<string, int>(reader.ReadString(), reader.ReadInt32());
                             }
                             BlockReducer reduc = new BlockReducer(full, reducs);
                             AddReducToFull(full, reduc);
@@ -800,32 +801,32 @@ public class OcrMap
 
     public void Save()
     {
-        using(FileStream fileStream = new FileStream(StorageFile, FileMode.Create, FileAccess.Write))
+        using (FileStream fileStream = new FileStream(StorageFile, FileMode.Create, FileAccess.Write))
         {
-            using(BinaryWriter writer = new BinaryWriter(fileStream, Encoding.Unicode))
+            using (BinaryWriter writer = new BinaryWriter(fileStream, Encoding.Unicode))
             {
                 writer.Write(CurrentVersion);
 
                 writer.Write(this.movieNameMap.Count);
-                foreach(KeyValuePair<int, string> movieName in this.movieNameMap)
+                foreach (KeyValuePair<int, string> movieName in this.movieNameMap)
                 {
                     writer.Write(movieName.Key);
                     writer.Write(movieName.Value);
                 }
 
                 writer.Write(this.ocrMap.Count);
-                foreach(List<OcrEntry> ocrEntries in this.ocrMap.Values)
+                foreach (List<OcrEntry> ocrEntries in this.ocrMap.Values)
                 {
                     writer.Write(ocrEntries.Count);
                     writer.Write(ocrEntries[0].FullEncode);
-                    foreach(OcrEntry entry in ocrEntries)
+                    foreach (OcrEntry entry in ocrEntries)
                     {
                         writer.Write(entry.OcrCharacter.Value);
                         writer.Write(entry.OcrCharacter.Italic);
                         writer.Write(entry.ExtraPieceCount);
-                        if(entry.ExtraPieceCount > 0)
+                        if (entry.ExtraPieceCount > 0)
                         {
-                            foreach(KeyValuePair<Point, string> piece in entry.ExtraPieces)
+                            foreach (KeyValuePair<Point, string> piece in entry.ExtraPieces)
                             {
                                 writer.Write(piece.Key.X);
                                 writer.Write(piece.Key.Y);
@@ -833,7 +834,7 @@ public class OcrMap
                             }
                         }
                         writer.Write(entry.MovieIds.Count);
-                        foreach(int movieId in entry.MovieIds)
+                        foreach (int movieId in entry.MovieIds)
                         {
                             writer.Write(movieId);
                         }
@@ -841,7 +842,7 @@ public class OcrMap
                 }
 
                 writer.Write(this.ocrSplits.Count);
-                foreach(KeyValuePair<string, SplitMapEntry> entry in this.ocrSplits)
+                foreach (KeyValuePair<string, SplitMapEntry> entry in this.ocrSplits)
                 {
                     writer.Write(entry.Key);
                     writer.Write(entry.Value.Split1.FullEncode);
@@ -851,24 +852,24 @@ public class OcrMap
                     writer.Write(entry.Value.Split2.Offset.X);
                     writer.Write(entry.Value.Split2.Offset.Y);
                     writer.Write(entry.Value.MovieIds.Count);
-                    foreach(int movieId in entry.Value.MovieIds)
+                    foreach (int movieId in entry.Value.MovieIds)
                     {
                         writer.Write(movieId);
                     }
                 }
 
                 writer.Write(this.lAndIWords.Count);
-                foreach(string word in this.lAndIWords)
+                foreach (string word in this.lAndIWords)
                 {
                     writer.Write(word);
                 }
 
                 writer.Write(this.fullToReduc.Count);
-                foreach(var v in this.fullToReduc)
+                foreach (var v in this.fullToReduc)
                 {
                     writer.Write(v.Key);
                     writer.Write(v.Value.ReducedEncodes.Count());
-                    foreach(KeyValuePair<string, int> reduc in v.Value.ReducedEncodes)
+                    foreach (KeyValuePair<string, int> reduc in v.Value.ReducedEncodes)
                     {
                         writer.Write(reduc.Key);
                         writer.Write(reduc.Value);

@@ -21,6 +21,7 @@
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 public class AudioStreamItem : IComparable<AudioStreamItem>
 {
     public AudioStreamItem(int streamId, AudioAttributes audioAttributes)

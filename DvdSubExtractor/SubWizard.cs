@@ -1,11 +1,12 @@
 using System.ComponentModel;
 using System.Data;
-using System.Reflection;
 using System.IO;
+using System.Reflection;
 using DvdNavigatorCrm;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public partial class SubWizard : Form
 {
     ExtractData data = new ExtractData();
@@ -27,7 +28,7 @@ public partial class SubWizard : Form
         InitializeComponent();
         Localize();
 
-        if(!Properties.Settings.Default.ShowHelpText)
+        if (!Properties.Settings.Default.ShowHelpText)
         {
             this.helpTextBox.Visible = false;
             int newClientWidth = this.helpTextBox.Left;
@@ -37,7 +38,7 @@ public partial class SubWizard : Form
             this.MinimumSize = new Size(this.MinimumSize.Width - widthReduction, this.MinimumSize.Height);
         }
 
-        if(Properties.Settings.Default.LargeMode)
+        if (Properties.Settings.Default.LargeMode)
         {
             this.Font = SubConstants.CreateLargeFormFont(this.DeviceDpi);
             this.helpTextBox.Font = SubConstants.CreateLargeHelpFont(this.DeviceDpi);
@@ -46,7 +47,7 @@ public partial class SubWizard : Form
 
         object[] fileAttribs = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyFileVersionAttribute), true);
         string fileVersion = "";
-        foreach(AssemblyFileVersionAttribute attrib in fileAttribs)
+        foreach (AssemblyFileVersionAttribute attrib in fileAttribs)
         {
             fileVersion = Version.Parse(attrib.Version).ToString(3);
             break;
@@ -59,7 +60,7 @@ public partial class SubWizard : Form
         this.data.JumpToStepsUpdated += this.data_JumpToStepsUpdated;
         this.data.JumpTo += this.data_JumpTo;
 
-        if(Properties.Settings.Default.InitialStepIsBrowse)
+        if (Properties.Settings.Default.InitialStepIsBrowse)
         {
             this.stepIndex = ChooseSubtitlesStepIndex;
         }
@@ -78,7 +79,7 @@ public partial class SubWizard : Form
 
     void data_HelpTextUpdated(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.helpTextBox.Text = this.data.HelpText;
         }
@@ -86,7 +87,7 @@ public partial class SubWizard : Form
 
     void data_IsCurrentStepCompleteUpdated(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.nextButton.Enabled = this.data.IsCurrentStepComplete &&
                 (this.stepIndex < stepTypes.Length - 1);
@@ -95,7 +96,7 @@ public partial class SubWizard : Form
 
     void data_IsPreviousStepCompleteUpdated(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.previousStepButton.Enabled = this.data.IsPreviousStepComplete &&
                 (this.stepIndex > 0);
@@ -104,7 +105,7 @@ public partial class SubWizard : Form
 
     void data_JumpToStepsUpdated(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.openDvdToolStripMenuItem.Enabled = this.data.JumpToSteps.Contains(typeof(LoadFolderStep));
             this.openFileToolStripMenuItem.Enabled = this.data.JumpToSteps.Contains(typeof(ChooseSubtitlesStep));
@@ -113,12 +114,12 @@ public partial class SubWizard : Form
 
     void data_JumpTo(object sender, TypeEventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             int newIndex = 0;
-            foreach(Type type in stepTypes)
+            foreach (Type type in stepTypes)
             {
-                if(type == e.Type)
+                if (type == e.Type)
                 {
                     this.oldIndex = this.stepIndex;
                     this.stepIndex = newIndex;
@@ -144,7 +145,7 @@ public partial class SubWizard : Form
 
     void ClearCurrentStep()
     {
-        if(this.currentItem != null)
+        if (this.currentItem != null)
         {
             this.currentItem.Terminate();
 
@@ -159,7 +160,7 @@ public partial class SubWizard : Form
 
     void LoadCurrentStep()
     {
-        if(this.IsDisposed || this.Disposing)
+        if (this.IsDisposed || this.Disposing)
         {
             return;
         }
@@ -169,7 +170,7 @@ public partial class SubWizard : Form
         this.currentItem =
             stepTypes[this.stepIndex].GetConstructor(Type.EmptyTypes).Invoke(null) as IWizardItem;
 
-        if(this.IsDisposed || this.Disposing || this.currentItem is not Control control)
+        if (this.IsDisposed || this.Disposing || this.currentItem is not Control control)
         {
             return;
         }
@@ -184,7 +185,7 @@ public partial class SubWizard : Form
         this.Controls.Add(control);
         this.currentItem.Initialize(this.data);
 
-        if(this.IsDisposed || this.Disposing || (this.currentItem == null))
+        if (this.IsDisposed || this.Disposing || (this.currentItem == null))
         {
             return;
         }
@@ -200,17 +201,17 @@ public partial class SubWizard : Form
 
     private void optionsButton_Click(object sender, EventArgs e)
     {
-        using(OptionsForm options = new OptionsForm())
+        using (OptionsForm options = new OptionsForm())
         {
-            if((this.currentItem != null) && subtitleOptionTypes.Contains(this.currentItem.GetType()))
+            if ((this.currentItem != null) && subtitleOptionTypes.Contains(this.currentItem.GetType()))
             {
                 options.ShowSubtitleTab();
             }
-            if(this.currentItem is SpellCheckStep)
+            if (this.currentItem is SpellCheckStep)
             {
                 options.ShowLandIWordTab((this.currentItem as SpellCheckStep).OcrMap);
             }
-            if((options.ShowDialog(this) == DialogResult.OK) && (this.currentItem != null))
+            if ((options.ShowDialog(this) == DialogResult.OK) && (this.currentItem != null))
             {
                 this.data.OnOptionsUpdated(this);
             }
@@ -219,7 +220,7 @@ public partial class SubWizard : Form
 
     private void previousButton_Click(object sender, EventArgs e)
     {
-        if(subdialogTypes.Contains(this.currentItem.GetType()))
+        if (subdialogTypes.Contains(this.currentItem.GetType()))
         {
             this.stepIndex = this.oldIndex;
             this.oldIndex = -1;
@@ -246,7 +247,7 @@ public partial class SubWizard : Form
             // remote desktop error workaround
             e.Graphics.Clear(SystemColors.AppWorkspace);
         }
-        catch(Exception)
+        catch (Exception)
         {
         }
         //base.OnPaint(e);
@@ -254,7 +255,7 @@ public partial class SubWizard : Form
 
     private void aboutButton_Click(object sender, EventArgs e)
     {
-        using(AboutForm about = new AboutForm())
+        using (AboutForm about = new AboutForm())
         {
             about.ShowDialog(this);
         }
@@ -270,7 +271,7 @@ public partial class SubWizard : Form
 
     private void openDvdToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.oldIndex = -1;
             this.stepIndex = stepTypes.ToList().IndexOf(typeof(LoadFolderStep));
@@ -280,7 +281,7 @@ public partial class SubWizard : Form
 
     private void openFileToolStripMenuItem_Click(object sender, EventArgs e)
     {
-        if(!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
+        if (!this.IsDisposed && !this.Disposing && this.IsHandleCreated)
         {
             this.oldIndex = -1;
             this.stepIndex = stepTypes.ToList().IndexOf(typeof(ChooseSubtitlesStep));

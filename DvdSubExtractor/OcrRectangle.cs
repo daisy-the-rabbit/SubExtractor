@@ -1,8 +1,9 @@
 using System.Runtime.InteropServices;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class OcrRectangle
 {
     Point subtitleOrigin;
@@ -19,7 +20,7 @@ public class OcrRectangle
     SubtitleText subText;
     bool isHighDef;
 
-    public OcrRectangle(SubtitleBitmap subBitmap, Point subtitleOrigin, 
+    public OcrRectangle(SubtitleBitmap subBitmap, Point subtitleOrigin,
         OcrMap ocrMap, int movieId, Rectangle rect, IEnumerable<int> colorIndexes, bool isHighDef)
     {
         this.isHighDef = isHighDef;
@@ -34,7 +35,7 @@ public class OcrRectangle
     }
 
     public int PaletteCount { get { return this.palettes.Count; } }
-    public IList<BlockEncode> Blocks 
+    public IList<BlockEncode> Blocks
     {
         get { return this.reorderedBlocks; }
         private set
@@ -52,7 +53,7 @@ public class OcrRectangle
 
     public void NextPalette()
     {
-        if((this.palettes != null) && (this.palettes.Count != 0))
+        if ((this.palettes != null) && (this.palettes.Count != 0))
         {
             this.paletteIndex = (this.paletteIndex + 1) % this.palettes.Count;
             this.Blocks = this.palettes[this.paletteIndex].Blocks;
@@ -62,7 +63,7 @@ public class OcrRectangle
 
     public IList<KeyValuePair<int, Color>> GetChangedPalette()
     {
-        if((this.palettes != null) && (this.palettes.Count != 0) && this.paletteIndex != 0)
+        if ((this.palettes != null) && (this.palettes.Count != 0) && this.paletteIndex != 0)
         {
             return this.palettes[this.paletteIndex].ColorIndexes.Select(i => new KeyValuePair<int, Color>(i, this.allColors[i])).ToList();
         }
@@ -71,25 +72,25 @@ public class OcrRectangle
 
     public bool SelectTopPalette(IList<KeyValuePair<int, Color>> colors)
     {
-        if((this.palettes != null) && (this.palettes.Count != 0))
+        if ((this.palettes != null) && (this.palettes.Count != 0))
         {
-            for(int index = 0; index < this.palettes.Count; index++)
+            for (int index = 0; index < this.palettes.Count; index++)
             {
                 BlocksAndPalette testPalette = this.palettes[index];
-                if(testPalette.ColorIndexes.Count == colors.Count)
+                if (testPalette.ColorIndexes.Count == colors.Count)
                 {
                     bool isMatch = true;
-                    for(int colorIndex = 0; colorIndex < colors.Count; colorIndex++)
+                    for (int colorIndex = 0; colorIndex < colors.Count; colorIndex++)
                     {
                         int testIndex = testPalette.ColorIndexes[colorIndex];
-                        if((testIndex != colors[colorIndex].Key) ||
+                        if ((testIndex != colors[colorIndex].Key) ||
                             (this.allColors[testIndex] != colors[colorIndex].Value))
                         {
                             isMatch = false;
                             break;
                         }
                     }
-                    if(isMatch)
+                    if (isMatch)
                     {
                         this.paletteIndex = index;
                         this.Blocks = this.palettes[this.paletteIndex].Blocks;
@@ -106,13 +107,13 @@ public class OcrRectangle
     {
         get
         {
-            if((this.palettes != null) && (this.paletteIndex < this.palettes.Count))
+            if ((this.palettes != null) && (this.paletteIndex < this.palettes.Count))
             {
                 BlocksAndPalette pal = this.palettes[this.paletteIndex];
                 StringBuilder sb = new StringBuilder();
-                foreach(int index in pal.ColorIndexes)
+                foreach (int index in pal.ColorIndexes)
                 {
-                    if(sb.Length == 0)
+                    if (sb.Length == 0)
                     {
                         sb.Append(index.ToString());
                     }
@@ -129,9 +130,9 @@ public class OcrRectangle
 
     public int FindNextUnmatchedBlock(int currentBlockIndex)
     {
-        for(int index = currentBlockIndex; index < this.Blocks.Count; index++)
+        for (int index = currentBlockIndex; index < this.Blocks.Count; index++)
         {
-            if((this.matches[index] == null) &&
+            if ((this.matches[index] == null) &&
                 !this.blocksUsedAsExtraPieces.Contains(index))
             {
                 return index;
@@ -163,24 +164,24 @@ public class OcrRectangle
         do
         {
             this.matches.Clear();
-            foreach(BlockEncode block in this.Blocks)
+            foreach (BlockEncode block in this.Blocks)
             {
                 this.matches.Add(null);
             }
             this.blocksUsedAsExtraPieces.Clear();
 
             bool firstTwoPartPass = true;
-            for(int extraPieces = SubConstants.MaximumOcrPieces; extraPieces >= 0; extraPieces--)
+            for (int extraPieces = SubConstants.MaximumOcrPieces; extraPieces >= 0; extraPieces--)
             {
-                for(int blockIndex = 0; blockIndex < this.Blocks.Count; blockIndex++)
+                for (int blockIndex = 0; blockIndex < this.Blocks.Count; blockIndex++)
                 {
                     BlockEncode block = this.Blocks[blockIndex];
-                    if((this.matches[blockIndex] == null) && !this.blocksUsedAsExtraPieces.Contains(blockIndex))
+                    if ((this.matches[blockIndex] == null) && !this.blocksUsedAsExtraPieces.Contains(blockIndex))
                     {
                         List<OcrEntry> badMatchList = null;
                         badMatches.TryGetValue(blockIndex, out badMatchList);
                         EncodeMatch match;
-                        if((extraPieces == 1) && firstTwoPartPass)
+                        if ((extraPieces == 1) && firstTwoPartPass)
                         {
                             match = FindBestMatch(block, extraPieces, this.blocksUsedAsExtraPieces, badMatchList, FirstPassSkippedChars);
                         }
@@ -188,10 +189,10 @@ public class OcrRectangle
                         {
                             match = FindBestMatch(block, extraPieces, this.blocksUsedAsExtraPieces, badMatchList, null);
                         }
-                        if(match != null)
+                        if (match != null)
                         {
                             this.matches[blockIndex] = match;
-                            foreach(int index in match.ExtraBlocks)
+                            foreach (int index in match.ExtraBlocks)
                             {
                                 this.blocksUsedAsExtraPieces.Add(index);
                             }
@@ -199,7 +200,7 @@ public class OcrRectangle
                     }
                 }
 
-                if((extraPieces == 1) && firstTwoPartPass)
+                if ((extraPieces == 1) && firstTwoPartPass)
                 {
                     firstTwoPartPass = false;
                     extraPieces++;
@@ -207,11 +208,11 @@ public class OcrRectangle
             }
 
             bool allHadMatches = true;
-            for(int index = 0; index < this.matches.Count; index++)
+            for (int index = 0; index < this.matches.Count; index++)
             {
-                if(!matchFound[index])
+                if (!matchFound[index])
                 {
-                    if((this.matches[index] != null) || this.blocksUsedAsExtraPieces.Contains(index))
+                    if ((this.matches[index] != null) || this.blocksUsedAsExtraPieces.Contains(index))
                     {
                         matchFound[index] = true;
                     }
@@ -225,17 +226,17 @@ public class OcrRectangle
             this.subText = LineLayout.ConvertToLines(this.Blocks, this.matches, this.subtitleOrigin, !allHadMatches);
 
             baselineErrors.Clear();
-            if(subText.Errors.Count != 0)
+            if (subText.Errors.Count != 0)
             {
-                foreach(KeyValuePair<int, EncodeMatch> badMatch in this.subText.Errors)
+                foreach (KeyValuePair<int, EncodeMatch> badMatch in this.subText.Errors)
                 {
-                    if((allowedBaselineErrors == null) || !allowedBaselineErrors.Contains(badMatch.Value.OcrEntry.FullEncode))
+                    if ((allowedBaselineErrors == null) || !allowedBaselineErrors.Contains(badMatch.Value.OcrEntry.FullEncode))
                     {
                         baselineErrors.Add(badMatch);
 
                         int blockIndex = badMatch.Key;
                         List<OcrEntry> badMatchList = null;
-                        if(!badMatches.TryGetValue(blockIndex, out badMatchList))
+                        if (!badMatches.TryGetValue(blockIndex, out badMatchList))
                         {
                             badMatchList = [];
                             badMatches[blockIndex] = badMatchList;
@@ -243,7 +244,7 @@ public class OcrRectangle
                         badMatchList.Add(badMatch.Value.OcrEntry);
                     }
                 }
-                if(baselineErrors.Count == 0)
+                if (baselineErrors.Count == 0)
                 {
                     // if we've decided to ignore all baseline errors, make sure the error characters are put 
                     // into the nearest line before returning
@@ -251,23 +252,23 @@ public class OcrRectangle
                 }
             }
         }
-        while(baselineErrors.Count != 0);
+        while (baselineErrors.Count != 0);
 
         bool allMatch = true;
         bool baselineIssue = false;
-        for(int index = 0; index < this.matches.Count; index++)
+        for (int index = 0; index < this.matches.Count; index++)
         {
             EncodeMatch match = this.matches[index];
-            if(match != null)
+            if (match != null)
             {
                 this.ocrMap.AddMatch(match.OcrEntry, this.movieId, this.isHighDef);
             }
             else
             {
-                if(allMatch && !this.blocksUsedAsExtraPieces.Contains(index))
+                if (allMatch && !this.blocksUsedAsExtraPieces.Contains(index))
                 {
                     allMatch = false;
-                    if(matchFound[index])
+                    if (matchFound[index])
                     {
                         baselineIssue = true;
                     }
@@ -275,11 +276,11 @@ public class OcrRectangle
             }
         }
 
-        if(allMatch)
+        if (allMatch)
         {
             return BestMatchResult.AllMatch;
         }
-        else if(baselineIssue)
+        else if (baselineIssue)
         {
             return BestMatchResult.BaselineError;
         }
@@ -294,28 +295,28 @@ public class OcrRectangle
     {
         EncodeMatch bestMatch = null;
         List<int> otherBlockIndexes = [];
-        foreach(OcrEntry entry in this.ocrMap.FindMatches(block.FullEncode, this.movieId, this.isHighDef, extraPieces))
+        foreach (OcrEntry entry in this.ocrMap.FindMatches(block.FullEncode, this.movieId, this.isHighDef, extraPieces))
         {
-            if((badMatches != null) && (badMatches.Contains(entry)))
+            if ((badMatches != null) && (badMatches.Contains(entry)))
             {
                 continue;
             }
 
-            if((skippedCharacters != null) && skippedCharacters.Contains(entry.OcrCharacter.Value))
+            if ((skippedCharacters != null) && skippedCharacters.Contains(entry.OcrCharacter.Value))
             {
                 continue;
             }
 
-            if(block.IsMatch(entry, this.Blocks, unusableBlocks, otherBlockIndexes, this.ocrMap, this.isHighDef))
+            if (block.IsMatch(entry, this.Blocks, unusableBlocks, otherBlockIndexes, this.ocrMap, this.isHighDef))
             {
-                if(this.isHighDef)
+                if (this.isHighDef)
                 {
                     bestMatch = new EncodeMatch(entry, otherBlockIndexes);
                     break;
                 }
                 else
                 {
-                    if((bestMatch == null) || entry.MovieIds.Contains(this.movieId))
+                    if ((bestMatch == null) || entry.MovieIds.Contains(this.movieId))
                     {
                         bestMatch = new EncodeMatch(entry, otherBlockIndexes);
                     }
@@ -325,7 +326,7 @@ public class OcrRectangle
                         bool isBestLowercase = char.IsLower(bestChar) || (bestChar == '¡');
                         char entryChar = entry.OcrCharacter.Value;
                         bool isEntryLowercase = char.IsLower(entryChar) || (entryChar == '¡');
-                        if((isEntryLowercase && !isBestLowercase) ||
+                        if ((isEntryLowercase && !isBestLowercase) ||
                             ((isEntryLowercase == isBestLowercase) && (entry.MovieIds.Count > bestMatch.OcrEntry.MovieIds.Count)))
                         {
                             bestMatch = new EncodeMatch(entry, otherBlockIndexes);
@@ -350,20 +351,20 @@ public class OcrRectangle
 
         this.palettes = new List<BlocksAndPalette>(
             encode.FindAllEncodesAndPalettes(this.allColorIndexes));
-        if(this.palettes.Count != 0)
+        if (this.palettes.Count != 0)
         {
-            foreach(BlocksAndPalette pal in this.palettes)
+            foreach (BlocksAndPalette pal in this.palettes)
             {
                 HashSet<OcrCharacter> matches = new HashSet<OcrCharacter>();
-                foreach(BlockEncode block in pal.Blocks)
+                foreach (BlockEncode block in pal.Blocks)
                 {
-                    foreach(OcrEntry entry in ocrMap.FindMatches(block.FullEncode, movieId, this.isHighDef, 0))
+                    foreach (OcrEntry entry in ocrMap.FindMatches(block.FullEncode, movieId, this.isHighDef, 0))
                     {
                         char val = entry.OcrCharacter.Value;
-                        if(!SubConstants.CheapMatchesDuringOcrCharacters.Contains(val) && 
+                        if (!SubConstants.CheapMatchesDuringOcrCharacters.Contains(val) &&
                             (Char.IsLetterOrDigit(val) || SubConstants.LikelyValidForOcrSymbols.Contains(val)))
                         {
-                            if(!matches.Contains(entry.OcrCharacter))
+                            if (!matches.Contains(entry.OcrCharacter))
                             {
                                 pal.InterestingMatches++;
                                 pal.InterestingMatchBlocks.Add(block);
@@ -377,20 +378,20 @@ public class OcrRectangle
 
             // check if one of the palettes contains a big contiguous blob that contains all the parts of another palette
             // if it does, it contains an outlining color that we want to mark as lower in the sort of likely palettes using WrapAround
-            foreach(BlocksAndPalette pal in this.palettes)
+            foreach (BlocksAndPalette pal in this.palettes)
             {
                 // only looking at single colors in this block
-                if(pal.ColorIndexes.Count != 1)
+                if (pal.ColorIndexes.Count != 1)
                 {
                     continue;
                 }
 
                 int maxSize = 0;
                 Rectangle rectBiggest = Rectangle.Empty;
-                foreach(BlockEncode blockOuter in pal.Blocks)
+                foreach (BlockEncode blockOuter in pal.Blocks)
                 {
                     int blockSize = blockOuter.TrueWidth * blockOuter.Height;
-                    if(blockSize > maxSize)
+                    if (blockSize > maxSize)
                     {
                         maxSize = blockSize;
                         rectBiggest = new Rectangle(blockOuter.Origin, blockOuter.Size);
@@ -398,9 +399,9 @@ public class OcrRectangle
                 }
                 rectBiggest.Inflate(-1, -1);
 
-                foreach(BlocksAndPalette palInner in this.palettes)
+                foreach (BlocksAndPalette palInner in this.palettes)
                 {
-                    if(object.ReferenceEquals(pal, palInner) || (pal.CountedBlocks >= palInner.CountedBlocks) ||
+                    if (object.ReferenceEquals(pal, palInner) || (pal.CountedBlocks >= palInner.CountedBlocks) ||
                         pal.WrapsAround.Contains(palInner) || palInner.WrapsAround.Contains(pal))
                     {
                         continue;
@@ -409,55 +410,55 @@ public class OcrRectangle
                     // check if each block of a palette wraps around 1 or more blocks of another palette, 
                     // without them sharing a color. If so this is an outline color palette and should be marked so
                     bool allWrapped = true;
-                    foreach(BlockEncode blockInner in palInner.Blocks)
+                    foreach (BlockEncode blockInner in palInner.Blocks)
                     {
                         Rectangle rectInner = new Rectangle(blockInner.Origin, blockInner.Size);
-                        if(!rectBiggest.Contains(rectInner))
+                        if (!rectBiggest.Contains(rectInner))
                         {
                             bool foundWrapper = false;
-                            foreach(BlockEncode blockOuter in pal.Blocks)
+                            foreach (BlockEncode blockOuter in pal.Blocks)
                             {
                                 Rectangle rectOuter = new Rectangle(blockOuter.Origin, blockOuter.Size);
                                 Rectangle rectWrap = Rectangle.Inflate(rectOuter, 2, 0);
-                                if(rectWrap.Contains(rectInner) && !Rectangle.Equals(rectOuter, rectInner))
+                                if (rectWrap.Contains(rectInner) && !Rectangle.Equals(rectOuter, rectInner))
                                 {
                                     foundWrapper = true;
                                     break;
                                 }
                             }
-                            if(!foundWrapper)
+                            if (!foundWrapper)
                             {
                                 allWrapped = false;
                                 break;
                             }
                         }
                     }
-                    if(allWrapped)
+                    if (allWrapped)
                     {
                         pal.WrapsAround.Add(palInner);
                     }
                 }
             }
 
-            foreach(BlocksAndPalette pal in this.palettes)
+            foreach (BlocksAndPalette pal in this.palettes)
             {
                 // only looking at single colors in this block
-                if(pal.ColorIndexes.Count == 1)
+                if (pal.ColorIndexes.Count == 1)
                 {
                     continue;
                 }
 
-                foreach(BlocksAndPalette palInner in this.palettes)
+                foreach (BlocksAndPalette palInner in this.palettes)
                 {
-                    if(object.ReferenceEquals(pal, palInner) || (palInner.ColorIndexes.Count != 1) || 
+                    if (object.ReferenceEquals(pal, palInner) || (palInner.ColorIndexes.Count != 1) ||
                         (palInner.WrapsAround.Count == 0) || palInner.WrapsAround.Contains(pal))
                     {
                         continue;
                     }
 
-                    if(pal.ColorIndexes.Contains(palInner.ColorIndexes[0]))
+                    if (pal.ColorIndexes.Contains(palInner.ColorIndexes[0]))
                     {
-                        foreach(BlocksAndPalette palWrap in palInner.WrapsAround)
+                        foreach (BlocksAndPalette palWrap in palInner.WrapsAround)
                         {
                             pal.WrapsAround.Add(palWrap);
                         }
@@ -465,15 +466,15 @@ public class OcrRectangle
                 }
             }
 
-            foreach(BlocksAndPalette pal in this.palettes)
+            foreach (BlocksAndPalette pal in this.palettes)
             {
                 // only looking at single colors in this block
                 int maxSize = 0;
                 Rectangle rectBiggest = Rectangle.Empty;
-                foreach(BlockEncode blockOuter in pal.Blocks)
+                foreach (BlockEncode blockOuter in pal.Blocks)
                 {
                     int blockSize = blockOuter.TrueWidth * blockOuter.Height;
-                    if(blockSize > maxSize)
+                    if (blockSize > maxSize)
                     {
                         maxSize = blockSize;
                         rectBiggest = new Rectangle(blockOuter.Origin, blockOuter.Size);
@@ -481,9 +482,9 @@ public class OcrRectangle
                 }
                 rectBiggest.Inflate(-1, -1);
 
-                foreach(BlocksAndPalette palInner in this.palettes)
+                foreach (BlocksAndPalette palInner in this.palettes)
                 {
-                    if(object.ReferenceEquals(pal, palInner) ||
+                    if (object.ReferenceEquals(pal, palInner) ||
                         pal.WrapsAround.Contains(palInner) || palInner.WrapsAround.Contains(pal) ||
                         pal.WrapsAroundGently.Contains(palInner) || palInner.WrapsAroundGently.Contains(pal))
                     {
@@ -493,61 +494,61 @@ public class OcrRectangle
                     // check if each block of a palette wraps around 1 or more blocks of another palette, 
                     // without them sharing a color. If so this is an outline color palette and should be marked so
                     bool allWrapped = true;
-                    foreach(BlockEncode blockInner in palInner.Blocks)
+                    foreach (BlockEncode blockInner in palInner.Blocks)
                     {
                         Rectangle rectInner = new Rectangle(blockInner.Origin, blockInner.Size);
-                        if(!rectBiggest.Contains(rectInner))
+                        if (!rectBiggest.Contains(rectInner))
                         {
                             bool foundWrapper = false;
-                            foreach(BlockEncode blockOuter in pal.Blocks)
+                            foreach (BlockEncode blockOuter in pal.Blocks)
                             {
                                 Rectangle rectOuter = new Rectangle(blockOuter.Origin, blockOuter.Size);
                                 //rectOuter.Inflate(-1, -1);
-                                if(rectOuter.Contains(rectInner) && !Rectangle.Equals(rectOuter, rectInner))
+                                if (rectOuter.Contains(rectInner) && !Rectangle.Equals(rectOuter, rectInner))
                                 {
                                     foundWrapper = true;
                                     break;
                                 }
                             }
-                            if(!foundWrapper)
+                            if (!foundWrapper)
                             {
                                 allWrapped = false;
                                 break;
                             }
                         }
                     }
-                    if(allWrapped)
+                    if (allWrapped)
                     {
                         pal.WrapsAroundGently.Add(palInner);
 
                         bool sharesColors = true;
-                        foreach(int colIndex in palInner.ColorIndexes)
+                        foreach (int colIndex in palInner.ColorIndexes)
                         {
-                            if(!pal.ColorIndexes.Contains(colIndex))
+                            if (!pal.ColorIndexes.Contains(colIndex))
                             {
                                 sharesColors = false;
                                 break;
                             }
                         }
-                        if(sharesColors)
+                        if (sharesColors)
                         {
                             bool sharesBlocks = false;
-                            foreach(BlockEncode blockInner in palInner.InterestingMatchBlocks)
+                            foreach (BlockEncode blockInner in palInner.InterestingMatchBlocks)
                             {
-                                foreach(BlockEncode blockOuter in pal.InterestingMatchBlocks)
+                                foreach (BlockEncode blockOuter in pal.InterestingMatchBlocks)
                                 {
-                                    if((blockInner.Origin == blockOuter.Origin) && (blockInner.FullEncode == blockOuter.FullEncode))
+                                    if ((blockInner.Origin == blockOuter.Origin) && (blockInner.FullEncode == blockOuter.FullEncode))
                                     {
                                         sharesBlocks = true;
                                         break;
                                     }
                                 }
-                                if(sharesBlocks)
+                                if (sharesBlocks)
                                 {
                                     break;
                                 }
                             }
-                            if(!sharesBlocks)
+                            if (!sharesBlocks)
                             {
                                 pal.WrapsAndShares.Add(palInner);
                             }
@@ -570,7 +571,7 @@ public class OcrRectangle
 
     public static void AdjustForVideoSize(Size videoSize)
     {
-        if(videoSize.Height > 1000)
+        if (videoSize.Height > 1000)
         {
             NormalPixelCount = SubConstants.NormalPixelCount * 2;
             MinimumNormalPixelCount = SubConstants.MinimumNormalPixelCount * 2;
@@ -588,62 +589,62 @@ public class OcrRectangle
 
     static int ComparePalettes(BlocksAndPalette p1, BlocksAndPalette p2)
     {
-        if(p1.InterestingMatches != p2.InterestingMatches)
+        if (p1.InterestingMatches != p2.InterestingMatches)
         {
-            if(p2.InterestingMatches == 0)
+            if (p2.InterestingMatches == 0)
             {
                 return -1;
             }
-            if(p1.InterestingMatches == 0)
+            if (p1.InterestingMatches == 0)
             {
                 return 1;
             }
         }
 
-        if(p1.WrapsAround.Contains(p2))
+        if (p1.WrapsAround.Contains(p2))
         {
             return 1;
         }
-        if(p2.WrapsAround.Contains(p1))
+        if (p2.WrapsAround.Contains(p1))
         {
             return -1;
         }
 
-        if((p1.InterestingMatches > 0) && p1.WrapsAndShares.Contains(p2) && (p1.InterestingMatches >= p2.InterestingMatches))
+        if ((p1.InterestingMatches > 0) && p1.WrapsAndShares.Contains(p2) && (p1.InterestingMatches >= p2.InterestingMatches))
         {
             return -1;
         }
-        if((p2.InterestingMatches > 0) && p2.WrapsAndShares.Contains(p1) && (p2.InterestingMatches >= p1.InterestingMatches))
+        if ((p2.InterestingMatches > 0) && p2.WrapsAndShares.Contains(p1) && (p2.InterestingMatches >= p1.InterestingMatches))
         {
             return 1;
         }
 
-        if(p1.WrapsAroundGently.Contains(p2) && (p2.AveragePixelCount >= MinimumLowPixelCount) && (p1.InterestingMatches <= p2.InterestingMatches))
+        if (p1.WrapsAroundGently.Contains(p2) && (p2.AveragePixelCount >= MinimumLowPixelCount) && (p1.InterestingMatches <= p2.InterestingMatches))
         {
             return 1;
         }
-        if(p2.WrapsAroundGently.Contains(p1) && (p1.AveragePixelCount >= MinimumLowPixelCount) && (p2.InterestingMatches <= p1.InterestingMatches))
+        if (p2.WrapsAroundGently.Contains(p1) && (p1.AveragePixelCount >= MinimumLowPixelCount) && (p2.InterestingMatches <= p1.InterestingMatches))
         {
             return -1;
         }
 
-        if(p1.InterestingMatches > p2.InterestingMatches * 2)
+        if (p1.InterestingMatches > p2.InterestingMatches * 2)
         {
             return -1;
         }
-        if(p2.InterestingMatches > p1.InterestingMatches * 2)
+        if (p2.InterestingMatches > p1.InterestingMatches * 2)
         {
             return 1;
         }
 
-        if(p1.CountedBlocks == p2.CountedBlocks)
+        if (p1.CountedBlocks == p2.CountedBlocks)
         {
-            if(p1.AveragePixelCount == p2.AveragePixelCount)
+            if (p1.AveragePixelCount == p2.AveragePixelCount)
             {
                 return 0;
             }
 
-            if(Math.Abs(p1.AveragePixelCount - NormalPixelCount) <
+            if (Math.Abs(p1.AveragePixelCount - NormalPixelCount) <
                 Math.Abs(p2.AveragePixelCount - NormalPixelCount))
             {
                 return -1;
@@ -651,33 +652,33 @@ public class OcrRectangle
             return 1;
         }
 
-        if(p1.CountedBlocks < p2.CountedBlocks)
+        if (p1.CountedBlocks < p2.CountedBlocks)
         {
             return -ComparePalettes(p2, p1);
         }
 
-        if(p1.AveragePixelCount >= MinimumNormalPixelCount)
+        if (p1.AveragePixelCount >= MinimumNormalPixelCount)
         {
             return -1;
         }
 
-        if((p2.AveragePixelCount >= MinimumNormalPixelCount) &&
+        if ((p2.AveragePixelCount >= MinimumNormalPixelCount) &&
             (p2.AveragePixelCount <= MaximumNormalPixelCount))
         {
             return 1;
         }
 
-        if(p1.AveragePixelCount >= MinimumLowPixelCount)
+        if (p1.AveragePixelCount >= MinimumLowPixelCount)
         {
             return -1;
         }
 
-        if(p2.AveragePixelCount >= MinimumLowPixelCount)
+        if (p2.AveragePixelCount >= MinimumLowPixelCount)
         {
             return 1;
         }
 
-        if(p1.AveragePixelCount >= p2.AveragePixelCount)
+        if (p1.AveragePixelCount >= p2.AveragePixelCount)
         {
             return -1;
         }
