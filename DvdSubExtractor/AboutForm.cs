@@ -3,6 +3,7 @@ using System.Data;
 using System.Diagnostics;
 
 namespace DvdSubExtractor;
+
 public partial class AboutForm : Form
 {
     public AboutForm()

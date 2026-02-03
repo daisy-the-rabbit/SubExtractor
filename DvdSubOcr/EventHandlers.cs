@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class SelectedCharacterArgs : EventArgs
 {
     public SelectedCharacterArgs(OcrCharacter oldSelection, OcrCharacter newSelection)

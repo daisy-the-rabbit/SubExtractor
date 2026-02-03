@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class OcrEntry
 {
     HashSet<int> movieNameIds = new HashSet<int>();
@@ -14,7 +15,7 @@ public class OcrEntry
         this.OcrCharacter = ocr;
     }
 
-    public OcrEntry(string encode, OcrCharacter ocr, 
+    public OcrEntry(string encode, OcrCharacter ocr,
         IEnumerable<KeyValuePair<Point, string>> extraEntries)
         : this(encode, ocr)
     {
@@ -29,14 +30,14 @@ public class OcrEntry
 
     public bool IsBitPatternEqual(OcrEntry otherEntry)
     {
-        if((this.FullEncode != otherEntry.FullEncode) ||
+        if ((this.FullEncode != otherEntry.FullEncode) ||
             (this.ExtraPieceCount != otherEntry.ExtraPieceCount))
         {
             return false;
         }
-        for(int index = 0; index < this.extraPieces.Count; index++)
+        for (int index = 0; index < this.extraPieces.Count; index++)
         {
-            if((this.extraPieces[index].Key != otherEntry.extraPieces[index].Key) ||
+            if ((this.extraPieces[index].Key != otherEntry.extraPieces[index].Key) ||
                 (this.extraPieces[index].Value != otherEntry.extraPieces[index].Value))
             {
                 return false;
@@ -47,11 +48,11 @@ public class OcrEntry
 
     private void BuildBlocks()
     {
-        if(this.blocks == null)
+        if (this.blocks == null)
         {
             blocks = [];
             blocks.Add(new BlockEncode(Point.Empty, this.FullEncode, 0));
-            foreach(KeyValuePair<Point, string> extraBlock in extraPieces)
+            foreach (KeyValuePair<Point, string> extraBlock in extraPieces)
             {
                 blocks.Add(new BlockEncode(extraBlock.Key, extraBlock.Value, 0));
             }
@@ -60,12 +61,12 @@ public class OcrEntry
 
     public Rectangle CalculateBounds()
     {
-        if(this.rectBounds.IsEmpty)
+        if (this.rectBounds.IsEmpty)
         {
             BuildBlocks();
-            foreach(BlockEncode block in this.blocks)
+            foreach (BlockEncode block in this.blocks)
             {
-                this.rectBounds = Rectangle.Union(this.rectBounds, 
+                this.rectBounds = Rectangle.Union(this.rectBounds,
                     new Rectangle(block.Origin, block.Size));
             }
         }
@@ -82,23 +83,23 @@ public class OcrEntry
             Math.Max(this.rectBounds.Width + 4, minimumWidth),
             Math.Max(this.rectBounds.Height + 4, minimumHeight));
 
-        using(Graphics g = Graphics.FromImage(bmp))
+        using (Graphics g = Graphics.FromImage(bmp))
         {
             g.Clear(backColor);
         }
 
-        foreach(BlockEncode block in this.blocks)
+        foreach (BlockEncode block in this.blocks)
         {
             IList<bool> decoded = block.DecodeToBoolArray();
-            for(int y = 0; y < block.Height; y++)
+            for (int y = 0; y < block.Height; y++)
             {
-                for(int x = 0; x < block.TrueWidth; x++)
+                for (int x = 0; x < block.TrueWidth; x++)
                 {
-                    if(decoded[y * block.Width + x])
+                    if (decoded[y * block.Width + x])
                     {
                         bmp.SetPixel(
                             x - this.rectBounds.Left + block.Origin.X + 2,
-                            y - this.rectBounds.Top + block.Origin.Y + 2, 
+                            y - this.rectBounds.Top + block.Origin.Y + 2,
                             foreColor);
                     }
                 }

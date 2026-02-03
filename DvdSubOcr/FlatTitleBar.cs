@@ -1,9 +1,10 @@
 using System.ComponentModel;
-using System.Drawing.Drawing2D;
 using System.Data;
+using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 
 namespace DvdSubOcr;
+
 public partial class FlatTitleBar : UserControl
 {
     static readonly StringFormat titleFormat = CreateTitleFormat();
@@ -39,7 +40,7 @@ public partial class FlatTitleBar : UserControl
     protected override void OnMouseDown(MouseEventArgs e)
     {
         //base.OnMouseDown(e);
-        if(!this.moving && (e.Button == MouseButtons.Left) && 
+        if (!this.moving && (e.Button == MouseButtons.Left) &&
             (this.FindForm().WindowState == FormWindowState.Normal))
         {
             this.moving = true;
@@ -56,9 +57,9 @@ public partial class FlatTitleBar : UserControl
     protected override void OnMouseMove(MouseEventArgs e)
     {
         base.OnMouseMove(e);
-        if(this.moving)
+        if (this.moving)
         {
-            if((Control.MouseButtons != MouseButtons.Left) ||
+            if ((Control.MouseButtons != MouseButtons.Left) ||
                  (this.FindForm().WindowState != FormWindowState.Normal))
             {
                 this.moving = false;
@@ -66,7 +67,7 @@ public partial class FlatTitleBar : UserControl
             else
             {
                 Point nextPosition = Control.MousePosition;
-                if(nextPosition != this.startingMove)
+                if (nextPosition != this.startingMove)
                 {
                     Point newLocation = this.Parent.Location + new Size(nextPosition) - new Size(this.startingMove);
                     this.Parent.Location = newLocation;
@@ -78,19 +79,19 @@ public partial class FlatTitleBar : UserControl
 
     protected override void OnPaint(PaintEventArgs e)
     {
-        if(!this.formHooked)
+        if (!this.formHooked)
         {
             this.formHooked = true;
             FindForm().Activated += this.FlatTitleBar_Invalidate;
             FindForm().Deactivate += this.FlatTitleBar_Invalidate;
         }
 
-        if(FindForm() == Form.ActiveForm)
+        if (FindForm() == Form.ActiveForm)
         {
             //using(Brush backBrush = new SolidBrush(SystemColors.ActiveCaption))
-            using(Brush backBrush = new LinearGradientBrush(
+            using (Brush backBrush = new LinearGradientBrush(
                 this.ClientRectangle,
-                SystemColors.ActiveCaption, SystemColors.ActiveBorder, 
+                SystemColors.ActiveCaption, SystemColors.ActiveBorder,
                 LinearGradientMode.ForwardDiagonal))
             {
                 e.Graphics.FillRectangle(backBrush, this.ClientRectangle);
@@ -98,9 +99,9 @@ public partial class FlatTitleBar : UserControl
         }
 
         //base.OnPaint(e);
-        if(this.Text.Length != 0)
+        if (this.Text.Length != 0)
         {
-            using(Brush foreBrush = new SolidBrush(this.ForeColor))
+            using (Brush foreBrush = new SolidBrush(this.ForeColor))
             {
                 Rectangle rect = this.ClientRectangle;
                 rect.Height += DpiHelper.Scale(4, this.DeviceDpi);
@@ -130,7 +131,7 @@ public partial class FlatTitleBar : UserControl
         get { return this.hasMinimizeBox; }
         set
         {
-            if(value != this.hasMinimizeBox)
+            if (value != this.hasMinimizeBox)
             {
                 this.hasMinimizeBox = value;
                 this.minimizeLabel.Visible = value;
@@ -146,10 +147,10 @@ public partial class FlatTitleBar : UserControl
         get { return this.hasCloseBox; }
         set
         {
-            if(value != this.hasCloseBox)
+            if (value != this.hasCloseBox)
             {
                 this.hasCloseBox = value;
-                if(value)
+                if (value)
                 {
                     this.minimizeLabel.Location = new Point(
                         this.Width - this.minimizeLabel.Width - this.closeLabel.Width,
@@ -176,7 +177,7 @@ public partial class FlatTitleBar : UserControl
         }
         set
         {
-            if(value != base.Text)
+            if (value != base.Text)
             {
                 base.Text = value;
                 Invalidate();

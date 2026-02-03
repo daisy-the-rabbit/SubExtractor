@@ -22,6 +22,7 @@ using System.Diagnostics;
 using System.IO;
 
 namespace DvdNavigatorCrm;
+
 public class CombinedBuffer : IByteBuffer
 {
     static readonly IEnumerable<IDataBuffer> emptyList = new List<IDataBuffer>().AsReadOnly();
@@ -66,7 +67,7 @@ public class CombinedBuffer : IByteBuffer
         this.offsets = new BufferOffset[this.buffers.Count];
         int startIndex = 0;
         int nextOffset = this.extraOffset;
-        for(int index = 0; index < this.offsets.Length; index++)
+        for (int index = 0; index < this.offsets.Length; index++)
         {
             IDataBuffer dataBuffer = this.buffers[index];
             BufferOffset bufferOffset = new BufferOffset();
@@ -86,7 +87,7 @@ public class CombinedBuffer : IByteBuffer
 
     public void AddBuffer(IDataBuffer buffer, long position)
     {
-        if(this.buffers.Count == 0)
+        if (this.buffers.Count == 0)
         {
             this.Position = position;
         }
@@ -97,7 +98,7 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerable<IDataBuffer> MovePositionForwardAndReturnUnusedBuffers(int offset)
     {
-        if((offset < 0) || (offset > this.totalLength))
+        if ((offset < 0) || (offset > this.totalLength))
         {
             throw new ArgumentOutOfRangeException("offset");
         }
@@ -107,12 +108,12 @@ public class CombinedBuffer : IByteBuffer
         this.Position += offset;
 
         List<IDataBuffer> finishedBuffers = null;
-        foreach(IDataBuffer buffer in this.buffers)
+        foreach (IDataBuffer buffer in this.buffers)
         {
-            if(this.extraOffset >= buffer.Length)
+            if (this.extraOffset >= buffer.Length)
             {
                 this.extraOffset -= buffer.Length;
-                if(finishedBuffers == null)
+                if (finishedBuffers == null)
                 {
                     finishedBuffers = [];
                 }
@@ -124,7 +125,7 @@ public class CombinedBuffer : IByteBuffer
             }
         }
 
-        if(finishedBuffers != null)
+        if (finishedBuffers != null)
         {
             this.buffers.RemoveRange(0, finishedBuffers.Count);
             BuildOffsetArray();
@@ -152,14 +153,14 @@ public class CombinedBuffer : IByteBuffer
     {
         get
         {
-            if((index < 0) || (index >= this.totalLength))
+            if ((index < 0) || (index >= this.totalLength))
             {
                 throw new IndexOutOfRangeException();
             }
-            for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+            for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
             {
                 BufferOffset offset = this.offsets[bufferIndex];
-                if(index < offset.EndIndex)
+                if (index < offset.EndIndex)
                 {
                     return offset.Buffer[offset.GlobalToBuffer(index)];
                 }
@@ -172,11 +173,11 @@ public class CombinedBuffer : IByteBuffer
     {
         int searchStartIndex = offset.GlobalToBuffer(Math.Max(offset.StartIndex, startIndex));
         int searchEndIndex = offset.GlobalToBuffer(Math.Min(offset.EndIndex, startIndex + searchLength));
-        while(searchStartIndex < searchEndIndex)
+        while (searchStartIndex < searchEndIndex)
         {
             int foundIndex = Array.IndexOf(offset.Buffer, item, searchStartIndex,
                 searchEndIndex - searchStartIndex);
-            if(foundIndex == -1)
+            if (foundIndex == -1)
             {
                 yield break;
             }
@@ -187,9 +188,9 @@ public class CombinedBuffer : IByteBuffer
 
     public int IndexOf(byte item)
     {
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            foreach(int foundIndex in IndicesOf(item, this.offsets[bufferIndex], 0, this.totalLength))
+            foreach (int foundIndex in IndicesOf(item, this.offsets[bufferIndex], 0, this.totalLength))
             {
                 return foundIndex;
             }
@@ -199,9 +200,9 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerable<int> IndicesOf(byte item)
     {
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            foreach(int foundIndex in IndicesOf(item, this.offsets[bufferIndex], 0, this.totalLength))
+            foreach (int foundIndex in IndicesOf(item, this.offsets[bufferIndex], 0, this.totalLength))
             {
                 yield return foundIndex;
             }
@@ -220,21 +221,21 @@ public class CombinedBuffer : IByteBuffer
 
     public int IndexOf(byte item, int startIndex, int searchLength)
     {
-        if((startIndex < 0) || (startIndex >= this.totalLength))
+        if ((startIndex < 0) || (startIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("startIndex");
         }
-        if((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
+        if ((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
         {
             throw new ArgumentOutOfRangeException("searchLength");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
-            if(startIndex < offset.EndIndex)
+            if (startIndex < offset.EndIndex)
             {
-                foreach(int foundIndex in IndicesOf(item, offset, startIndex, searchLength))
+                foreach (int foundIndex in IndicesOf(item, offset, startIndex, searchLength))
                 {
                     return foundIndex;
                 }
@@ -245,21 +246,21 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerable<int> IndicesOf(byte item, int startIndex, int searchLength)
     {
-        if((startIndex < 0) || (startIndex >= this.totalLength))
+        if ((startIndex < 0) || (startIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("startIndex");
         }
-        if((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
-        { 
+        if ((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
+        {
             throw new ArgumentOutOfRangeException("searchLength");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
-            if(startIndex < offset.EndIndex)
+            if (startIndex < offset.EndIndex)
             {
-                foreach(int foundIndex in IndicesOf(item, offset, startIndex, searchLength))
+                foreach (int foundIndex in IndicesOf(item, offset, startIndex, searchLength))
                 {
                     yield return foundIndex;
                 }
@@ -269,7 +270,7 @@ public class CombinedBuffer : IByteBuffer
 
     bool CheckPartialMatch(int bufferIndex, int startIndex, byte[] pattern, int patternIndex)
     {
-        if(bufferIndex >= this.offsets.Length)
+        if (bufferIndex >= this.offsets.Length)
         {
             return false;
         }
@@ -279,14 +280,14 @@ public class CombinedBuffer : IByteBuffer
         int patternRemainingLength = pattern.Length - patternIndex;
         int matchLength = Math.Min(bufferRemainingLength, patternRemainingLength);
         int matchStartIndex = offset.GlobalToBuffer(startIndex);
-        for(int index = 0; index < matchLength; index++)
+        for (int index = 0; index < matchLength; index++)
         {
-            if(offset.Buffer[matchStartIndex + index] != pattern[patternIndex + index])
+            if (offset.Buffer[matchStartIndex + index] != pattern[patternIndex + index])
             {
                 return false;
             }
         }
-        if(matchLength < patternRemainingLength)
+        if (matchLength < patternRemainingLength)
         {
             return CheckPartialMatch(bufferIndex + 1, startIndex + matchLength,
                 pattern, patternIndex + matchLength);
@@ -298,24 +299,24 @@ public class CombinedBuffer : IByteBuffer
     {
         BufferOffset offset = this.offsets[offsetIndex];
         int searchStartIndex = offset.GlobalToBuffer(Math.Max(offset.StartIndex, startIndex));
-        int searchEndIndex = offset.GlobalToBuffer(Math.Min(offset.EndIndex, 
+        int searchEndIndex = offset.GlobalToBuffer(Math.Min(offset.EndIndex,
             startIndex + searchLength - pattern.Length + 1));
         int lastFoundIndexThatFits = searchEndIndex - pattern.Length;
-        while(searchStartIndex < searchEndIndex)
+        while (searchStartIndex < searchEndIndex)
         {
             int foundIndex = Array.IndexOf(offset.Buffer, pattern[0], searchStartIndex,
                 searchEndIndex - searchStartIndex);
-            if(foundIndex == -1)
+            if (foundIndex == -1)
             {
                 yield break;
             }
 
             bool match = true;
-            if(foundIndex <= lastFoundIndexThatFits)
+            if (foundIndex <= lastFoundIndexThatFits)
             {
-                for(int index = 1; index < pattern.Length; index++)
+                for (int index = 1; index < pattern.Length; index++)
                 {
-                    if(pattern[index] != offset.Buffer[foundIndex + index])
+                    if (pattern[index] != offset.Buffer[foundIndex + index])
                     {
                         match = false;
                         break;
@@ -327,7 +328,7 @@ public class CombinedBuffer : IByteBuffer
                 match = CheckPartialMatch(offsetIndex, offset.BufferToGlobal(foundIndex + 1), pattern, 1);
             }
 
-            if(match)
+            if (match)
             {
                 yield return offset.BufferToGlobal(foundIndex);
             }
@@ -337,14 +338,14 @@ public class CombinedBuffer : IByteBuffer
 
     public int IndexOf(byte[] pattern)
     {
-        if((pattern == null) || (pattern.Length == 0))
+        if ((pattern == null) || (pattern.Length == 0))
         {
             throw new ArgumentException("pattern cannot be null or empty");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            foreach(int foundIndex in IndicesOf(pattern, bufferIndex, 0, this.totalLength))
+            foreach (int foundIndex in IndicesOf(pattern, bufferIndex, 0, this.totalLength))
             {
                 return foundIndex;
             }
@@ -359,22 +360,22 @@ public class CombinedBuffer : IByteBuffer
 
     public int IndexOf(byte[] pattern, int startIndex, int searchLength)
     {
-        if((pattern == null) || (pattern.Length == 0))
+        if ((pattern == null) || (pattern.Length == 0))
         {
             throw new ArgumentException("pattern cannot be null or empty");
         }
-        if((startIndex < 0) || (startIndex >= this.totalLength))
+        if ((startIndex < 0) || (startIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("startIndex");
         }
-        if((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
+        if ((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
         {
             throw new ArgumentOutOfRangeException("searchLength");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            foreach(int foundIndex in IndicesOf(pattern, bufferIndex, startIndex, searchLength))
+            foreach (int foundIndex in IndicesOf(pattern, bufferIndex, startIndex, searchLength))
             {
                 return foundIndex;
             }
@@ -384,14 +385,14 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerable<int> IndicesOf(byte[] pattern)
     {
-        if((pattern == null) || (pattern.Length == 0))
+        if ((pattern == null) || (pattern.Length == 0))
         {
             throw new ArgumentException("pattern");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            foreach(int foundIndex in IndicesOf(pattern, bufferIndex, 0, this.totalLength))
+            foreach (int foundIndex in IndicesOf(pattern, bufferIndex, 0, this.totalLength))
             {
                 yield return foundIndex;
             }
@@ -405,24 +406,24 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerable<int> IndicesOf(byte[] pattern, int startIndex, int searchLength)
     {
-        if((pattern == null) || (pattern.Length == 0))
+        if ((pattern == null) || (pattern.Length == 0))
         {
             throw new ArgumentException("pattern cannot be null or empty");
         }
-        if((startIndex < 0) || (startIndex >= this.totalLength))
+        if ((startIndex < 0) || (startIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("startIndex");
         }
-        if((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
+        if ((searchLength <= 0) || (startIndex + searchLength > this.totalLength))
         {
             throw new ArgumentOutOfRangeException("searchLength");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
-            if(startIndex < this.offsets[bufferIndex].EndIndex)
+            if (startIndex < this.offsets[bufferIndex].EndIndex)
             {
-                foreach(int foundIndex in IndicesOf(pattern, bufferIndex, startIndex, searchLength))
+                foreach (int foundIndex in IndicesOf(pattern, bufferIndex, startIndex, searchLength))
                 {
                     yield return foundIndex;
                 }
@@ -437,7 +438,7 @@ public class CombinedBuffer : IByteBuffer
 
     public void CopyTo(byte[] array, int arrayIndex)
     {
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
             int length = offset.EndIndex - offset.StartIndex;
@@ -449,21 +450,21 @@ public class CombinedBuffer : IByteBuffer
 
     public void CopyTo(int sourceIndex, byte[] array, int arrayIndex, int arrayLength)
     {
-        if((sourceIndex < 0) || (sourceIndex >= this.totalLength))
+        if ((sourceIndex < 0) || (sourceIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("sourceIndex");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
-            if(sourceIndex < offset.EndIndex)
+            if (sourceIndex < offset.EndIndex)
             {
                 int length;
-                if(sourceIndex <= offset.StartIndex)
+                if (sourceIndex <= offset.StartIndex)
                 {
                     length = Math.Min(offset.EndIndex - offset.StartIndex, arrayLength);
-                    Buffer.BlockCopy(offset.Buffer, offset.StartOffset + offset.StartIndex, 
+                    Buffer.BlockCopy(offset.Buffer, offset.StartOffset + offset.StartIndex,
                         array, arrayIndex, length);
                 }
                 else
@@ -474,7 +475,7 @@ public class CombinedBuffer : IByteBuffer
                 }
                 arrayIndex += length;
                 arrayLength -= length;
-                if(arrayLength == 0)
+                if (arrayLength == 0)
                 {
                     break;
                 }
@@ -484,18 +485,18 @@ public class CombinedBuffer : IByteBuffer
 
     public void CopyTo(int sourceIndex, Stream output, int outputLength)
     {
-        if((sourceIndex < 0) || (sourceIndex >= this.totalLength))
+        if ((sourceIndex < 0) || (sourceIndex >= this.totalLength))
         {
             throw new ArgumentOutOfRangeException("sourceIndex");
         }
 
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
-            if(sourceIndex < offset.EndIndex)
+            if (sourceIndex < offset.EndIndex)
             {
                 int length;
-                if(sourceIndex <= offset.StartIndex)
+                if (sourceIndex <= offset.StartIndex)
                 {
                     length = Math.Min(offset.EndIndex - offset.StartIndex, outputLength);
                     output.Write(offset.Buffer, offset.StartOffset + offset.StartIndex, length);
@@ -506,7 +507,7 @@ public class CombinedBuffer : IByteBuffer
                     output.Write(offset.Buffer, offset.StartOffset + sourceIndex, length);
                 }
                 outputLength -= length;
-                if(outputLength == 0)
+                if (outputLength == 0)
                 {
                     break;
                 }
@@ -526,12 +527,12 @@ public class CombinedBuffer : IByteBuffer
 
     public IEnumerator<byte> GetEnumerator()
     {
-        for(int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
+        for (int bufferIndex = 0; bufferIndex < this.offsets.Length; bufferIndex++)
         {
             BufferOffset offset = this.offsets[bufferIndex];
             int start = offset.GlobalToBuffer(offset.StartIndex);
             int end = offset.GlobalToBuffer(offset.EndIndex);
-            for(int index = start; index < end; index++)
+            for (int index = start; index < end; index++)
             {
                 yield return offset.Buffer[index];
             }

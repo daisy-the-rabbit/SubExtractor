@@ -1,6 +1,7 @@
 using DvdNavigatorCrm;
 
 namespace DvdSubExtractor;
+
 public class AudioTrackItem
 {
     public AudioTrackItem(int track, AudioAttributes audio)
@@ -15,12 +16,12 @@ public class AudioTrackItem
     public override string ToString()
     {
         string text = $"{this.StreamId:x} {DvdLanguageCodes.GetLanguageText(this.Attributes.Language)} ({this.Attributes.CodingMode} {this.Attributes.Channels} channels)";
-        switch(this.Attributes.CodeExtension)
+        switch (this.Attributes.CodeExtension)
         {
-        case AudioCodeExtension.DirectorsComments:
-        case AudioCodeExtension.AlternateDirectorsComments:
-            text += " Commentary";
-            break;
+            case AudioCodeExtension.DirectorsComments:
+            case AudioCodeExtension.AlternateDirectorsComments:
+                text += " Commentary";
+                break;
         }
         return text;
     }

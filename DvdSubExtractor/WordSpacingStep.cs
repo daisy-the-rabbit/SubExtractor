@@ -1,10 +1,11 @@
 using System.ComponentModel;
 using System.Data;
 using System.IO;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public partial class WordSpacingStep : UserControl, IWizardItem
 {
     ExtractData data;
@@ -37,7 +38,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
         {
             this.ocrMap.Load();
         }
-        catch(Exception)
+        catch (Exception)
         {
             MessageBox.Show("OCR Map failed to load - probably out of date");
             this.ocrMap = new OcrMap();
@@ -49,14 +50,14 @@ public partial class WordSpacingStep : UserControl, IWizardItem
         this.data.NewStepInitialize(true, true, this.HelpText,
             [typeof(LoadFolderStep), typeof(ChooseSubtitlesStep)]);
 
-        if((this.data != null) || (this.data.WorkingData != null) || (this.data.WorkingData.AllLines != null))
+        if ((this.data != null) || (this.data.WorkingData != null) || (this.data.WorkingData.AllLines != null))
         {
             SortedSet<char> kerningChars = new SortedSet<char>();
-            foreach(SubtitleLine line in this.data.WorkingData.AllLines)
+            foreach (SubtitleLine line in this.data.WorkingData.AllLines)
             {
-                foreach(OcrCharacter ocr in line.Text)
+                foreach (OcrCharacter ocr in line.Text)
                 {
-                    if((ocr.Value != ' ') && !kerningChars.Contains(ocr.Value))
+                    if ((ocr.Value != ' ') && !kerningChars.Contains(ocr.Value))
                     {
                         kerningChars.Add(ocr.Value);
                     }
@@ -64,7 +65,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
             }
             this.kerningCharacterComboBox.Items.AddRange(kerningChars.Cast<object>().ToArray());
         }
-        if(this.kerningCharacterComboBox.Items.Count == 0)
+        if (this.kerningCharacterComboBox.Items.Count == 0)
         {
             this.kerningCharacterComboBox.Items.AddRange(String.Concat(CharacterSelector.AllCharacters).Cast<object>().ToArray());
         }
@@ -79,15 +80,15 @@ public partial class WordSpacingStep : UserControl, IWizardItem
     {
         get
         {
-            return "This program attempts to find the breaks between words by looking at the separation between the letters, " + 
-                "but because of the shape of certain letters in various DVD Subtitle fonts there often needs to be extra adjustments or spaces " + 
+            return "This program attempts to find the breaks between words by looking at the separation between the letters, " +
+                "but because of the shape of certain letters in various DVD Subtitle fonts there often needs to be extra adjustments or spaces " +
                 "will be added or missed. This dialog allows you to temporarily (until the program is closed) change these " +
-                "adjustments so that there are fewer spelling errors in your subtitle file. For example, if you used " + 
+                "adjustments so that there are fewer spelling errors in your subtitle file. For example, if you used " +
                 "Spell Checking on your subtitle (.ASS) file and " +
-                "found that letters ending in italic k are repeatedly being combined with the next word " + 
-                "(a space wasn't inserted properly \"hackcomputer\" or \"brickbuilding\" ) " + 
-                "you would select the Character k, click the Italics radio button, then increase the Right adjustment value by 1. " + 
-                "Hopefully that will be enough to insert spaces after words ending in k correctly, but not so much that words with a k " + 
+                "found that letters ending in italic k are repeatedly being combined with the next word " +
+                "(a space wasn't inserted properly \"hackcomputer\" or \"brickbuilding\" ) " +
+                "you would select the Character k, click the Italics radio button, then increase the Right adjustment value by 1. " +
+                "Hopefully that will be enough to insert spaces after words ending in k correctly, but not so much that words with a k " +
                 "in the middle are split in 2.";
         }
     }
@@ -156,7 +157,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
         this.spacingListBox.Items.Clear();
         HashSet<string> usedStrings = new HashSet<string>();
         Font correctFont = italic ? this.listBoxItalicFont : this.listBoxNormalFont;
-        if(!object.ReferenceEquals(this.spacingListBox.Font, correctFont))
+        if (!object.ReferenceEquals(this.spacingListBox.Font, correctFont))
         {
             this.spacingListBox.Font = correctFont;
         }
@@ -165,48 +166,48 @@ public partial class WordSpacingStep : UserControl, IWizardItem
         int SubtextWidth = this.spacingListBox.ClientSize.Width * 5 / charWidth / 2;
 
         int subCount = this.data.WorkingData.AllLinesBySubtitle.Count;
-        for(int subIndex = 0; subIndex < subCount; subIndex++)
+        for (int subIndex = 0; subIndex < subCount; subIndex++)
         {
-            foreach(SubtitleLine line in this.data.WorkingData.AllLinesBySubtitle[subIndex])
+            foreach (SubtitleLine line in this.data.WorkingData.AllLinesBySubtitle[subIndex])
             {
-                for(int index = 0; index < line.Text.Count; index++)
+                for (int index = 0; index < line.Text.Count; index++)
                 {
                     OcrCharacter ocr = line.Text[index];
-                    if((ocr.Value == c) && (ocr.Italic == italic))
+                    if ((ocr.Value == c) && (ocr.Italic == italic))
                     {
                         int firstCharacter = index;
-                        while((firstCharacter > 0) && (index - firstCharacter < SubtextWidth))
+                        while ((firstCharacter > 0) && (index - firstCharacter < SubtextWidth))
                         {
                             OcrCharacter prevOcr = line.Text[firstCharacter - 1];
-                            if((prevOcr.Italic != italic) && Char.IsLetterOrDigit(prevOcr.Value))
+                            if ((prevOcr.Italic != italic) && Char.IsLetterOrDigit(prevOcr.Value))
                             {
                                 break;
                             }
                             firstCharacter--;
                         }
                         int lastCharacter = index;
-                        while((lastCharacter < line.Text.Count - 1) && (lastCharacter - index < SubtextWidth))
+                        while ((lastCharacter < line.Text.Count - 1) && (lastCharacter - index < SubtextWidth))
                         {
                             OcrCharacter nextOcr = line.Text[lastCharacter + 1];
-                            if((nextOcr.Italic != italic) && Char.IsLetterOrDigit(nextOcr.Value))
+                            if ((nextOcr.Italic != italic) && Char.IsLetterOrDigit(nextOcr.Value))
                             {
                                 break;
                             }
                             lastCharacter++;
                         }
 
-                        if((firstCharacter < index) || (lastCharacter > index))
+                        if ((firstCharacter < index) || (lastCharacter > index))
                         {
                             IEnumerable<OcrCharacter> subString = line.Text.Skip(firstCharacter).Take(lastCharacter - firstCharacter + 1);
                             string subText = subString.Aggregate(new StringBuilder(), (sb, next) => sb.Append(next.Value)).ToString();
-                            if(!usedStrings.Contains(subText))
+                            if (!usedStrings.Contains(subText))
                             {
                                 usedStrings.Add(subText);
-                                if(index - firstCharacter < SubtextWidth)
+                                if (index - firstCharacter < SubtextWidth)
                                 {
                                     subText = new string(' ', SubtextWidth - (index - firstCharacter)) + subText;
                                 }
-                                if(lastCharacter - index < SubtextWidth)
+                                if (lastCharacter - index < SubtextWidth)
                                 {
                                     subText = subText + new string(' ', SubtextWidth - (lastCharacter - index));
                                 }
@@ -218,7 +219,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
                 }
             }
         }
-        if(this.spacingListBox.Items.Count != 0)
+        if (this.spacingListBox.Items.Count != 0)
         {
             this.spacingListBox.SelectedIndex = 0;
         }
@@ -226,7 +227,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void kerningItalicLeftUpDown_ValueChanged(object sender, EventArgs e)
     {
-        if(!this.updatingUpDowns)
+        if (!this.updatingUpDowns)
         {
             Char c = (char)this.kerningCharacterComboBox.SelectedItem;
             FontKerning.LeftItalicKerning[c] = Convert.ToInt32(this.kerningItalicLeftUpDown.Value);
@@ -238,7 +239,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void kerningItalicRightUpDown_ValueChanged(object sender, EventArgs e)
     {
-        if(!this.updatingUpDowns)
+        if (!this.updatingUpDowns)
         {
             Char c = (char)this.kerningCharacterComboBox.SelectedItem;
             FontKerning.RightItalicKerning[c] = Convert.ToInt32(this.kerningItalicRightUpDown.Value);
@@ -250,7 +251,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void kerningLeftUpDown_ValueChanged(object sender, EventArgs e)
     {
-        if(!this.updatingUpDowns)
+        if (!this.updatingUpDowns)
         {
             Char c = (char)this.kerningCharacterComboBox.SelectedItem;
             FontKerning.LeftKerning[c] = Convert.ToInt32(this.kerningLeftUpDown.Value);
@@ -262,7 +263,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void kerningRightUpDown_ValueChanged(object sender, EventArgs e)
     {
-        if(!this.updatingUpDowns)
+        if (!this.updatingUpDowns)
         {
             Char c = (char)this.kerningCharacterComboBox.SelectedItem;
             FontKerning.RightKerning[c] = Convert.ToInt32(this.kerningRightUpDown.Value);
@@ -274,11 +275,11 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void spacingListBox_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if((this.spacingListBox.Items.Count != 0) && (this.spacingListBox.SelectedIndex >= 0))
+        if ((this.spacingListBox.Items.Count != 0) && (this.spacingListBox.SelectedIndex >= 0))
         {
             SpacingItem item = this.spacingListBox.SelectedItem as SpacingItem;
             ISubtitleData subData = this.data.WorkingData.Subtitles[item.SubtitleIndex];
-            using(SubtitleBitmap subBitmap = subData.DecodeBitmap())
+            using (SubtitleBitmap subBitmap = subData.DecodeBitmap())
             {
                 this.matchSoFarView.UpdateBackground(subBitmap.Bitmap, subBitmap.Origin, this.data.WorkingData.VideoAttributes.Size);
             }
@@ -287,9 +288,9 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void saveSpacingButton_Click(object sender, EventArgs e)
     {
-        if(!string.IsNullOrWhiteSpace(Properties.Settings.Default.SavedKerningValues))
+        if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.SavedKerningValues))
         {
-            if(MessageBox.Show(this, "Are you sure you want to over-write the saved Spacing values?", "Are you sure?", MessageBoxButtons.YesNo) == DialogResult.No)
+            if (MessageBox.Show(this, "Are you sure you want to over-write the saved Spacing values?", "Are you sure?", MessageBoxButtons.YesNo) == DialogResult.No)
             {
                 return;
             }
@@ -300,7 +301,7 @@ public partial class WordSpacingStep : UserControl, IWizardItem
 
     private void restoreSavedSpacingButton_Click(object sender, EventArgs e)
     {
-        if(!string.IsNullOrWhiteSpace(Properties.Settings.Default.SavedKerningValues))
+        if (!string.IsNullOrWhiteSpace(Properties.Settings.Default.SavedKerningValues))
         {
             FontKerning.KerningDiffList = Properties.Settings.Default.SavedKerningValues;
             UpdateAfterChangedSpacing();

@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class SubtitleInformation : ISubtitleInformation
 {
     public SubtitleInformation(int left, int top, int width, int height, double pts, double duration,
@@ -16,7 +17,7 @@ public class SubtitleInformation : ISubtitleInformation
 
     public SubtitleInformation(ISubtitleInformation other)
     {
-        if(other != null)
+        if (other != null)
         {
             this.Left = other.Left;
             this.Top = other.Top;

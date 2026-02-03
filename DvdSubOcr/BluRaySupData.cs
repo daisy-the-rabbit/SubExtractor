@@ -104,12 +104,12 @@ public static class SupDecoder
         // also all entries must be fully transparent after initialization
 
         bool fadeOut = false;
-        for(int j = 0; j < paletteInfos.Count; j++)
+        for (int j = 0; j < paletteInfos.Count; j++)
         {
             PaletteInfo p = paletteInfos[j];
             int index = 0;
 
-            for(int i = 0; i < p.PaletteSize; i++)
+            for (int i = 0; i < p.PaletteSize; i++)
             {
                 // each palette entry consists of 5 bytes
                 int palIndex = p.PaletteBuffer[index];
@@ -120,9 +120,9 @@ public static class SupDecoder
 
                 int alphaOld = palette.GetAlpha(palIndex);
                 // avoid fading out
-                if(alpha >= alphaOld)
+                if (alpha >= alphaOld)
                 {
-                    if(alpha < AlphaCrop)
+                    if (alpha < AlphaCrop)
                     {// to not mess with scaling algorithms, make transparent color black
                         y = 16;
                         cr = 128;
@@ -139,7 +139,7 @@ public static class SupDecoder
                 index++;
             }
         }
-        if(fadeOut)
+        if (fadeOut)
         {
             System.Diagnostics.Debug.Print("fade out detected -> patched palette\n");
         }
@@ -150,7 +150,7 @@ public static class SupDecoder
     {
         int y = index / width;
         int x = index % width;
-        while(count > 0)
+        while (count > 0)
         {
             int writeLen = Math.Min(count, width - x);
             pixData.Slice(y * stride + x, writeLen).Fill(value);
@@ -162,7 +162,7 @@ public static class SupDecoder
 
     public static unsafe void DecodeImage(PcsObject pcs, IList<OdsData> data, int[] paletteBucket, IntPtr bitmapPtr, int stride)
     {
-        if(data.Count != 1)
+        if (data.Count != 1)
         {
             throw new ArgumentOutOfRangeException("data.Count");
         }
@@ -179,14 +179,14 @@ public static class SupDecoder
         do
         {
             int b = buf[index++] & 0xff;
-            if(b == 0)
+            if (b == 0)
             {
                 b = buf[index++] & 0xff;
-                if(b == 0)
+                if (b == 0)
                 {
                     // next line
                     ofs = (ofs / w) * w;
-                    if(xpos < w)
+                    if (xpos < w)
                     {
                         ofs += w;
                     }
@@ -195,7 +195,7 @@ public static class SupDecoder
                 else
                 {
                     int size;
-                    if((b & 0xC0) == 0x40)
+                    if ((b & 0xC0) == 0x40)
                     {
                         // 00 4x xx -> xxx zeroes
                         size = ((b - 0x40) << 8) + (buf[index++] & 0xff);
@@ -204,7 +204,7 @@ public static class SupDecoder
                         xpos += size;
                         paletteBucket[0] += size;
                     }
-                    else if((b & 0xC0) == 0x80)
+                    else if ((b & 0xC0) == 0x80)
                     {
                         // 00 8x yy -> x times value y
                         size = (b - 0x80);
@@ -214,7 +214,7 @@ public static class SupDecoder
                         xpos += size;
                         paletteBucket[b] += size;
                     }
-                    else if((b & 0xC0) != 0)
+                    else if ((b & 0xC0) != 0)
                     {
                         // 00 cx yy zz -> xyy times value z
                         size = ((b - 0xC0) << 8) + (buf[index++] & 0xff);
@@ -241,7 +241,7 @@ public static class SupDecoder
                 xpos++;
                 paletteBucket[b]++;
             }
-        } while(index < buf.Length);
+        } while (index < buf.Length);
     }
 
     public static Bitmap DecodeImage(PcsObject pcs, IList<OdsData> data, BluRaySupPalette palette, int[] paletteBucket)
@@ -260,16 +260,16 @@ public static class SupDecoder
         // just for multi-packet support, copy all of the image data in one common buffer
         byte[] buf;
         int bufSize;
-        if(data.Count > 1)
+        if (data.Count > 1)
         {
             bufSize = 0;
-            foreach(OdsData ods in data)
+            foreach (OdsData ods in data)
             {
                 bufSize += ods.Fragment.ImagePacketSize;
             }
             buf = new byte[bufSize];
             int offset = 0;
-            foreach(OdsData ods in data)
+            foreach (OdsData ods in data)
             {
                 Buffer.BlockCopy(ods.Fragment.ImageBuffer, 0, buf, offset, ods.Fragment.ImagePacketSize);
                 offset += ods.Fragment.ImagePacketSize;
@@ -285,14 +285,14 @@ public static class SupDecoder
         do
         {
             int b = buf[index++] & 0xff;
-            if(b == 0)
+            if (b == 0)
             {
                 b = buf[index++] & 0xff;
-                if(b == 0)
+                if (b == 0)
                 {
                     // next line
                     ofs = (ofs / w) * w;
-                    if(xpos < w)
+                    if (xpos < w)
                     {
                         ofs += w;
                     }
@@ -301,35 +301,35 @@ public static class SupDecoder
                 else
                 {
                     int size;
-                    if((b & 0xC0) == 0x40)
+                    if ((b & 0xC0) == 0x40)
                     {
                         // 00 4x xx -> xxx zeroes
                         size = ((b - 0x40) << 8) + (buf[index++] & 0xff);
-                        for(int i = 0; i < size; i++)
+                        for (int i = 0; i < size; i++)
                         {
                             PutPixel(bm, ofs++, 0, palette);
                         }
                         paletteBucket[0] += size;
                         xpos += size;
                     }
-                    else if((b & 0xC0) == 0x80)
+                    else if ((b & 0xC0) == 0x80)
                     {
                         // 00 8x yy -> x times value y
                         size = (b - 0x80);
                         b = buf[index++] & 0xff;
-                        for(int i = 0; i < size; i++)
+                        for (int i = 0; i < size; i++)
                         {
                             PutPixel(bm, ofs++, b, palette);
                         }
                         paletteBucket[b] += size;
                         xpos += size;
                     }
-                    else if((b & 0xC0) != 0)
+                    else if ((b & 0xC0) != 0)
                     {
                         // 00 cx yy zz -> xyy times value z
                         size = ((b - 0xC0) << 8) + (buf[index++] & 0xff);
                         b = buf[index++] & 0xff;
-                        for(int i = 0; i < size; i++)
+                        for (int i = 0; i < size; i++)
                         {
                             PutPixel(bm, ofs++, b, palette);
                         }
@@ -339,7 +339,7 @@ public static class SupDecoder
                     else
                     {
                         // 00 xx -> xx times 0
-                        for(int i = 0; i < b; i++)
+                        for (int i = 0; i < b; i++)
                         {
                             PutPixel(bm, ofs++, 0, palette);
                         }
@@ -354,7 +354,7 @@ public static class SupDecoder
                 paletteBucket[b]++;
                 xpos++;
             }
-        } while(index < buf.Length);
+        } while (index < buf.Length);
 
         bm.UnlockImage();
         return bm.GetBitmap();
@@ -364,24 +364,24 @@ public static class SupDecoder
     {
         int x = index % bmp.Width;
         int y = index / bmp.Width;
-        if(color > 0 && x < bmp.Width && y < bmp.Height)
+        if (color > 0 && x < bmp.Width && y < bmp.Height)
             bmp.SetPixel(x, y, Color.FromArgb(palette.GetArgb(color)));
     }
 
     private static int TestColorDiff(Color c1, Color c2, int maxDiff)
     {
         int rDiff = Math.Abs(c1.R - c2.R);
-        if(rDiff > maxDiff)
+        if (rDiff > maxDiff)
         {
             return -1;
         }
         int gDiff = Math.Abs(c1.G - c2.G);
-        if(gDiff > maxDiff)
+        if (gDiff > maxDiff)
         {
             return -1;
         }
         int bDiff = Math.Abs(c1.B - c2.B);
-        if(bDiff > maxDiff)
+        if (bDiff > maxDiff)
         {
             return -1;
         }
@@ -390,12 +390,12 @@ public static class SupDecoder
 
     class ColorData
     {
-        public ColorData(Color c) 
+        public ColorData(Color c)
         {
             this.Color = c;
             this.OriginalIndexes = [];
         }
-        
+
         public ColorData(Color c, IEnumerable<int> indexes)
         {
             this.Color = c;
@@ -413,14 +413,14 @@ public static class SupDecoder
     {
         List<ColorData> colorDataList = [];
         Dictionary<Color, ColorData> colorDataDict = new Dictionary<Color, ColorData>();
-        for(int index = 0; index < 256; index++)
+        for (int index = 0; index < 256; index++)
         {
             Color c = Color.FromArgb(palette.GetArgb(index));
-            if((c.A >= MinimumConvertableAlpha) && (paletteBucket[index] > 0))
+            if ((c.A >= MinimumConvertableAlpha) && (paletteBucket[index] > 0))
             {
                 c = Color.FromArgb(255, c);
                 ColorData data;
-                if(!colorDataDict.TryGetValue(c, out data))
+                if (!colorDataDict.TryGetValue(c, out data))
                 {
                     data = new ColorData(c);
                     colorDataDict[c] = data;
@@ -432,12 +432,12 @@ public static class SupDecoder
         }
 
         colorDataList.Sort(
-            delegate(ColorData data1, ColorData data2)
+            delegate (ColorData data1, ColorData data2)
             {
                 return -data1.BucketCount.CompareTo(data2.BucketCount);
             });
 
-        if(colorDataList.Count >= maxColors)
+        if (colorDataList.Count >= maxColors)
         {
             List<ColorData> newColorDataList = [];
             int maxDiff = 8;
@@ -446,22 +446,22 @@ public static class SupDecoder
                 newColorDataList.Clear();
                 newColorDataList.Add(new ColorData(colorDataList[0].Color, colorDataList[0].OriginalIndexes));
 
-                foreach(ColorData data in colorDataList.Skip(1))
+                foreach (ColorData data in colorDataList.Skip(1))
                 {
                     int bestDiff = -1;
                     ColorData bestData = null;
-                    foreach(ColorData newData in newColorDataList)
+                    foreach (ColorData newData in newColorDataList)
                     {
                         int colorDiff = TestColorDiff(data.Color, newData.Color, maxDiff);
-                        if((colorDiff >= 0) && ((bestDiff == -1) || (colorDiff < bestDiff)))
+                        if ((colorDiff >= 0) && ((bestDiff == -1) || (colorDiff < bestDiff)))
                         {
                             bestDiff = colorDiff;
                             bestData = newData;
                         }
                     }
-                    if(bestData != null)
+                    if (bestData != null)
                     {
-                        foreach(int oldIndex in data.OriginalIndexes)
+                        foreach (int oldIndex in data.OriginalIndexes)
                         {
                             bestData.OriginalIndexes.Add(oldIndex);
                         }
@@ -469,24 +469,24 @@ public static class SupDecoder
                     else
                     {
                         newColorDataList.Add(new ColorData(data.Color, data.OriginalIndexes));
-                        if(newColorDataList.Count > maxColors)
+                        if (newColorDataList.Count > maxColors)
                         {
                             break;
                         }
                     }
                 }
                 maxDiff += 8;
-            } while(newColorDataList.Count > maxColors);
+            } while (newColorDataList.Count > maxColors);
 
             colorDataList = newColorDataList;
         }
 
         BluRaySupPalette smallPalette = new BluRaySupPalette(256);
         uniqueColors = [];
-        foreach(ColorData data in colorDataList)
+        foreach (ColorData data in colorDataList)
         {
             uniqueColors.Add(data.Color);
-            foreach(int index in data.OriginalIndexes)
+            foreach (int index in data.OriginalIndexes)
             {
                 smallPalette.SetAlpha(index, 255);
                 smallPalette.SetRgb(index, data.Color.R, data.Color.G, data.Color.B);

@@ -5,11 +5,12 @@ using System.IO;
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 public class VobSubReader : IDisposable
 {
     public static void ReadSubs(string indexFilePath, ISubtitleStorage storage)
     {
-        using(VobSubReader reader = new VobSubReader(indexFilePath, storage))
+        using (VobSubReader reader = new VobSubReader(indexFilePath, storage))
         {
             reader.Read();
         }
@@ -24,14 +25,14 @@ public class VobSubReader : IDisposable
         this.storage = storage;
         this.storage.AddHeader(Path.GetFileNameWithoutExtension(indexFilePath), 1, 1, 0);
 
-        if(!File.Exists(indexFilePath))
+        if (!File.Exists(indexFilePath))
         {
             return;
         }
         this.indexLines = File.ReadAllLines(indexFilePath, Encoding.ASCII);
         string subFilePath = Path.Combine(Path.GetDirectoryName(indexFilePath),
             Path.GetFileNameWithoutExtension(indexFilePath) + ".sub");
-        if(!File.Exists(subFilePath))
+        if (!File.Exists(subFilePath))
         {
             return;
         }
@@ -76,20 +77,20 @@ public class VobSubReader : IDisposable
 
     void Read()
     {
-        if((this.indexLines == null) || (this.subReader == null))
+        if ((this.indexLines == null) || (this.subReader == null))
         {
             return;
         }
 
-        foreach(string line in this.indexLines)
+        foreach (string line in this.indexLines)
         {
             string trimmed = line.Trim();
-            if((trimmed.Length == 0) || (trimmed[0] == '#'))
+            if ((trimmed.Length == 0) || (trimmed[0] == '#'))
             {
                 continue;
             }
             int firstColon = trimmed.IndexOf(':');
-            if(firstColon <= 0)
+            if (firstColon <= 0)
             {
                 Debug.WriteLine("Bad line in index file " + line);
                 continue;
@@ -97,132 +98,132 @@ public class VobSubReader : IDisposable
 
             string command = trimmed.Substring(0, firstColon).ToLowerInvariant();
             string value = trimmed.Substring(firstColon + 1);
-            switch(command)
+            switch (command)
             {
-            case "size":
-                {
-                    int xPosition = value.IndexOf("x", StringComparison.InvariantCultureIgnoreCase);
-                    if(xPosition != -1)
+                case "size":
                     {
-                        string xRez = value.Substring(0, xPosition);
-                        string yRez = value.Substring(xPosition + 1);
-                        int horizRez, vertRez;
-                        if(Int32.TryParse(xRez, out horizRez) && Int32.TryParse(yRez, out vertRez))
+                        int xPosition = value.IndexOf("x", StringComparison.InvariantCultureIgnoreCase);
+                        if (xPosition != -1)
                         {
-                            this.horizontalRez = horizRez;
-                            this.verticalRez = vertRez;
-                        }
-                    }
-                }
-                break;
-            case "org":
-                break;
-            case "scale":
-                break;
-            case "alpha":
-                break;
-            case "smooth":
-                break;
-            case @"fadein/out":
-                break;
-            case "align":
-                break;
-            case "time offset":
-            case "delay":
-                {
-                    int offset;
-                    if(Int32.TryParse(value, out offset))
-                    {
-                        this.timeOffset = offset;
-                    }
-                }
-                break;
-            case "forced subs":
-                break;
-            case "palette":
-                {
-                    string[] values = value.Split(',');
-                    int[] newPalette = new int[16];
-                    for(int index = 0; index < 16; index++)
-                    {
-                        if(values.Length > index)
-                        {
-                            int rgbValue;
-                            if(Int32.TryParse(values[index].Trim(), NumberStyles.AllowHexSpecifier,
-                                NumberFormatInfo.InvariantInfo, out rgbValue))
+                            string xRez = value.Substring(0, xPosition);
+                            string yRez = value.Substring(xPosition + 1);
+                            int horizRez, vertRez;
+                            if (Int32.TryParse(xRez, out horizRez) && Int32.TryParse(yRez, out vertRez))
                             {
-                                newPalette[index] = VsRipYUVFromRGB(rgbValue);
+                                this.horizontalRez = horizRez;
+                                this.verticalRez = vertRez;
                             }
                         }
                     }
-                    this.storage.AddPalette(newPalette);
-                }
-                break;
-            case "custom colors":
-                break;
-            case "langidx":
-                break;
-            case "id":
-                if(!this.videoAdded)
-                {
-                    AddVideo();
-                }
-                this.streamAdded = false;
-                {
-                    int firstComma = value.IndexOf(',');
-                    if(firstComma != -1)
+                    break;
+                case "org":
+                    break;
+                case "scale":
+                    break;
+                case "alpha":
+                    break;
+                case "smooth":
+                    break;
+                case @"fadein/out":
+                    break;
+                case "align":
+                    break;
+                case "time offset":
+                case "delay":
                     {
-                        string lang = value.Substring(0, firstComma).Trim();
-                        if(lang.Length != 0)
+                        int offset;
+                        if (Int32.TryParse(value, out offset))
                         {
-                            this.language = lang;
+                            this.timeOffset = offset;
                         }
                     }
-                }
-                break;
-            case "timestamp":
-                if(!this.streamAdded)
-                {
-                    AddStream();
-                }
-                {
-                    int firstComma = value.IndexOf(',');
-                    if(firstComma != -1)
+                    break;
+                case "forced subs":
+                    break;
+                case "palette":
                     {
-                        string[] timeParts = value.Substring(0, firstComma).Trim().Split(':');
-                        int hours, minutes, seconds, milliseconds;
-                        if((timeParts.Length == 4) && Int32.TryParse(timeParts[0], out hours) &&
-                            Int32.TryParse(timeParts[1], out minutes) &&
-                            Int32.TryParse(timeParts[2], out seconds) &&
-                            Int32.TryParse(timeParts[3], out milliseconds))
+                        string[] values = value.Split(',');
+                        int[] newPalette = new int[16];
+                        for (int index = 0; index < 16; index++)
                         {
-                            string nextPart = value.Substring(firstComma + 1);
-                            int secondColon = nextPart.IndexOf(':');
-                            if((secondColon != -1) &&
-                                (nextPart.Substring(0, secondColon).Trim().ToLowerInvariant() == "filepos"))
+                            if (values.Length > index)
                             {
-                                string posString = nextPart.Substring(secondColon + 1).Trim();
-                                int nextComma = posString.IndexOf(',', 1);
-                                if(nextComma != -1)
+                                int rgbValue;
+                                if (Int32.TryParse(values[index].Trim(), NumberStyles.AllowHexSpecifier,
+                                    NumberFormatInfo.InvariantInfo, out rgbValue))
                                 {
-                                    posString = posString.Substring(0, nextComma).Trim();
-                                }
-                                UInt32 filePos;
-                                if(UInt32.TryParse(posString, NumberStyles.AllowHexSpecifier,
-                                    NumberFormatInfo.InvariantInfo, out filePos))
-                                {
-                                    double pts = (double)milliseconds + seconds * 1000.0 +
-                                        minutes * 1000.0 * 60.0 + hours * 1000.0 * 60.0 * 60.0;
-                                    NewSubtitle(pts, filePos);
+                                    newPalette[index] = VsRipYUVFromRGB(rgbValue);
                                 }
                             }
                         }
+                        this.storage.AddPalette(newPalette);
                     }
+                    break;
+                case "custom colors":
+                    break;
+                case "langidx":
+                    break;
+                case "id":
+                    if (!this.videoAdded)
+                    {
+                        AddVideo();
+                    }
+                    this.streamAdded = false;
+                    {
+                        int firstComma = value.IndexOf(',');
+                        if (firstComma != -1)
+                        {
+                            string lang = value.Substring(0, firstComma).Trim();
+                            if (lang.Length != 0)
+                            {
+                                this.language = lang;
+                            }
+                        }
+                    }
+                    break;
+                case "timestamp":
+                    if (!this.streamAdded)
+                    {
+                        AddStream();
+                    }
+                    {
+                        int firstComma = value.IndexOf(',');
+                        if (firstComma != -1)
+                        {
+                            string[] timeParts = value.Substring(0, firstComma).Trim().Split(':');
+                            int hours, minutes, seconds, milliseconds;
+                            if ((timeParts.Length == 4) && Int32.TryParse(timeParts[0], out hours) &&
+                                Int32.TryParse(timeParts[1], out minutes) &&
+                                Int32.TryParse(timeParts[2], out seconds) &&
+                                Int32.TryParse(timeParts[3], out milliseconds))
+                            {
+                                string nextPart = value.Substring(firstComma + 1);
+                                int secondColon = nextPart.IndexOf(':');
+                                if ((secondColon != -1) &&
+                                    (nextPart.Substring(0, secondColon).Trim().ToLowerInvariant() == "filepos"))
+                                {
+                                    string posString = nextPart.Substring(secondColon + 1).Trim();
+                                    int nextComma = posString.IndexOf(',', 1);
+                                    if (nextComma != -1)
+                                    {
+                                        posString = posString.Substring(0, nextComma).Trim();
+                                    }
+                                    UInt32 filePos;
+                                    if (UInt32.TryParse(posString, NumberStyles.AllowHexSpecifier,
+                                        NumberFormatInfo.InvariantInfo, out filePos))
+                                    {
+                                        double pts = (double)milliseconds + seconds * 1000.0 +
+                                            minutes * 1000.0 * 60.0 + hours * 1000.0 * 60.0 * 60.0;
+                                        NewSubtitle(pts, filePos);
+                                    }
+                                }
+                            }
+                        }
 
-                }
-                break;
-            default:
-                break;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
     }
@@ -236,22 +237,22 @@ public class VobSubReader : IDisposable
             List<byte[]> allBuffers = [];
             int subStreamId = 0;
             byte[] firstBuffer = ReadPacket(ref subStreamId);
-            if(firstBuffer == null)
+            if (firstBuffer == null)
             {
                 return;
             }
             int packetLength = BinaryPrimitives.ReadUInt16BigEndian(firstBuffer);
             allBuffers.Add(firstBuffer);
             int currentLength = firstBuffer.Length;
-            while(currentLength < packetLength)
+            while (currentLength < packetLength)
             {
                 int nextSubStreamId = 0;
                 byte[] nextBuffer = ReadPacket(ref nextSubStreamId);
-                if(nextBuffer == null)
+                if (nextBuffer == null)
                 {
                     return;
                 }
-                if(nextSubStreamId == subStreamId)
+                if (nextSubStreamId == subStreamId)
                 {
                     allBuffers.Add(nextBuffer);
                     currentLength += nextBuffer.Length;
@@ -260,7 +261,7 @@ public class VobSubReader : IDisposable
 
             byte[] buffer = new byte[packetLength];
             int currentPosition = 0;
-            foreach(byte[] nextBuffer in allBuffers)
+            foreach (byte[] nextBuffer in allBuffers)
             {
                 Buffer.BlockCopy(nextBuffer, 0, buffer, currentPosition, nextBuffer.Length);
                 currentPosition += nextBuffer.Length;
@@ -268,7 +269,7 @@ public class VobSubReader : IDisposable
 
             this.storage.AddSubtitlePacket(this.streamId, buffer, 0, buffer.Length, pts);
         }
-        catch(IOException)
+        catch (IOException)
         {
         }
     }
@@ -278,12 +279,12 @@ public class VobSubReader : IDisposable
         byte[] startPack = new byte[4];
         this.subReader.Read(startPack, 0, 4);
 
-        if((startPack[0] != 0) || (startPack[1] != 0) || (startPack[2] != 1))
+        if ((startPack[0] != 0) || (startPack[1] != 0) || (startPack[2] != 1))
         {
             return null;
         }
 
-        if(startPack[3] == MpegPSSplitter.PaddingStreamCode)
+        if (startPack[3] == MpegPSSplitter.PaddingStreamCode)
         {
             byte[] paddingHeader = new byte[2];
             this.subReader.Read(paddingHeader, 0, 2);
@@ -293,19 +294,19 @@ public class VobSubReader : IDisposable
             return new byte[0];
         }
 
-        if(startPack[3] != MpegPSSplitter.PackHeaderCode)
+        if (startPack[3] != MpegPSSplitter.PackHeaderCode)
         {
             return null;
         }
 
         int headerType = this.subReader.ReadByte();
-        if((headerType >> 6) == 0x01)
+        if ((headerType >> 6) == 0x01)
         {
             byte[] tempBuffer = new byte[9];
             this.subReader.Read(tempBuffer, 0, 9);
             this.subReader.Seek(tempBuffer[8] & 0x07, SeekOrigin.Current);
         }
-        else if((headerType >> 4) == 0x02)
+        else if ((headerType >> 4) == 0x02)
         {
             this.subReader.Seek(7, SeekOrigin.Current);
         }
@@ -315,7 +316,7 @@ public class VobSubReader : IDisposable
         }
 
         this.subReader.Read(startPack, 0, 4);
-        if((startPack[0] != 0) || (startPack[1] != 0) || (startPack[2] != 1) ||
+        if ((startPack[0] != 0) || (startPack[1] != 0) || (startPack[2] != 1) ||
             (startPack[3] != MpegPSSplitter.PrivateStream1Code))
         {
             return null;
@@ -323,7 +324,7 @@ public class VobSubReader : IDisposable
 
         byte[] pesHeader = new byte[5];
         this.subReader.Read(pesHeader, 0, 5);
-        if((pesHeader[2] & 0xc0) != 0x80)
+        if ((pesHeader[2] & 0xc0) != 0x80)
         {
             // not a good PES packet
             return null;
@@ -342,7 +343,7 @@ public class VobSubReader : IDisposable
 
     public void Dispose()
     {
-        if(this.subReader != null)
+        if (this.subReader != null)
         {
             this.subReader.Close();
             this.subReader = null;

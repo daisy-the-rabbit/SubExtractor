@@ -1,6 +1,7 @@
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 class SdhSubLine
 {
     public IList<OcrCharacter> Text { get; set; }
@@ -10,7 +11,7 @@ class SdhSubLine
 
     public static void RemoveSDH(IList<SdhSubLine> lines)
     {
-        for(int lineIndex = 0; lineIndex < lines.Count; lineIndex++)
+        for (int lineIndex = 0; lineIndex < lines.Count; lineIndex++)
         {
             SdhSubLine sdh = lines[lineIndex];
             IList<OcrCharacter> currentText = sdh.Text;
@@ -19,188 +20,188 @@ class SdhSubLine
             do
             {
                 removedStuff = false;
-                for(int ocrIndex = 0; ocrIndex < currentText.Count; ocrIndex++)
+                for (int ocrIndex = 0; ocrIndex < currentText.Count; ocrIndex++)
                 {
-                    switch(currentText[ocrIndex].Value)
+                    switch (currentText[ocrIndex].Value)
                     {
-                    case '[':
-                        for(int ocrIndex2 = ocrIndex + 1; ocrIndex2 < currentText.Count; ocrIndex2++)
-                        {
-                            if(currentText[ocrIndex2].Value == ']')
+                        case '[':
+                            for (int ocrIndex2 = ocrIndex + 1; ocrIndex2 < currentText.Count; ocrIndex2++)
                             {
-                                if((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                if (currentText[ocrIndex2].Value == ']')
                                 {
-                                    ocrIndex--;
-                                }
-                                if((ocrIndex2 < currentText.Count - 1) && (currentText[ocrIndex2 + 1].Value == ' '))
-                                {
-                                    ocrIndex2++;
-                                }
-                                newText = new List<OcrCharacter>(currentText);
-                                newText.RemoveRange(ocrIndex, ocrIndex2 - ocrIndex + 1);
-                                removedStuff = true;
-                                break;
-                            }
-                        }
-                        if(!removedStuff && (lineIndex < lines.Count - 1))
-                        {
-                            SdhSubLine sdh2 = lines[lineIndex + 1];
-                            for(int ocrIndex2 = 0; ocrIndex2 < sdh2.Text.Count; ocrIndex2++)
-                            {
-                                OcrCharacter c2 = sdh2.Text[ocrIndex2];
-                                if(c2.Value == '[')
-                                {
-                                    break;
-                                }
-                                if(c2.Value == ']')
-                                {
-                                    if((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                    if ((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
                                     {
                                         ocrIndex--;
                                     }
-                                    newText = new List<OcrCharacter>(currentText.Take(ocrIndex));
-                                    removedStuff = true;
-
-                                    if((ocrIndex2 < sdh2.Text.Count - 1) && (sdh2.Text[ocrIndex2 + 1].Value == ' '))
+                                    if ((ocrIndex2 < currentText.Count - 1) && (currentText[ocrIndex2 + 1].Value == ' '))
                                     {
                                         ocrIndex2++;
                                     }
-                                    sdh2.Text = new List<OcrCharacter>(sdh2.Text.Skip(ocrIndex2 + 1));
-                                    sdh2.LineStartRemoved = true;
+                                    newText = new List<OcrCharacter>(currentText);
+                                    newText.RemoveRange(ocrIndex, ocrIndex2 - ocrIndex + 1);
+                                    removedStuff = true;
                                     break;
                                 }
                             }
-                        }
-                        break;
-                    case '(':
-                        for(int ocrIndex2 = ocrIndex + 1; ocrIndex2 < currentText.Count; ocrIndex2++)
-                        {
-                            if(currentText[ocrIndex2].Value == ')')
+                            if (!removedStuff && (lineIndex < lines.Count - 1))
                             {
-                                if((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                SdhSubLine sdh2 = lines[lineIndex + 1];
+                                for (int ocrIndex2 = 0; ocrIndex2 < sdh2.Text.Count; ocrIndex2++)
                                 {
-                                    ocrIndex--;
+                                    OcrCharacter c2 = sdh2.Text[ocrIndex2];
+                                    if (c2.Value == '[')
+                                    {
+                                        break;
+                                    }
+                                    if (c2.Value == ']')
+                                    {
+                                        if ((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                        {
+                                            ocrIndex--;
+                                        }
+                                        newText = new List<OcrCharacter>(currentText.Take(ocrIndex));
+                                        removedStuff = true;
+
+                                        if ((ocrIndex2 < sdh2.Text.Count - 1) && (sdh2.Text[ocrIndex2 + 1].Value == ' '))
+                                        {
+                                            ocrIndex2++;
+                                        }
+                                        sdh2.Text = new List<OcrCharacter>(sdh2.Text.Skip(ocrIndex2 + 1));
+                                        sdh2.LineStartRemoved = true;
+                                        break;
+                                    }
                                 }
-                                if((ocrIndex2 < currentText.Count - 1) && (currentText[ocrIndex2 + 1].Value == ' '))
-                                {
-                                    ocrIndex2++;
-                                }
-                                newText = new List<OcrCharacter>(currentText);
-                                newText.RemoveRange(ocrIndex, ocrIndex2 - ocrIndex + 1);
-                                removedStuff = true;
-                                break;
                             }
-                        }
-                        if(!removedStuff && (lineIndex < lines.Count - 1))
-                        {
-                            SdhSubLine sdh2 = lines[lineIndex + 1];
-                            for(int ocrIndex2 = 0; ocrIndex2 < sdh2.Text.Count; ocrIndex2++)
+                            break;
+                        case '(':
+                            for (int ocrIndex2 = ocrIndex + 1; ocrIndex2 < currentText.Count; ocrIndex2++)
                             {
-                                OcrCharacter c2 = sdh2.Text[ocrIndex2];
-                                if(c2.Value == '(')
+                                if (currentText[ocrIndex2].Value == ')')
                                 {
-                                    break;
-                                }
-                                if(c2.Value == ')')
-                                {
-                                    if((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                    if ((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
                                     {
                                         ocrIndex--;
                                     }
-                                    newText = new List<OcrCharacter>(currentText.Take(ocrIndex));
-                                    removedStuff = true;
-
-                                    if((sdh2.Text.Count > ocrIndex2 + 1) && (sdh2.Text[ocrIndex2 + 1].Value == ' '))
+                                    if ((ocrIndex2 < currentText.Count - 1) && (currentText[ocrIndex2 + 1].Value == ' '))
                                     {
                                         ocrIndex2++;
                                     }
-                                    sdh2.Text = new List<OcrCharacter>(sdh2.Text.Skip(ocrIndex2 + 1));
-                                    sdh2.LineStartRemoved = true;
+                                    newText = new List<OcrCharacter>(currentText);
+                                    newText.RemoveRange(ocrIndex, ocrIndex2 - ocrIndex + 1);
+                                    removedStuff = true;
                                     break;
                                 }
                             }
-                        }
-                        break;
-                    case ':':
-                        {
-                            bool doRemoval = true;
-                            if((ocrIndex > 0) && (ocrIndex < currentText.Count - 1))
+                            if (!removedStuff && (lineIndex < lines.Count - 1))
                             {
-                                // check for time values (8:00) which obviously aren't SDH text
-                                if(Char.IsDigit(currentText[ocrIndex - 1].Value) && Char.IsDigit(currentText[ocrIndex + 1].Value))
+                                SdhSubLine sdh2 = lines[lineIndex + 1];
+                                for (int ocrIndex2 = 0; ocrIndex2 < sdh2.Text.Count; ocrIndex2++)
                                 {
-                                    doRemoval = false;
-                                }
-                            }
-                            if(doRemoval)
-                            {
-                                bool hasLower = false;
-                                bool hasSpace = false;
-                                foreach(OcrCharacter ocr in currentText.Take(ocrIndex))
-                                {
-                                    if(Char.IsLower(ocr.Value))
+                                    OcrCharacter c2 = sdh2.Text[ocrIndex2];
+                                    if (c2.Value == '(')
                                     {
-                                        hasLower = true;
+                                        break;
                                     }
-                                    if(ocr.Value == ' ')
+                                    if (c2.Value == ')')
                                     {
-                                        hasSpace = true;
+                                        if ((ocrIndex > 0) && (currentText[ocrIndex - 1].Value == ' '))
+                                        {
+                                            ocrIndex--;
+                                        }
+                                        newText = new List<OcrCharacter>(currentText.Take(ocrIndex));
+                                        removedStuff = true;
+
+                                        if ((sdh2.Text.Count > ocrIndex2 + 1) && (sdh2.Text[ocrIndex2 + 1].Value == ' '))
+                                        {
+                                            ocrIndex2++;
+                                        }
+                                        sdh2.Text = new List<OcrCharacter>(sdh2.Text.Skip(ocrIndex2 + 1));
+                                        sdh2.LineStartRemoved = true;
+                                        break;
                                     }
                                 }
-                                if(hasSpace && hasLower)
-                                {
-                                    doRemoval = false;
-                                }
                             }
-                            if(doRemoval)
+                            break;
+                        case ':':
                             {
-                                newText = new List<OcrCharacter>(currentText.Skip(ocrIndex + 1));
-                                if((newText.Count > 0) && (newText[0].Value == ' '))
+                                bool doRemoval = true;
+                                if ((ocrIndex > 0) && (ocrIndex < currentText.Count - 1))
                                 {
-                                    newText.RemoveAt(0);
+                                    // check for time values (8:00) which obviously aren't SDH text
+                                    if (Char.IsDigit(currentText[ocrIndex - 1].Value) && Char.IsDigit(currentText[ocrIndex + 1].Value))
+                                    {
+                                        doRemoval = false;
+                                    }
                                 }
-                                ocrIndex = 0;
-                                removedStuff = true;
+                                if (doRemoval)
+                                {
+                                    bool hasLower = false;
+                                    bool hasSpace = false;
+                                    foreach (OcrCharacter ocr in currentText.Take(ocrIndex))
+                                    {
+                                        if (Char.IsLower(ocr.Value))
+                                        {
+                                            hasLower = true;
+                                        }
+                                        if (ocr.Value == ' ')
+                                        {
+                                            hasSpace = true;
+                                        }
+                                    }
+                                    if (hasSpace && hasLower)
+                                    {
+                                        doRemoval = false;
+                                    }
+                                }
+                                if (doRemoval)
+                                {
+                                    newText = new List<OcrCharacter>(currentText.Skip(ocrIndex + 1));
+                                    if ((newText.Count > 0) && (newText[0].Value == ' '))
+                                    {
+                                        newText.RemoveAt(0);
+                                    }
+                                    ocrIndex = 0;
+                                    removedStuff = true;
+                                }
                             }
-                        }
-                        break;
+                            break;
                     }
-                    if(removedStuff)
+                    if (removedStuff)
                     {
-                        if(ocrIndex == 0)
+                        if (ocrIndex == 0)
                         {
                             sdh.LineStartRemoved = true;
                         }
                         else
                         {
                             bool allLinebreaks = true;
-                            for(int testIndex = 0; testIndex < ocrIndex; testIndex++)
+                            for (int testIndex = 0; testIndex < ocrIndex; testIndex++)
                             {
                                 Char startChar = currentText[testIndex].Value;
-                                if(!SubConstants.CharactersThatSignalLineBreak.Contains(startChar) && !Char.IsWhiteSpace(startChar))
+                                if (!SubConstants.CharactersThatSignalLineBreak.Contains(startChar) && !Char.IsWhiteSpace(startChar))
                                 {
                                     allLinebreaks = false;
                                     break;
                                 }
                             }
-                            if(allLinebreaks)
+                            if (allLinebreaks)
                             {
                                 sdh.LineStartRemoved = true;
                             }
                         }
 
-                        if(sdh.LineStartRemoved && (newText.Count != 0))
+                        if (sdh.LineStartRemoved && (newText.Count != 0))
                         {
                             bool emptyLine = true;
-                            foreach(OcrCharacter ocr in newText)
+                            foreach (OcrCharacter ocr in newText)
                             {
-                                if(!SubConstants.CharactersThatSignalLineBreak.Contains(ocr.Value) && !Char.IsWhiteSpace(ocr.Value))
+                                if (!SubConstants.CharactersThatSignalLineBreak.Contains(ocr.Value) && !Char.IsWhiteSpace(ocr.Value))
                                 {
                                     emptyLine = false;
                                     break;
                                 }
                             }
-                            if(emptyLine)
+                            if (emptyLine)
                             {
                                 newText.Clear();
                             }
@@ -211,7 +212,7 @@ class SdhSubLine
                     }
                 }
             }
-            while(removedStuff);
+            while (removedStuff);
         }
     }
 }

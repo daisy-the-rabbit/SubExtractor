@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Data;
 
 namespace DvdSubExtractor;
+
 public partial class CommentBox : Form
 {
     public CommentBox()

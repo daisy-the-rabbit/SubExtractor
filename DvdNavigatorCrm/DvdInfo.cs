@@ -22,45 +22,46 @@
 using System.Drawing;
 
 namespace DvdNavigatorCrm;
+
 public enum AudioCodingMode
 {
-	AC3 = 0,
-	MPEG1 = 2,
-	MPEG2 = 3,
-	LPCM = 4,
-	DTS = 6,
+    AC3 = 0,
+    MPEG1 = 2,
+    MPEG2 = 3,
+    LPCM = 4,
+    DTS = 6,
 }
 
 public enum AudioCodeExtension
 {
-	Unspecified = 0,
-	Normal = 1,
-	VisuallyImpaired = 2,
-	DirectorsComments = 3,
-	AlternateDirectorsComments = 4,
+    Unspecified = 0,
+    Normal = 1,
+    VisuallyImpaired = 2,
+    DirectorsComments = 3,
+    AlternateDirectorsComments = 4,
 }
 
 public enum SubpictureCodeExtension
 {
-	UnSpecified = 0,
-	Normal = 1,
-	Large = 2,
-	Children = 3,
-	Captions = 5,
-	Large2 = 6,
-	Childrens = 7,
-	Forced = 9,
-	Directors = 13,
-	LargeDirectors = 14,
-	DirectorsForChildren = 15,
+    UnSpecified = 0,
+    Normal = 1,
+    Large = 2,
+    Children = 3,
+    Captions = 5,
+    Large2 = 6,
+    Childrens = 7,
+    Forced = 9,
+    Directors = 13,
+    LargeDirectors = 14,
+    DirectorsForChildren = 15,
 }
 
 public enum SubpictureFormat
 {
-	FourBy3 = 0,
-	Wide = 1,
-	LetterBox = 2,
-	PanScan = 3,
+    FourBy3 = 0,
+    Wide = 1,
+    LetterBox = 2,
+    PanScan = 3,
 }
 
 public record struct PartOfTitle(int ProgramChain, int Program);
@@ -105,7 +106,7 @@ public enum PalStandard
 
 public struct AudioAttributes
 {
-	public int TrackId;
+    public int TrackId;
     public AudioCodingMode CodingMode;
     public string Language;
     public int Channels;
@@ -114,48 +115,48 @@ public struct AudioAttributes
 
 public struct SubpictureAttributes
 {
-	public int TrackId;
-	public string Language;
+    public int TrackId;
+    public string Language;
     public SubpictureCodeExtension CodeExtension;
-	public SubpictureFormat SubpictureFormat;
+    public SubpictureFormat SubpictureFormat;
 }
 
 public struct TitleCell
 {
-	public int ProgramChainIndex;
-	public ProgramGroupChain ProgramChain;
-	public int ProgramIndex;
-	public CellInformation Cell;
-	public int CellAngle;
+    public int ProgramChainIndex;
+    public ProgramGroupChain ProgramChain;
+    public int ProgramIndex;
+    public CellInformation Cell;
+    public int CellAngle;
 
-	public TitleCell(int chainIndex, ProgramGroupChain chain, int programIndex, CellInformation cell)
-	{
-		this.ProgramChainIndex = chainIndex;
-		this.ProgramChain = chain;
-		this.ProgramIndex = programIndex;
-		this.Cell = cell;
-		this.CellAngle = 0;
-	}
+    public TitleCell(int chainIndex, ProgramGroupChain chain, int programIndex, CellInformation cell)
+    {
+        this.ProgramChainIndex = chainIndex;
+        this.ProgramChain = chain;
+        this.ProgramIndex = programIndex;
+        this.Cell = cell;
+        this.CellAngle = 0;
+    }
 }
 
 [Flags]
 public enum CommandLocation
 {
-	None = 0,
-	Button = 8,
-	PrePost = 16,
-	Cell = 32,
-	All = Button | PrePost | Cell,
+    None = 0,
+    Button = 8,
+    PrePost = 16,
+    Cell = 32,
+    All = Button | PrePost | Cell,
 }
 
 public struct TitleInfo
 {
-	public bool IsSequential;
-	public CommandLocation CommandLocation;
-	public int NumberOfAngles;
-	public int NumberOfChapters;
-	public int VtsNumber;
-	public int TitleWithinVts;
-	public int StartSector;
+    public bool IsSequential;
+    public CommandLocation CommandLocation;
+    public int NumberOfAngles;
+    public int NumberOfChapters;
+    public int VtsNumber;
+    public int TitleWithinVts;
+    public int StartSector;
 }
 

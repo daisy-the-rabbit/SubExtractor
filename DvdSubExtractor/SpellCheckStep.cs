@@ -5,6 +5,7 @@ using System.IO;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public partial class SpellCheckStep : UserControl, IWizardItem
 {
     ExtractData data;
@@ -25,7 +26,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
         bool isDark = Application.ColorMode == SystemColorMode.Dark ||
             (Application.ColorMode == SystemColorMode.System &&
              Application.SystemColorMode == SystemColorMode.Dark);
-        if(isDark)
+        if (isDark)
         {
             this.messageLabel.ForeColor = Color.LightSkyBlue;
         }
@@ -45,7 +46,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
         {
             this.ocrMap.Load();
         }
-        catch(Exception)
+        catch (Exception)
         {
             MessageBox.Show("OCR Map failed to load - probably out of date");
             this.ocrMap = new OcrMap();
@@ -58,17 +59,17 @@ public partial class SpellCheckStep : UserControl, IWizardItem
         this.statusLabel.Text = "Matching Font Sizes.";
         this.data.WorkingData.CompileSubtitleLines();
 
-        if(this.IsDisposed || this.Disposing)
+        if (this.IsDisposed || this.Disposing)
         {
             return;
         }
 
         this.data.OptionsUpdated += this.data_OptionsUpdated;
 
-        this.data.NewStepInitialize(false, true, this.HelpText, 
+        this.data.NewStepInitialize(false, true, this.HelpText,
             [typeof(LoadFolderStep), typeof(ChooseSubtitlesStep)]);
 
-        if(NativeMethods.SupportsTaskProgress)
+        if (NativeMethods.SupportsTaskProgress)
         {
             CTaskbarList taskBar = new CTaskbarList();
             this.taskBarIntf = (ITaskbarList4)taskBar;
@@ -82,7 +83,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     void data_OptionsUpdated(object sender, EventArgs e)
     {
-        if(this.IsHandleCreated)
+        if (this.IsHandleCreated)
         {
             this.BeginInvoke(new Action(this.BeginAgain));
         }
@@ -94,7 +95,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
         this.statusLabel.Text = "Please choose the correctly spelled word or 'No Good Spelling Listed' from the list below.";
         this.spellings = FindAdjustableWords().GetEnumerator();
 
-        if(NativeMethods.SupportsTaskProgress)
+        if (NativeMethods.SupportsTaskProgress)
         {
             this.taskBarIntf.SetProgressState(this.TopLevelControl.Handle, TaskbarProgressBarStatus.Indeterminate);
         }
@@ -105,7 +106,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
     {
         this.data.OptionsUpdated -= this.data_OptionsUpdated;
 
-        if(this.taskBarIntf != null)
+        if (this.taskBarIntf != null)
         {
             this.taskBarIntf.SetProgressState(this.TopLevelControl.Handle, TaskbarProgressBarStatus.NoProgress);
         }
@@ -116,7 +117,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
             this.ocrMap.RemoveLandIWord("AI");
             this.ocrMap.Save();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             MessageBox.Show("OCR Map failed to save with exception message: " + ex.Message);
         }
@@ -124,11 +125,14 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     string HelpText
     {
-        get { return "Some words are common mistakes for OCR programs such as this.  " +
+        get
+        {
+            return "Some words are common mistakes for OCR programs such as this.  " +
             "In particular, discriminating between capital I and lower-case l is impossible " +
             "with many of the fonts used by DVD authors.\n\nIn this step you will be asked to choose " +
             "the correct spelling of various words to fix up your subtitles and build a dictionary " +
-            "of words that will make this step less painful for each new DVD program you run through it."; }
+            "of words that will make this step less painful for each new DVD program you run through it.";
+        }
     }
 
     class SpellingNeeded
@@ -141,30 +145,30 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     void NextSpellingWord()
     {
-        if((this.spellings != null) && (this.spellings.MoveNext()))
+        if ((this.spellings != null) && (this.spellings.MoveNext()))
         {
-            if(this.taskBarIntf != null)
+            if (this.taskBarIntf != null)
             {
                 this.taskBarIntf.SetProgressState(this.TopLevelControl.Handle, TaskbarProgressBarStatus.Paused);
             }
             this.currentSpelling = this.spellings.Current;
             this.spellingListBox.Items.Clear();
             this.spellingListBox.Items.AddRange(this.currentSpelling.Choices.ToArray());
-            this.contextLineLabel.Font = 
+            this.contextLineLabel.Font =
                 this.currentSpelling.Line.Text[this.currentSpelling.CharacterIndex].Italic ?
                 this.contextItalicFont : this.contextNormalFont;
             this.contextLineLabel.Text = this.currentSpelling.Line.ToString();
         }
         else
         {
-            if(this.taskBarIntf != null)
+            if (this.taskBarIntf != null)
             {
                 this.taskBarIntf.SetProgressState(this.TopLevelControl.Handle, TaskbarProgressBarStatus.Indeterminate);
             }
             this.spellingListBox.Items.Clear();
             this.contextLineLabel.Text = "";
             this.messageLabel.Text = "Complete!";
-            if(this.spellings != null)
+            if (this.spellings != null)
             {
                 this.spellings.Dispose();
                 this.spellings = null;
@@ -178,23 +182,23 @@ public partial class SpellCheckStep : UserControl, IWizardItem
     {
         int subCount = this.data.WorkingData.AllLinesBySubtitle.Count;
         this.indexProgressBar.Maximum = subCount - 1;
-        for(int subIndex = 0; subIndex < subCount; subIndex++)
+        for (int subIndex = 0; subIndex < subCount; subIndex++)
         {
-            if(this.taskBarIntf != null)
+            if (this.taskBarIntf != null)
             {
                 this.taskBarIntf.SetProgressValue(this.TopLevelControl.Handle, (ulong)subIndex, (ulong)subCount);
             }
 
             this.indexLabel.Text = $"{subIndex + 1} of {subCount}";
             this.indexProgressBar.Value = subIndex;
-            foreach(SubtitleLine line in this.data.WorkingData.AllLinesBySubtitle[subIndex])
+            foreach (SubtitleLine line in this.data.WorkingData.AllLinesBySubtitle[subIndex])
             {
-                foreach(SpellingCorrectionResult result in line.CorrectSpelling(this.ocrMap, this.ignoredWords))
+                foreach (SpellingCorrectionResult result in line.CorrectSpelling(this.ocrMap, this.ignoredWords))
                 {
                     yield return new SpellingNeeded
                     {
-                        Line = line, 
-                        CharacterIndex = result.CharacterIndex, 
+                        Line = line,
+                        CharacterIndex = result.CharacterIndex,
                         Choices = new string[] { "No Good Spelling Listed" }.Concat(result.Choices),
                         OriginalWord = result.OriginalWord,
                     };
@@ -205,12 +209,12 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     private void spellingListBox_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if(this.currentSpelling != null)
+        if (this.currentSpelling != null)
         {
-            if((this.spellingListBox.Items.Count != 0) && (this.spellingListBox.SelectedIndex != -1))
+            if ((this.spellingListBox.Items.Count != 0) && (this.spellingListBox.SelectedIndex != -1))
             {
                 string word = this.currentSpelling.OriginalWord;
-                if(this.spellingListBox.SelectedIndex == 0)
+                if (this.spellingListBox.SelectedIndex == 0)
                 {
                     this.ignoredWords.Add(word);
                     this.undoList.Add(word);
@@ -224,9 +228,9 @@ public partial class SpellCheckStep : UserControl, IWizardItem
                     this.ocrMap.AddLandIWord(result);
                     this.undoList.Add(result);
                     this.undoButton.Enabled = true;
-                    if(result != word)
+                    if (result != word)
                     {
-                        for(int index = 0; index < word.Length; index++)
+                        for (int index = 0; index < word.Length; index++)
                         {
                             line.Text[index + charIndex] = new OcrCharacter(result[index],
                                     line.Text[index + charIndex].Italic);
@@ -240,10 +244,10 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     private void undoButton_Click(object sender, EventArgs e)
     {
-        if((this.undoList.Count != 0) && (this.spellings != null))
+        if ((this.undoList.Count != 0) && (this.spellings != null))
         {
             string word = this.undoList[this.undoList.Count - 1];
-            if(this.ignoredWords.Contains(word))
+            if (this.ignoredWords.Contains(word))
             {
                 this.ignoredWords.Remove(word);
             }
@@ -252,7 +256,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
                 this.ocrMap.RemoveLandIWord(word);
             }
             this.undoList.RemoveAt(this.undoList.Count - 1);
-            if(this.undoList.Count == 0)
+            if (this.undoList.Count == 0)
             {
                 this.undoButton.Enabled = false;
             }
@@ -265,7 +269,7 @@ public partial class SpellCheckStep : UserControl, IWizardItem
 
     private void skipSpellingButton_Click(object sender, EventArgs e)
     {
-        if(this.spellings != null)
+        if (this.spellings != null)
         {
             this.spellings.Dispose();
             this.spellings = null;
