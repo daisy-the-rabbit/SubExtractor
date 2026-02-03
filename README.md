@@ -59,6 +59,10 @@ Version 2.0.0 is a major modernization of the codebase, bringing the application
 - Removed `GC.Collect()` calls and OOM-retry allocation patterns
 - Dead code removal and project cleanup
 
+### Backwards compatibility
+
+- Legacy OcrMap.bin and OCR database files from version 1.0.x are fully compatible with version 2.0.0
+
 ## Requirements
 
 - Windows 7 or later, 64-bit
