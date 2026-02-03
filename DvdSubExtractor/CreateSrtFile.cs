@@ -1,12 +1,13 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class CreateSrtFile
 {
     ExtractData data;
@@ -22,7 +23,7 @@ public class CreateSrtFile
             srt.CreateSubtitleFile();
             return true;
         }
-        catch(IOException ex)
+        catch (IOException ex)
         {
             MessageBox.Show(ex.Message, ex.GetType().Name);
         }
@@ -59,17 +60,17 @@ public class CreateSrtFile
 
         Size videoSize = this.data.WorkingData.VideoAttributes.Size;
         List<SubtitleBlock> allSubs = [];
-        foreach(KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
+        foreach (KeyValuePair<int, IList<SubtitleLine>> entry in work.AllLinesBySubtitle)
         {
-            if(entry.Value.Count != 0)
+            if (entry.Value.Count != 0)
             {
                 ISubtitleData subData = work.Subtitles[entry.Key];
                 string comment = entry.Value[0].Comment;
 
                 double ptsAdjustment = this.options.OverallPtsAdjustment;
-                foreach(KeyValuePair<double, double> offsetEntry in this.ptsOffsets)
+                foreach (KeyValuePair<double, double> offsetEntry in this.ptsOffsets)
                 {
-                    if(subData.Pts >= offsetEntry.Key)
+                    if (subData.Pts >= offsetEntry.Key)
                     {
                         ptsAdjustment += offsetEntry.Value;
                     }
@@ -85,20 +86,20 @@ public class CreateSrtFile
                 double duration = subData.Duration;
                 Point origin = subData.Origin;
 
-                if(duration >= SubConstants.MaximumMillisecondsOnScreen)
+                if (duration >= SubConstants.MaximumMillisecondsOnScreen)
                 {
                     duration = Math.Min(duration, SubConstants.MaximumMillisecondsOnScreen);
                 }
-                if(entry.Key < work.Subtitles.Count - 1)
+                if (entry.Key < work.Subtitles.Count - 1)
                 {
                     double nextPts = work.Subtitles[entry.Key + 1].Pts + ptsAdjustment;
                     // don't allow overlapping timestamps for srt subtitles
                     duration = Math.Min(duration, nextPts - pts);
                 }
 
-                if(duration > 0)
+                if (duration > 0)
                 {
-                    if(this.options.Adjust25to24)
+                    if (this.options.Adjust25to24)
                     {
                         pts = pts * 25.0 / 24.0;
                         duration = duration * 25.0 / 24.0;
@@ -107,12 +108,12 @@ public class CreateSrtFile
                     SubtitleEntry newEntry = AddSrtEntries(entry.Value,
                         lineStyleNames, pts, duration, origin, videoSize, options.RemoveSDH);
 
-                    if((newEntry != null) || !String.IsNullOrWhiteSpace(comment))
+                    if ((newEntry != null) || !String.IsNullOrWhiteSpace(comment))
                     {
-                        if(!String.IsNullOrWhiteSpace(comment))
+                        if (!String.IsNullOrWhiteSpace(comment))
                         {
                             string commentText = "COMMENT: " + comment + "\r\n";
-                            if(newEntry != null)
+                            if (newEntry != null)
                             {
                                 newEntry.Text += commentText;
                             }
@@ -126,10 +127,10 @@ public class CreateSrtFile
                             }
                         }
 
-                        if(allSubs.Count > 0)
+                        if (allSubs.Count > 0)
                         {
                             SubtitleBlock prevSub = allSubs[allSubs.Count - 1];
-                            if((Math.Abs(prevSub.Pts + prevSub.Duration - pts) < SubConstants.PtsSlushMilliseconds) && 
+                            if ((Math.Abs(prevSub.Pts + prevSub.Duration - pts) < SubConstants.PtsSlushMilliseconds) &&
                                 (prevSub.Entry.Text == newEntry.Text))
                             {
                                 allSubs.RemoveAt(allSubs.Count - 1);
@@ -167,10 +168,10 @@ public class CreateSrtFile
         }*/
 
         Encoding enc = Properties.Settings.Default.StoreSrtAsANSI ? Encoding.Default : Encoding.UTF8;
-        using(StreamWriter fstream = new StreamWriter(this.fileFullPath, false, enc))
+        using (StreamWriter fstream = new StreamWriter(this.fileFullPath, false, enc))
         {
             int index = 1;
-            foreach(SubtitleBlock subBlock in allSubs)
+            foreach (SubtitleBlock subBlock in allSubs)
             {
                 fstream.WriteLine(index++.ToString());
                 fstream.Write(subBlock.Entry.TimeText);
@@ -198,24 +199,24 @@ public class CreateSrtFile
 
         List<SdhSubLine> subLines = new List<SdhSubLine>(
             allLines.ConvertAll(line => new SdhSubLine { Text = line.Text, RectangleIndex = line.RectangleIndex, OriginalLine = line }));
-        if(removeSDH != RemoveSDH.None)
+        if (removeSDH != RemoveSDH.None)
         {
             SdhSubLine.RemoveSDH(subLines);
 
             HashSet<int> rectMap = new HashSet<int>();
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(sdh.Text.Count != 0)
+                if (sdh.Text.Count != 0)
                 {
                     rectMap.Add(sdh.RectangleIndex);
                 }
             }
-            if(rectMap.Count > 1)
+            if (rectMap.Count > 1)
             {
                 rectMap.Clear();
-                foreach(SdhSubLine sdh in subLines)
+                foreach (SdhSubLine sdh in subLines)
                 {
-                    if((sdh.Text.Count != 0) && !rectMap.Contains(sdh.RectangleIndex))
+                    if ((sdh.Text.Count != 0) && !rectMap.Contains(sdh.RectangleIndex))
                     {
                         rectMap.Add(sdh.RectangleIndex);
                         sdh.LineStartRemoved = true;
@@ -225,22 +226,22 @@ public class CreateSrtFile
 
             bool carry = false;
             int lineCount = 0;
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(sdh.Text.Count != 0)
+                if (sdh.Text.Count != 0)
                 {
                     bool addCount = false;
-                    if(sdh.LineStartRemoved || SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
+                    if (sdh.LineStartRemoved || SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
                     {
                         addCount = true;
                     }
-                    else if(carry)
+                    else if (carry)
                     {
                         addCount = true;
                         sdh.LineStartRemoved = true;
                     }
 
-                    if(addCount)
+                    if (addCount)
                     {
                         lineCount++;
                         carry = false;
@@ -248,16 +249,16 @@ public class CreateSrtFile
                 }
                 else
                 {
-                    if(sdh.LineStartRemoved)
+                    if (sdh.LineStartRemoved)
                     {
                         carry = true;
                     }
                 }
             }
 
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(sdh.LineStartRemoved && (sdh.Text.Count != 0) && (lineCount > 1) &&
+                if (sdh.LineStartRemoved && (sdh.Text.Count != 0) && (lineCount > 1) &&
                     !SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
                 {
                     List<OcrCharacter> newText = new List<OcrCharacter>(sdh.Text);
@@ -271,22 +272,22 @@ public class CreateSrtFile
         else
         {
             HashSet<int> rectMap = new HashSet<int>();
-            foreach(SdhSubLine sdh in subLines)
+            foreach (SdhSubLine sdh in subLines)
             {
-                if(sdh.Text.Count != 0)
+                if (sdh.Text.Count != 0)
                 {
                     rectMap.Add(sdh.RectangleIndex);
                 }
             }
-            if(rectMap.Count > 1)
+            if (rectMap.Count > 1)
             {
                 rectMap.Clear();
-                foreach(SdhSubLine sdh in subLines)
+                foreach (SdhSubLine sdh in subLines)
                 {
-                    if((sdh.Text.Count != 0) && !rectMap.Contains(sdh.RectangleIndex))
+                    if ((sdh.Text.Count != 0) && !rectMap.Contains(sdh.RectangleIndex))
                     {
                         rectMap.Add(sdh.RectangleIndex);
-                        if(!SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
+                        if (!SubConstants.CharactersThatSignalLineBreak.Contains(sdh.Text[0].Value))
                         {
                             List<OcrCharacter> newText = new List<OcrCharacter>(sdh.Text);
                             newText.Insert(0, new OcrCharacter(SubConstants.ChangeOfSpeakerPrefix, sdh.Text[0].Italic));
@@ -299,37 +300,37 @@ public class CreateSrtFile
 
         SubtitleEntry entry = new SubtitleEntry();
         StringBuilder sbText = new StringBuilder();
-        foreach(SdhSubLine line in subLines)
+        foreach (SdhSubLine line in subLines)
         {
-            if(entry.TimeText == null)
+            if (entry.TimeText == null)
             {
                 entry.TimeText = CreateSrtTime(pts, duration);
             }
 
             bool isItalic = false;
             CreateAssFile.FixSubtitleLineHyphens(line.Text);
-            foreach(OcrCharacter ocr in line.Text)
+            foreach (OcrCharacter ocr in line.Text)
             {
-                if(ocr.Italic && !isItalic)
+                if (ocr.Italic && !isItalic)
                 {
                     sbText.Append(@"<i>");
                     isItalic = true;
                 }
-                else if(!ocr.Italic && isItalic)
+                else if (!ocr.Italic && isItalic)
                 {
                     sbText.Append(@"</i>");
                     isItalic = false;
                 }
                 sbText.Append(ocr.Value);
             }
-            if(isItalic)
+            if (isItalic)
             {
                 sbText.Append(@"</i>");
             }
             sbText.AppendLine();
         }
 
-        if(entry.TimeText != null)
+        if (entry.TimeText != null)
         {
             string newText = sbText.ToString();
             newText = newText.Replace(CloseAndOpenItalics, JustNewLine);

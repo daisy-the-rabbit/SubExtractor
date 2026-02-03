@@ -25,6 +25,7 @@ using System.IO;
 using System.Reflection;
 
 namespace DvdNavigatorCrm;
+
 public class MpegPSSplitter : IBasicSplitter
 {
     //static TraceCrm tracer = TraceCrm.CreateTracer(typeof(MpegPSSplitter));
@@ -125,8 +126,8 @@ public class MpegPSSplitter : IBasicSplitter
 
     protected virtual void OnPacketTrace(string text, params object[] traceValues)
     {
-        if(this.callback == null) return;
-        if(traceValues.Length != 0)
+        if (this.callback == null) return;
+        if (traceValues.Length != 0)
         {
             text = string.Format(text, traceValues);
         }
@@ -146,18 +147,18 @@ public class MpegPSSplitter : IBasicSplitter
 
         int bytesWithoutPacket = 0;
         DemuxStatus status = DeMultiplexCurrentBuffer();
-        if(status == DemuxStatus.InvalidBytes)
+        if (status == DemuxStatus.InvalidBytes)
         {
             OnDiscontinuity();
             OnPacketTrace("Discontinuity at {0}", BufferPosition);
-            while(status == DemuxStatus.InvalidBytes)
+            while (status == DemuxStatus.InvalidBytes)
             {
                 //tracer.WriteLine(TraceSeverity.Important, "InvalidBytes position {0}", this.BufferPosition);
                 int nextStartCode;
-                if(this.bytesLeft > this.maxBytesWithoutPacket)
+                if (this.bytesLeft > this.maxBytesWithoutPacket)
                 {
                     nextStartCode = FindPartialStartCode(this.buffer, this.bufferOffset + 1, this.maxBytesWithoutPacket);
-                    if(nextStartCode == -1)
+                    if (nextStartCode == -1)
                     {
                         return new DemuxResult(DemuxStatus.InvalidBytes, 0);
                     }
@@ -165,10 +166,10 @@ public class MpegPSSplitter : IBasicSplitter
                 else
                 {
                     nextStartCode = FindPartialStartCode(this.buffer, this.bufferOffset + 1, this.bytesLeft - 1);
-                    if(nextStartCode == -1)
+                    if (nextStartCode == -1)
                     {
                         bytesWithoutPacket += (this.bytesLeft - PacketHeaderLength);
-                        if(bytesWithoutPacket >= this.maxBytesWithoutPacket)
+                        if (bytesWithoutPacket >= this.maxBytesWithoutPacket)
                         {
                             return new DemuxResult(DemuxStatus.InvalidBytes, 0);
                         }
@@ -191,9 +192,9 @@ public class MpegPSSplitter : IBasicSplitter
 
     static int FindPartialStartCode(IByteBuffer buffer, int nextByteToCheck, int countDown)
     {
-        while(countDown >= 3)
+        while (countDown >= 3)
         {
-            if((buffer[nextByteToCheck + 2] == 1) &&
+            if ((buffer[nextByteToCheck + 2] == 1) &&
                 (buffer[nextByteToCheck + 1] == 0) &&
                 (buffer[nextByteToCheck] == 0))
             {
@@ -202,9 +203,9 @@ public class MpegPSSplitter : IBasicSplitter
             countDown--;
             nextByteToCheck++;
         }
-        if(buffer[nextByteToCheck + 1] == 0)
+        if (buffer[nextByteToCheck + 1] == 0)
         {
-            if(buffer[nextByteToCheck] == 0)
+            if (buffer[nextByteToCheck] == 0)
             {
                 return nextByteToCheck;
             }
@@ -216,7 +217,7 @@ public class MpegPSSplitter : IBasicSplitter
     ProgramStreamMapEntry FindMapEntry(int streamId)
     {
         ProgramStreamMapEntry entry;
-        if(!this.programStreamMap.TryGetValue(streamId, out entry))
+        if (!this.programStreamMap.TryGetValue(streamId, out entry))
         {
             entry = new ProgramStreamMapEntry();
             this.programStreamMap[streamId] = entry;
@@ -227,7 +228,7 @@ public class MpegPSSplitter : IBasicSplitter
     MpegStreamDefinition FindStream(int id)
     {
         MpegStreamDefinition streamDef;
-        if(!this.streams.TryGetValue(id, out streamDef))
+        if (!this.streams.TryGetValue(id, out streamDef))
         {
             streamDef = new MpegStreamDefinition(id);
             this.streams[id] = streamDef;
@@ -238,7 +239,7 @@ public class MpegPSSplitter : IBasicSplitter
     MpegStreamDefinition FindPrivateStream(int id)
     {
         MpegStreamDefinition streamDef;
-        if(!this.privateStreams.TryGetValue(id, out streamDef))
+        if (!this.privateStreams.TryGetValue(id, out streamDef))
         {
             streamDef = new MpegStreamDefinition(id);
             this.privateStreams[id] = streamDef;
@@ -248,17 +249,17 @@ public class MpegPSSplitter : IBasicSplitter
 
     DemuxStatus DeMultiplexCurrentBuffer()
     {
-        if(this.bytesLeft < 0)
+        if (this.bytesLeft < 0)
         {
             throw new InvalidOperationException("bytesLeft is negative, what the...");
         }
 
-        if(this.bytesLeft < PacketHeaderLength)
+        if (this.bytesLeft < PacketHeaderLength)
         {
             return DemuxStatus.PartialPacket;
         }
 
-        if((this.buffer[this.bufferOffset] != 0) || (this.buffer[this.bufferOffset + 1] != 0) ||
+        if ((this.buffer[this.bufferOffset] != 0) || (this.buffer[this.bufferOffset + 1] != 0) ||
             (this.buffer[this.bufferOffset + 2] != 1))
         {
             //tracer.WriteLine(TraceSeverity.Important, "Invalid Header at {0}", BufferPosition);
@@ -266,19 +267,19 @@ public class MpegPSSplitter : IBasicSplitter
         }
 
         int packetLength = CalculatedPacketLength();
-        if((packetLength == -1) || (packetLength > this.bytesLeft))
+        if ((packetLength == -1) || (packetLength > this.bytesLeft))
         {
             return DemuxStatus.PartialPacket;
         }
 
         // we want enough buffer to check if a correct packet header follows this packet
-        if(this.buffer[this.bufferOffset + 3] != EndCode)
+        if (this.buffer[this.bufferOffset + 3] != EndCode)
         {
-            if(packetLength > this.bytesLeft)
+            if (packetLength > this.bytesLeft)
             {
                 return DemuxStatus.PartialPacket;
             }
-            if((packetLength + PacketHeaderLength <= this.bytesLeft) &&
+            if ((packetLength + PacketHeaderLength <= this.bytesLeft) &&
                 ((this.buffer[this.bufferOffset + packetLength] != 0) ||
                 (this.buffer[this.bufferOffset + packetLength + 1] != 0) ||
                 (this.buffer[this.bufferOffset + packetLength + 2] != 1)))
@@ -290,41 +291,41 @@ public class MpegPSSplitter : IBasicSplitter
             }
         }
 
-        switch(ProcessPacket(packetLength))
+        switch (ProcessPacket(packetLength))
         {
-        case ProcessPacketStatus.StreamEnd:
-            return DemuxStatus.End;
-        case ProcessPacketStatus.PacketDone:
-        case ProcessPacketStatus.InvalidPacketBytes:
-            break;
+            case ProcessPacketStatus.StreamEnd:
+                return DemuxStatus.End;
+            case ProcessPacketStatus.PacketDone:
+            case ProcessPacketStatus.InvalidPacketBytes:
+                break;
         }
         return DemuxStatus.Success;
     }
 
     int CalculatedPacketLength()
     {
-        switch(this.buffer[this.bufferOffset + 3])
+        switch (this.buffer[this.bufferOffset + 3])
         {
-        case EndCode:	// End code
-            return 4;
-        case DvdSectorFillCode:	// Hacked in empty sector from a DVD source
-            return 0x0800;
-        case PackHeaderCode:	// Pack Header code
-            if((this.bytesLeft >= 14) && ((this.buffer[this.bufferOffset + 4] >> 6) == 0x01))
-            {
-                return 14 + (this.buffer[this.bufferOffset + 13] & 0x07);
-            }
-            if((this.bytesLeft >= 12) && ((this.buffer[this.bufferOffset + 4] >> 4) == 0x02))
-            {
-                return 12;
-            }
-            break;
-        default:
-            if(this.bytesLeft >= 6)
-            {
-                return 6 + (((int)this.buffer[this.bufferOffset + 4] << 8) | (int)this.buffer[this.bufferOffset + 5]);
-            }
-            break;
+            case EndCode:   // End code
+                return 4;
+            case DvdSectorFillCode: // Hacked in empty sector from a DVD source
+                return 0x0800;
+            case PackHeaderCode:    // Pack Header code
+                if ((this.bytesLeft >= 14) && ((this.buffer[this.bufferOffset + 4] >> 6) == 0x01))
+                {
+                    return 14 + (this.buffer[this.bufferOffset + 13] & 0x07);
+                }
+                if ((this.bytesLeft >= 12) && ((this.buffer[this.bufferOffset + 4] >> 4) == 0x02))
+                {
+                    return 12;
+                }
+                break;
+            default:
+                if (this.bytesLeft >= 6)
+                {
+                    return 6 + (((int)this.buffer[this.bufferOffset + 4] << 8) | (int)this.buffer[this.bufferOffset + 5]);
+                }
+                break;
         }
         return -1;
     }
@@ -338,7 +339,7 @@ public class MpegPSSplitter : IBasicSplitter
         //    packetTypeCode, packetLength, this.bufferOffset, BufferPosition);
 
         ProcessPacketStatus packetStatus;
-        if((packetTypeCode == PrivateStream1Code) ||
+        if ((packetTypeCode == PrivateStream1Code) ||
             MpegStreamDefinition.IsAudioStream(packetTypeCode) ||
             MpegStreamDefinition.IsVideoStream(packetTypeCode))
         {
@@ -346,35 +347,35 @@ public class MpegPSSplitter : IBasicSplitter
         }
         else
         {
-            switch(packetTypeCode)
+            switch (packetTypeCode)
             {
-            case EndCode:
-                OnPacketTrace("EndCode at {0} length {1}", BufferPosition, packetLength);
-                OnHeaderPacket(packetTypeCode, packetLength);
-                packetStatus = ProcessPacketStatus.StreamEnd;
-                break;
-            case PackHeaderCode:
-                packetStatus = ParsePackHeader(packetLength);
-                break;
-            case SystemHeaderCode:
-                OnPacketTrace("SystemHeaderCode at {0} length {1}", BufferPosition, packetLength);
-                OnHeaderPacket(packetTypeCode, packetLength);
-                packetStatus = ParseSystemHeader(packetLength);
-                break;
-            case ProgramStreamMapCode:
-                OnPacketTrace("ProgramStreamMapCode at {0} length {1}", BufferPosition, packetLength);
-                OnHeaderPacket(packetTypeCode, packetLength);
-                packetStatus = ParsePsmHeader(packetLength);
-                break;
-            case PrivateStream2Code:
-                OnPacketTrace("PrivateStream2Code at {0} length {1}", BufferPosition, packetLength);
-                packetStatus = ParsePrivateStream2Packet(packetLength);
-                break;
-            default:
-                //tracer.WriteLine(TraceSeverity.Information, "Unknown Packet Type {0}", packetTypeCode);
-                OnPacketTrace("UnknownPacket at {0} length {1}", BufferPosition, packetLength);
-                packetStatus = ParseUnknownPacket(packetLength);
-                break;
+                case EndCode:
+                    OnPacketTrace("EndCode at {0} length {1}", BufferPosition, packetLength);
+                    OnHeaderPacket(packetTypeCode, packetLength);
+                    packetStatus = ProcessPacketStatus.StreamEnd;
+                    break;
+                case PackHeaderCode:
+                    packetStatus = ParsePackHeader(packetLength);
+                    break;
+                case SystemHeaderCode:
+                    OnPacketTrace("SystemHeaderCode at {0} length {1}", BufferPosition, packetLength);
+                    OnHeaderPacket(packetTypeCode, packetLength);
+                    packetStatus = ParseSystemHeader(packetLength);
+                    break;
+                case ProgramStreamMapCode:
+                    OnPacketTrace("ProgramStreamMapCode at {0} length {1}", BufferPosition, packetLength);
+                    OnHeaderPacket(packetTypeCode, packetLength);
+                    packetStatus = ParsePsmHeader(packetLength);
+                    break;
+                case PrivateStream2Code:
+                    OnPacketTrace("PrivateStream2Code at {0} length {1}", BufferPosition, packetLength);
+                    packetStatus = ParsePrivateStream2Packet(packetLength);
+                    break;
+                default:
+                    //tracer.WriteLine(TraceSeverity.Information, "Unknown Packet Type {0}", packetTypeCode);
+                    OnPacketTrace("UnknownPacket at {0} length {1}", BufferPosition, packetLength);
+                    packetStatus = ParseUnknownPacket(packetLength);
+                    break;
             }
         }
 
@@ -391,7 +392,7 @@ public class MpegPSSplitter : IBasicSplitter
     protected virtual ProcessPacketStatus ParsePackHeader(int packetLength)
     {
         uint muxRate = 0;
-        if((packetLength >= 14) && ((this.buffer[this.bufferOffset + 4] >> 6) == 0x01))
+        if ((packetLength >= 14) && ((this.buffer[this.bufferOffset + 4] >> 6) == 0x01))
         {
             this.SystemClockReference = (
                 (((ulong)this.buffer[this.bufferOffset + 4] & 0x38) << 27) |
@@ -408,7 +409,7 @@ public class MpegPSSplitter : IBasicSplitter
                 ((uint)this.buffer[this.bufferOffset + 11] << 6) |
                 ((uint)this.buffer[this.bufferOffset + 12] >> 2);
         }
-        else if((packetLength >= 12) && ((this.buffer[this.bufferOffset + 4] >> 4) == 0x02))
+        else if ((packetLength >= 12) && ((this.buffer[this.bufferOffset + 4] >> 4) == 0x02))
         {
             this.SystemClockReference = (
                 (((ulong)this.buffer[this.bufferOffset + 4] & 0x0e) << 29) |
@@ -426,7 +427,7 @@ public class MpegPSSplitter : IBasicSplitter
             BufferPosition, packetLength, this.SystemClockReference / (300.0 * 90.0));
 
         // some bad streams mess up the mux rate
-        if(muxRate > 0)
+        if (muxRate > 0)
         {
             this.ProgramMuxRate = muxRate;
         }
@@ -452,7 +453,7 @@ public class MpegPSSplitter : IBasicSplitter
         //bool packRateRestrictionFlag = ((int)this.buffer[this.bufferOffset + 11] & 0x80) != 0;
 
         int packetEnd = this.bufferOffset + packetLength;
-        for(int pstdOffset = this.bufferOffset + 12;
+        for (int pstdOffset = this.bufferOffset + 12;
             (pstdOffset + 2 < packetEnd) && ((this.buffer[pstdOffset] & 0x80) != 0);
             pstdOffset += 3)
         {
@@ -460,7 +461,7 @@ public class MpegPSSplitter : IBasicSplitter
             bool pstdBigBoundScale = (this.buffer[pstdOffset + 1] & 0x20) != 0;
             int bufferSizeBound = (((int)this.buffer[pstdOffset + 1] & 0x1f) << 8) |
                     ((int)this.buffer[pstdOffset + 2]);
-            if(pstdBigBoundScale)
+            if (pstdBigBoundScale)
             {
                 bufferSizeBound <<= 10;
             }
@@ -470,7 +471,7 @@ public class MpegPSSplitter : IBasicSplitter
             }
 
             int oldBounds;
-            if(!this.bufferSizeBounds.TryGetValue(streamId, out oldBounds) ||
+            if (!this.bufferSizeBounds.TryGetValue(streamId, out oldBounds) ||
                 (this.bufferSizeBounds[streamId] != bufferSizeBound))
             {
                 this.bufferSizeBounds[streamId] = bufferSizeBound;
@@ -479,7 +480,7 @@ public class MpegPSSplitter : IBasicSplitter
                 {
                     streamName = Enum.GetName(typeof(KnownStreamIds), streamId);
                 }
-                catch(ArgumentException)
+                catch (ArgumentException)
                 {
                     streamName = streamId.ToString("x");
                 }
@@ -493,7 +494,7 @@ public class MpegPSSplitter : IBasicSplitter
     protected virtual ProcessPacketStatus ParsePsmHeader(int packetLength)
     {
         int version = this.buffer[this.bufferOffset + 6] & 0x1f;
-        if(version == this.programStreamMapVersion)
+        if (version == this.programStreamMapVersion)
         {
             //tracer.WriteLine(TraceSeverity.Error, "PSM with version {0} repeated at {1}",
             //    version, BufferPosition);
@@ -503,7 +504,7 @@ public class MpegPSSplitter : IBasicSplitter
 
         int infoLength = ((int)this.buffer[this.bufferOffset + 8] << 8) +
             (int)this.buffer[this.bufferOffset + 9];
-        if(infoLength + 12 > packetLength)
+        if (infoLength + 12 > packetLength)
         {
             //tracer.WriteLine(TraceSeverity.Error, "PSM with too long info length at {0}", BufferPosition);
             return ProcessPacketStatus.InvalidPacketBytes;
@@ -512,7 +513,7 @@ public class MpegPSSplitter : IBasicSplitter
         int mapOffset = this.bufferOffset + 10 + infoLength;
         int mapLength = ((int)this.buffer[mapOffset] << 8) +
             (int)this.buffer[mapOffset + 1];
-        if(infoLength + 10 + mapLength + 6 > packetLength)
+        if (infoLength + 10 + mapLength + 6 > packetLength)
         {
             //tracer.WriteLine(TraceSeverity.Error, "PSM with too long map length at {0}", BufferPosition);
             return ProcessPacketStatus.InvalidPacketBytes;
@@ -520,7 +521,7 @@ public class MpegPSSplitter : IBasicSplitter
 
         int crcStart = this.bufferOffset + packetLength - 4;
         mapOffset += 2;
-        while(mapOffset < crcStart)
+        while (mapOffset < crcStart)
         {
             byte typeCode = this.buffer[mapOffset];
             int streamId = this.buffer[mapOffset + 1];
@@ -532,9 +533,9 @@ public class MpegPSSplitter : IBasicSplitter
                 (int)this.buffer[mapOffset + 3];
 
             mapOffset += 4;
-            if(streamInfoLength >= 2)
+            if (streamInfoLength >= 2)
             {
-                if(mapOffset + streamInfoLength > crcStart)
+                if (mapOffset + streamInfoLength > crcStart)
                 {
                     //tracer.WriteLine(TraceSeverity.Error, "PSM with too long stream info length at {0}",
                     //    BufferPosition);
@@ -546,11 +547,11 @@ public class MpegPSSplitter : IBasicSplitter
                 this.buffer.CopyTo(descriptorOffset, descriptor, 0, streamInfoLength);
                 entry.SetDescriptor(descriptor);
 
-                while(descriptorOffset + 2 <= crcStart)
+                while (descriptorOffset + 2 <= crcStart)
                 {
                     byte descriptorType = this.buffer[descriptorOffset];
                     int descriptorLength = this.buffer[descriptorOffset + 1];
-                    if((descriptorType == 0x0a) && (descriptorLength >= 3))
+                    if ((descriptorType == 0x0a) && (descriptorLength >= 3))
                     {
                         byte[] langBytes = new byte[3];
                         this.buffer.CopyTo(descriptorOffset + 2, langBytes, 0, 3);
@@ -587,7 +588,7 @@ public class MpegPSSplitter : IBasicSplitter
     protected virtual ProcessPacketStatus ParsePrivateStream2Packet(int packetLength)
     {
         byte substreamId = this.buffer[this.bufferOffset + 6];
-        if(substreamId == DsiSubstreamId)
+        if (substreamId == DsiSubstreamId)
         {
             int infoOffset = this.bufferOffset + 11;
             UInt32 logicalBlockNumber = GetUInt32(this.buffer, infoOffset);
@@ -603,7 +604,7 @@ public class MpegPSSplitter : IBasicSplitter
                 "PREU {0} ILVU {1} UStart {2} UEnd {3}",
                 PREUFlag, ILVUFlag, UnitStartFlag, UnitEndFlag));*/
 
-            if(ILVUFlag)
+            if (ILVUFlag)
             {
                 CellIdVobId cellVobId = new CellIdVobId(cellNumber, currentVobNumber);
                 OnAngleCellChanged(true, cellVobId);
@@ -618,7 +619,7 @@ public class MpegPSSplitter : IBasicSplitter
 
     protected virtual ProcessPacketStatus ParseStreamPacket(int packetLength)
     {
-        if((this.buffer[this.bufferOffset + 6] & 0xc0) != 0x80)
+        if ((this.buffer[this.bufferOffset + 6] & 0xc0) != 0x80)
         {
             //tracer.WriteLine(TraceSeverity.Error, "Malformed Stream Packet at {0}",
             //    BufferPosition);
@@ -628,22 +629,22 @@ public class MpegPSSplitter : IBasicSplitter
         byte packetTypeCode = this.buffer[this.bufferOffset + 3];
         int ptsDtsFlag = this.buffer[this.bufferOffset + 7] & 0xc0;
         int escrFlag = this.buffer[this.bufferOffset + 7] & 0x20;
-        if(escrFlag != 0)
+        if (escrFlag != 0)
         {
             Debug.WriteLine("escrFlag");
         }
         int pesHeaderLength = 9 + this.buffer[this.bufferOffset + 8];
 
         MpegStreamDefinition streamDef;
-        if(packetTypeCode == PrivateStream1Code)
+        if (packetTypeCode == PrivateStream1Code)
         {
             //tracer.WriteLine(TraceSeverity.Information, "Private1 Packet");
             int streamId = this.buffer[this.bufferOffset + pesHeaderLength];
             streamDef = FindPrivateStream(streamId);
-            if(streamDef.Codec == Codec.Unknown)
+            if (streamDef.Codec == Codec.Unknown)
             {
                 streamDef.FindPSPrivateStreamCodec(this.programStreamMap);
-                if(streamDef.Codec != Codec.Unknown)
+                if (streamDef.Codec != Codec.Unknown)
                 {
                     OnStreamFound(streamDef);
                 }
@@ -653,10 +654,10 @@ public class MpegPSSplitter : IBasicSplitter
         else
         {
             streamDef = FindStream(packetTypeCode);
-            if(streamDef.Codec == Codec.Unknown)
+            if (streamDef.Codec == Codec.Unknown)
             {
                 streamDef.FindPSStreamCodec(this.programStreamMap);
-                if(streamDef.Codec != Codec.Unknown)
+                if (streamDef.Codec != Codec.Unknown)
                 {
                     OnStreamFound(streamDef);
                 }
@@ -665,7 +666,7 @@ public class MpegPSSplitter : IBasicSplitter
 
         double? newPts = null;
         double? newDts = null;
-        if((ptsDtsFlag & 0x80) != 0)
+        if ((ptsDtsFlag & 0x80) != 0)
         {
             long pts = (((long)this.buffer[this.bufferOffset + 9] & 0x0e) << 29) |
                 ((long)this.buffer[this.bufferOffset + 10] << 22) |
@@ -674,7 +675,7 @@ public class MpegPSSplitter : IBasicSplitter
                 ((long)this.buffer[this.bufferOffset + 13] >> 1);
             newPts = Convert.ToDouble(pts) / 90.0f;
 
-            if((ptsDtsFlag & 0x40) != 0)
+            if ((ptsDtsFlag & 0x40) != 0)
             {
                 long dts = (((long)this.buffer[this.bufferOffset + 14] & 0x0e) << 29) |
                     ((long)this.buffer[this.bufferOffset + 15] << 22) |
@@ -691,14 +692,14 @@ public class MpegPSSplitter : IBasicSplitter
         OnPacketTrace("{0} StreamId {1:x} at {2} length {3} pts {4} dts {5}",
             streamDef.StreamType, streamDef.StreamId, BufferPosition, packetLength, newPts, newDts);
 
-        switch(streamDef.StreamType)
+        switch (streamDef.StreamType)
         {
-        case StreamType.Video:
-            streamDef.RateLocked = this.videoLockFlag;
-            break;
-        case StreamType.Audio:
-            streamDef.RateLocked = this.audioLockFlag;
-            break;
+            case StreamType.Video:
+                streamDef.RateLocked = this.videoLockFlag;
+                break;
+            case StreamType.Audio:
+                streamDef.RateLocked = this.audioLockFlag;
+                break;
         }
 
         OnStreamData(streamDef, this.bufferOffset + pesHeaderLength,

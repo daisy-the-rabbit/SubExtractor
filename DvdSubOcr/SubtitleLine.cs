@@ -1,6 +1,7 @@
 using System.Diagnostics;
 
 namespace DvdSubOcr;
+
 public class SpellingCorrectionResult
 {
     public string OriginalWord { get; set; }
@@ -32,13 +33,13 @@ public class SubtitleLine
 
     public IEnumerable<KeyValuePair<bool, string>> SplitByItalics()
     {
-        if(this.Text.Count != 0)
+        if (this.Text.Count != 0)
         {
             bool isItalic = this.Text[0].Italic;
             StringBuilder sb = new StringBuilder();
-            foreach(OcrCharacter ocr in this.Text)
+            foreach (OcrCharacter ocr in this.Text)
             {
-                if(ocr.Italic != isItalic)
+                if (ocr.Italic != isItalic)
                 {
                     yield return new KeyValuePair<bool, string>(isItalic, sb.ToString());
                     isItalic = ocr.Italic;
@@ -67,11 +68,11 @@ public class SubtitleLine
         get
         {
             int normalCount = 0, italicCount = 0, normalCharacterCount = 0, italicCharacterCount = 0;
-            foreach(OcrCharacter ocr in this.Text)
+            foreach (OcrCharacter ocr in this.Text)
             {
-                if(Char.IsLetterOrDigit(ocr.Value) || Char.IsSymbol(ocr.Value))
+                if (Char.IsLetterOrDigit(ocr.Value) || Char.IsSymbol(ocr.Value))
                 {
-                    if(ocr.Italic)
+                    if (ocr.Italic)
                     {
                         italicCharacterCount++;
                     }
@@ -82,7 +83,7 @@ public class SubtitleLine
                 }
                 else
                 {
-                    if(ocr.Italic)
+                    if (ocr.Italic)
                     {
                         italicCount++;
                     }
@@ -92,7 +93,7 @@ public class SubtitleLine
                     }
                 }
             }
-            if((normalCharacterCount > 0) || (italicCharacterCount > 0))
+            if ((normalCharacterCount > 0) || (italicCharacterCount > 0))
             {
                 return (normalCharacterCount >= italicCharacterCount) ? DominantFontStyle.Normal :
                     DominantFontStyle.Italic;
@@ -104,40 +105,40 @@ public class SubtitleLine
 
     public void InsertSpaces(FontKerning fontKerning, FontKerning fontKerningItalic)
     {
-        if((fontKerning.Separations.Count == 0) && (fontKerningItalic.Separations.Count == 0))
+        if ((fontKerning.Separations.Count == 0) && (fontKerningItalic.Separations.Count == 0))
         {
             return;
         }
 
         // fix punctuation that's mistakenly italic or not based on surrounding characters
-        if(this.Text.Count > 1)
+        if (this.Text.Count > 1)
         {
-            for(int index = 0; index < this.Text.Count; index++)
+            for (int index = 0; index < this.Text.Count; index++)
             {
                 char c = Text[index].Value;
-                if(SubConstants.MistakenForItalicCharacters.Contains(c))
+                if (SubConstants.MistakenForItalicCharacters.Contains(c))
                 {
                     bool isItalic = Text[index].Italic;
-                    if(((index == 0) || (Text[index - 1].Italic != isItalic)) &&
+                    if (((index == 0) || (Text[index - 1].Italic != isItalic)) &&
                         ((index == this.Text.Count - 1) || (Text[index + 1].Italic != isItalic)))
                     {
                         this.Text[index] = new OcrCharacter(c, !isItalic);
                     }
-                    else if(SubConstants.MistakenForItalicRepeatingCharacters.Contains(c))
+                    else if (SubConstants.MistakenForItalicRepeatingCharacters.Contains(c))
                     {
                         int mistakeLength = 1;
-                        for(int subIndex = index + 1; subIndex < this.Text.Count; subIndex++)
+                        for (int subIndex = index + 1; subIndex < this.Text.Count; subIndex++)
                         {
-                            if(this.Text[subIndex].Value != c)
+                            if (this.Text[subIndex].Value != c)
                             {
                                 break;
                             }
                             mistakeLength++;
                         }
-                        if((index != 0) || (index + mistakeLength < this.Text.Count))
+                        if ((index != 0) || (index + mistakeLength < this.Text.Count))
                         {
                             bool startItalic, endItalic;
-                            if(index != 0)
+                            if (index != 0)
                             {
                                 startItalic = this.Text[index - 1].Italic;
                             }
@@ -145,7 +146,7 @@ public class SubtitleLine
                             {
                                 startItalic = this.Text[index + mistakeLength].Italic;
                             }
-                            if(index + mistakeLength < this.Text.Count)
+                            if (index + mistakeLength < this.Text.Count)
                             {
                                 endItalic = this.Text[index + mistakeLength].Italic;
                             }
@@ -153,9 +154,9 @@ public class SubtitleLine
                             {
                                 endItalic = this.Text[index - 1].Italic;
                             }
-                            if(startItalic == endItalic)
+                            if (startItalic == endItalic)
                             {
-                                for(int fixIndex = index; fixIndex < index + mistakeLength; fixIndex++)
+                                for (int fixIndex = index; fixIndex < index + mistakeLength; fixIndex++)
                                 {
                                     this.Text[fixIndex] = new OcrCharacter(c, startItalic);
                                 }
@@ -170,17 +171,17 @@ public class SubtitleLine
         IList<int> italicPeaks = fontKerningItalic.Peaks;
 
         int leftIndex = 0;
-        for(int rightIndex = 1; rightIndex < this.Text.Count; rightIndex++)
+        for (int rightIndex = 1; rightIndex < this.Text.Count; rightIndex++)
         {
             char cLeft = Text[leftIndex].Value;
             char cRight = Text[rightIndex].Value;
 
-            if(LineLayout.IsDiacritic(cRight))
+            if (LineLayout.IsDiacritic(cRight))
             {
                 continue;
             }
 
-            if(CharactersNeverAfterASpace.Contains(cRight))
+            if (CharactersNeverAfterASpace.Contains(cRight))
             {
                 leftIndex = rightIndex;
                 continue;
@@ -192,81 +193,81 @@ public class SubtitleLine
 
             IList<int> diffPeaks = this.Text[leftIndex].Italic ? italicPeaks : peaks;
             int lastDiff = 1000;
-            foreach(int peak in diffPeaks)
+            foreach (int peak in diffPeaks)
             {
                 int diffFromPeak = Math.Abs(diff - peak);
-                if(diffFromPeak < lastDiff)
+                if (diffFromPeak < lastDiff)
                 {
                     peakCount++;
                     lastDiff = diffFromPeak;
                 }
             }
 
-            if((Text[leftIndex].Italic != Text[rightIndex].Italic))
+            if ((Text[leftIndex].Italic != Text[rightIndex].Italic))
             {
-                if(Char.IsLetter(cLeft) && Char.IsLetter(cRight))
+                if (Char.IsLetter(cLeft) && Char.IsLetter(cRight))
                 {
                     peakCount = 1;
                 }
 
-                if(peakCount > 0)
+                if (peakCount > 0)
                 {
-                    switch(cLeft)
+                    switch (cLeft)
                     {
-                    case '-':
-                    case '—':
-                        peakCount = 0;
-                        break;
-                    default:
-                        switch(cRight)
-                        {
                         case '-':
                         case '—':
-                        case '?':
-                        case '!':
-                        case '.':
-                        case ',':
                             peakCount = 0;
                             break;
-                        }
-                        break;
+                        default:
+                            switch (cRight)
+                            {
+                                case '-':
+                                case '—':
+                                case '?':
+                                case '!':
+                                case '.':
+                                case ',':
+                                    peakCount = 0;
+                                    break;
+                            }
+                            break;
                     }
                 }
                 else
                 {
-                    if(peakCount == 0)
+                    if (peakCount == 0)
                     {
-                        switch(cLeft)
+                        switch (cLeft)
                         {
-                        case '-':
-                        case '—':
-                            break;
-                        default:
-                            switch(cRight)
-                            {
                             case '-':
                             case '—':
-                            case '?':
-                            case '!':
-                            case '.':
-                            case ',':
                                 break;
                             default:
-                                Console.WriteLine("Leaving NO space between italics and non-italics");
+                                switch (cRight)
+                                {
+                                    case '-':
+                                    case '—':
+                                    case '?':
+                                    case '!':
+                                    case '.':
+                                    case ',':
+                                        break;
+                                    default:
+                                        Console.WriteLine("Leaving NO space between italics and non-italics");
+                                        break;
+                                }
                                 break;
-                            }
-                            break;
                         }
                     }
                 }
             }
 
-            if((peakCount > 0) && (cRight == '\"') && Text[rightIndex].Italic && SubConstants.CharactersThatEndQuotes.Contains(cLeft))
+            if ((peakCount > 0) && (cRight == '\"') && Text[rightIndex].Italic && SubConstants.CharactersThatEndQuotes.Contains(cLeft))
             {
                 peakCount = 0;
             }
 
-            if(peakCount > 0)
+            if (peakCount > 0)
             {
                 this.Text.Insert(rightIndex, new OcrCharacter(' ', this.Text[leftIndex].Italic && this.Text[rightIndex].Italic));
                 this.TextBounds.Insert(rightIndex, Rectangle.Empty);
@@ -280,22 +281,22 @@ public class SubtitleLine
     {
         bool? startedWithItalics = null;
         int untrustworthyCount = 0;
-        for(int index = 0; index < this.Text.Count; index++)
+        for (int index = 0; index < this.Text.Count; index++)
         {
             OcrCharacter ocr = this.Text[index];
-            if(SubConstants.UntrustworthyAsItalics.Contains(ocr.Value))
+            if (SubConstants.UntrustworthyAsItalics.Contains(ocr.Value))
             {
                 untrustworthyCount++;
             }
             else
             {
-                if(startedWithItalics.HasValue && (startedWithItalics.Value != ocr.Italic))
+                if (startedWithItalics.HasValue && (startedWithItalics.Value != ocr.Italic))
                 {
                     untrustworthyCount = 0;
                 }
                 else
                 {
-                    while(untrustworthyCount > 0)
+                    while (untrustworthyCount > 0)
                     {
                         this.Text[index - untrustworthyCount] = new OcrCharacter(
                             this.Text[index - untrustworthyCount].Value, ocr.Italic);
@@ -305,10 +306,10 @@ public class SubtitleLine
                 startedWithItalics = ocr.Italic;
             }
         }
-        if(startedWithItalics.HasValue)
+        if (startedWithItalics.HasValue)
         {
             int index = this.Text.Count;
-            while(untrustworthyCount > 0)
+            while (untrustworthyCount > 0)
             {
                 this.Text[index - untrustworthyCount] = new OcrCharacter(
                     this.Text[index - untrustworthyCount].Value, startedWithItalics.Value);
@@ -320,17 +321,17 @@ public class SubtitleLine
     public IEnumerable<SpellingCorrectionResult> CorrectSpelling(OcrMap ocrMap, HashSet<string> ignoredWords)
     {
         StringBuilder sb = new StringBuilder();
-        for(int index = 0; index < this.Text.Count; index++)
+        for (int index = 0; index < this.Text.Count; index++)
         {
             OcrCharacter ocr = this.Text[index];
-            if((ocr.Value != '\'') && !Char.IsLetter(ocr.Value))
+            if ((ocr.Value != '\'') && !Char.IsLetter(ocr.Value))
             {
-                if(sb.Length != 0)
+                if (sb.Length != 0)
                 {
-                    if(!ignoredWords.Contains(sb.ToString()))
+                    if (!ignoredWords.Contains(sb.ToString()))
                     {
                         SpellingCorrectionResult newSpelling = CheckWord(ocrMap, sb.ToString(), index - sb.Length);
-                        if(newSpelling != null)
+                        if (newSpelling != null)
                         {
                             yield return newSpelling;
                         }
@@ -341,7 +342,7 @@ public class SubtitleLine
             else
             {
                 // drop a leading ' from words before spell-checking
-                if((ocr.Value != '\'') || (sb.Length != 0))
+                if ((ocr.Value != '\'') || (sb.Length != 0))
                 {
                     sb.Append(ocr.Value);
                 }
@@ -352,10 +353,10 @@ public class SubtitleLine
             }
         }
 
-        if((sb.Length != 0) && !ignoredWords.Contains(sb.ToString()))
+        if ((sb.Length != 0) && !ignoredWords.Contains(sb.ToString()))
         {
             SpellingCorrectionResult newSpelling = CheckWord(ocrMap, sb.ToString(), this.Text.Count - sb.Length);
-            if(newSpelling != null)
+            if (newSpelling != null)
             {
                 yield return newSpelling;
             }
@@ -365,12 +366,12 @@ public class SubtitleLine
     public void CorrectSpelling(OcrMap ocrMap)
     {
         StringBuilder sb = new StringBuilder();
-        for(int index = 0; index < this.Text.Count; index++)
+        for (int index = 0; index < this.Text.Count; index++)
         {
             OcrCharacter ocr = this.Text[index];
-            if((ocr.Value != '\'') && !Char.IsLetter(ocr.Value))
+            if ((ocr.Value != '\'') && !Char.IsLetter(ocr.Value))
             {
-                if(sb.Length != 0)
+                if (sb.Length != 0)
                 {
                     CheckWord(ocrMap, sb.ToString(), index - sb.Length);
                     sb = new StringBuilder();
@@ -382,7 +383,7 @@ public class SubtitleLine
             }
         }
 
-        if(sb.Length != 0)
+        if (sb.Length != 0)
         {
             CheckWord(ocrMap, sb.ToString(), this.Text.Count - sb.Length);
         }
@@ -391,7 +392,7 @@ public class SubtitleLine
     SpellingCorrectionResult CheckWord(OcrMap ocrMap, string word, int charIndex)
     {
         List<int> testCharacters = [];
-        if((word[0] == 'l') || (word[0] == 'I'))
+        if ((word[0] == 'l') || (word[0] == 'I'))
         {
             testCharacters.Add(0);
         }
@@ -400,40 +401,40 @@ public class SubtitleLine
         bool allUppers = true;
 
         string caseTestWord = word;
-        if((caseTestWord.Length > 2) && (caseTestWord[caseTestWord.Length - 1] == 's'))
+        if ((caseTestWord.Length > 2) && (caseTestWord[caseTestWord.Length - 1] == 's'))
         {
             caseTestWord = caseTestWord.Substring(0, caseTestWord.Length - 1);
         }
-        if((caseTestWord.Length > 1) && (caseTestWord[caseTestWord.Length - 1] == '\''))
+        if ((caseTestWord.Length > 1) && (caseTestWord[caseTestWord.Length - 1] == '\''))
         {
             caseTestWord = caseTestWord.Substring(0, caseTestWord.Length - 1);
         }
 
-        foreach(char c in caseTestWord)
+        foreach (char c in caseTestWord)
         {
             bool isLower = Char.IsLower(c);
-            if((c != 'l') && isLower)
+            if ((c != 'l') && isLower)
             {
                 hasLowers = true;
                 allUppers = false;
                 break;
             }
-            if(c == 'I')
+            if (c == 'I')
             {
                 hasLowers = true;
             }
         }
 
-        if(hasLowers)
+        if (hasLowers)
         {
-            for(int index = 1; index < word.Length; index++)
+            for (int index = 1; index < word.Length; index++)
             {
-                if(word[index] == 'I')
+                if (word[index] == 'I')
                 {
-                    if((testCharacters.Count == 0) && (caseTestWord.Length > 3))
+                    if ((testCharacters.Count == 0) && (caseTestWord.Length > 3))
                     {
                         string foundWord;
-                        if(allUppers)
+                        if (allUppers)
                         {
                             foundWord = word.Replace('l', 'I');
                         }
@@ -441,7 +442,7 @@ public class SubtitleLine
                         {
                             foundWord = word.Replace('I', 'l');
                         }
-                        for(int subIndex = 0; subIndex < word.Length; subIndex++)
+                        for (int subIndex = 0; subIndex < word.Length; subIndex++)
                         {
                             this.Text[subIndex + charIndex] = new OcrCharacter(
                                 foundWord[subIndex], this.Text[subIndex + charIndex].Italic);
@@ -454,14 +455,14 @@ public class SubtitleLine
         }
         else
         {
-            for(int index = 1; index < word.Length; index++)
+            for (int index = 1; index < word.Length; index++)
             {
-                if(word[index] == 'l')
+                if (word[index] == 'l')
                 {
-                    if((testCharacters.Count == 0) && (caseTestWord.Length > 3) && allUppers)
+                    if ((testCharacters.Count == 0) && (caseTestWord.Length > 3) && allUppers)
                     {
                         string foundWord = word.Replace('l', 'I');
-                        for(int subIndex = 0; subIndex < word.Length; subIndex++)
+                        for (int subIndex = 0; subIndex < word.Length; subIndex++)
                         {
                             this.Text[subIndex + charIndex] = new OcrCharacter(
                                 foundWord[subIndex], this.Text[subIndex + charIndex].Italic);
@@ -473,7 +474,7 @@ public class SubtitleLine
             }
         }
 
-        if(testCharacters.Count == 0)
+        if (testCharacters.Count == 0)
         {
             return null;
         }
@@ -484,13 +485,13 @@ public class SubtitleLine
         testWords.Add(sb.ToString());
         sb[testCharacters[0]] = 'I';
         testWords.Add(sb.ToString());
-        for(int index = 1; index < testCharacters.Count; index++)
+        for (int index = 1; index < testCharacters.Count; index++)
         {
             List<string> newWords = [];
-            foreach(string testWord in testWords)
+            foreach (string testWord in testWords)
             {
                 sb = new StringBuilder(testWord);
-                if(testWord[testCharacters[index]] == 'l')
+                if (testWord[testCharacters[index]] == 'l')
                 {
                     sb[testCharacters[index]] = 'I';
                 }
@@ -503,13 +504,13 @@ public class SubtitleLine
             testWords.AddRange(newWords);
         }
 
-        foreach(string testWord in testWords)
+        foreach (string testWord in testWords)
         {
-            if(ocrMap.FindLandIWord(testWord))
+            if (ocrMap.FindLandIWord(testWord))
             {
-                if(testWord != word)
+                if (testWord != word)
                 {
-                    for(int index = 0; index < word.Length; index++)
+                    for (int index = 0; index < word.Length; index++)
                     {
                         this.Text[index + charIndex] = new OcrCharacter(testWord[index],
                                 this.Text[index + charIndex].Italic);

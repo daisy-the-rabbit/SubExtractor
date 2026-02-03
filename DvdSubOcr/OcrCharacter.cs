@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class OcrCharacter : IEquatable<OcrCharacter>, IComparable<OcrCharacter>
 {
     public const Char UnmatchedValue = '\0';
@@ -20,7 +21,7 @@ public class OcrCharacter : IEquatable<OcrCharacter>, IComparable<OcrCharacter>
 
     public override string ToString()
     {
-        if(this.Italic)
+        if (this.Italic)
         {
             return $"Italic \'{this.Value}\'";
         }
@@ -32,7 +33,7 @@ public class OcrCharacter : IEquatable<OcrCharacter>, IComparable<OcrCharacter>
 
     public static bool operator ==(OcrCharacter c1, OcrCharacter c2)
     {
-        if((object)c1 == null)
+        if ((object)c1 == null)
         {
             return ((object)c2 == null);
         }
@@ -46,7 +47,7 @@ public class OcrCharacter : IEquatable<OcrCharacter>, IComparable<OcrCharacter>
 
     public bool Equals(OcrCharacter other)
     {
-        if((object)other == null)
+        if ((object)other == null)
         {
             return false;
         }
@@ -65,11 +66,11 @@ public class OcrCharacter : IEquatable<OcrCharacter>, IComparable<OcrCharacter>
 
     public int CompareTo(OcrCharacter other)
     {
-        if(!this.Italic && other.Italic)
+        if (!this.Italic && other.Italic)
         {
             return -1;
         }
-        if(this.Italic && !other.Italic)
+        if (this.Italic && !other.Italic)
         {
             return 1;
         }

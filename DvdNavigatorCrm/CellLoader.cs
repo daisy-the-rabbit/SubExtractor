@@ -1,10 +1,11 @@
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 public class CellLoader : IBasicSplitterCallback
 {
     const int MaximumReadSize = 1 << 16;
@@ -42,24 +43,24 @@ public class CellLoader : IBasicSplitterCallback
         this.splitter = new MpegPSSplitter(TitleChunk.MaxTitleChunkLength, this);
         this.AudioStreamsFound = this.audioStreamsFound.AsReadOnly();
 
-        if(vobCells != null)
+        if (vobCells != null)
         {
             this.vobCellIds.AddRange(vobCells);
         }
-        if(angleCells != null)
+        if (angleCells != null)
         {
             this.angleCellIds.AddRange(angleCells);
         }
 
-        if(audioStreams == null)
+        if (audioStreams == null)
         {
             this.acceptAnyAudio = true;
         }
         else
         {
-            foreach(AudioStreamItem item in audioStreams)
+            foreach (AudioStreamItem item in audioStreams)
             {
-                if(item.KBitsPerSecond != 0)
+                if (item.KBitsPerSecond != 0)
                 {
                     this.audioData[item.StreamId] = new AudioStreamData() { Item = item };
                 }
@@ -93,9 +94,9 @@ public class CellLoader : IBasicSplitterCallback
     {
         long position = 0L;
         IList<int> palette = null;
-        foreach(ChunkData data in ReadData(chunks, MaximumReadSize, delegate() { return this.Stopped; }))
+        foreach (ChunkData data in ReadData(chunks, MaximumReadSize, delegate () { return this.Stopped; }))
         {
-            if(stopFunc())
+            if (stopFunc())
             {
                 return;
             }
@@ -103,28 +104,28 @@ public class CellLoader : IBasicSplitterCallback
             buffer.AddBuffer(data.DataBuffer, position);
 
             bool newPalette = true;
-            if((palette != null) && (palette.Count == data.Palette.Count))
+            if ((palette != null) && (palette.Count == data.Palette.Count))
             {
                 newPalette = false;
-                for(int index = 0; index < palette.Count; index++)
+                for (int index = 0; index < palette.Count; index++)
                 {
-                    if(palette[index] != data.Palette[index])
+                    if (palette[index] != data.Palette[index])
                     {
                         newPalette = true;
                         break;
                     }
                 }
             }
-            if(newPalette)
+            if (newPalette)
             {
                 palette = data.Palette;
                 this.packets.Add(new PalettePacketBuffer() { Palette = palette });
             }
 
             DemuxResult result = new DemuxResult(DemuxStatus.Success, 0);
-            while(result.Status == DemuxStatus.Success)
+            while (result.Status == DemuxStatus.Success)
             {
-                if(this.Stopped)
+                if (this.Stopped)
                 {
                     return;
                 }
@@ -132,17 +133,17 @@ public class CellLoader : IBasicSplitterCallback
                 result = this.splitter.DemuxBuffer(buffer, buffer.Position);
                 IEnumerable<IDataBuffer> releasedBuffers =
                     buffer.MovePositionForwardAndReturnUnusedBuffers(result.BytesUsed);
-                if(releasedBuffers.Count() != 0)
+                if (releasedBuffers.Count() != 0)
                 {
                     releasedBuffers = null;
                 }
             }
 
-            if(result.Status == DemuxStatus.InvalidBytes)
+            if (result.Status == DemuxStatus.InvalidBytes)
             {
                 throw new InvalidDataException("Not valid Mpeg2 PS stream data");
             }
-            if(result.Status == DemuxStatus.End)
+            if (result.Status == DemuxStatus.End)
             {
                 break;
             }
@@ -153,7 +154,7 @@ public class CellLoader : IBasicSplitterCallback
     {
         this.packets.Clear();
         this.savedPackets.Clear();
-        if(this.dataFile != null)
+        if (this.dataFile != null)
         {
             string fileName = this.dataFile.Name;
             this.dataFile.Dispose();
@@ -175,15 +176,15 @@ public class CellLoader : IBasicSplitterCallback
             int chunkIndex = 0;
             int chunkRead = 0;
             ChunkData chunkData = null;
-            while(chunkIndex < chunks.Count)
+            while (chunkIndex < chunks.Count)
             {
                 TitleChunk chunk = chunks[chunkIndex];
-                if((fileStream == null) || (fileStream.Name != chunk.FilePath))
+                if ((fileStream == null) || (fileStream.Name != chunk.FilePath))
                 {
                     fileStream?.Dispose();
                     fileStream = new FileStream(chunk.FilePath, FileMode.Open, FileAccess.Read);
                 }
-                if(fileStream.Position != chunk.StartOffset + chunkRead)
+                if (fileStream.Position != chunk.StartOffset + chunkRead)
                 {
                     fileStream.Seek(chunk.StartOffset + chunkRead, SeekOrigin.Begin);
                 }
@@ -191,27 +192,27 @@ public class CellLoader : IBasicSplitterCallback
                 int readSize = Math.Min(maximumReadSize, chunk.Length - chunkRead);
                 byte[] data = AllocateBuffer(readSize);
                 Task<int> readTask = fileStream.ReadAsync(data, 0, readSize);
-                if(stopCheck())
+                if (stopCheck())
                 {
                     yield break;
                 }
-                if(chunkData != null)
+                if (chunkData != null)
                 {
                     yield return chunkData;
                     chunkData = null;
-                    if(stopCheck())
+                    if (stopCheck())
                     {
                         yield break;
                     }
                 }
 
                 int bytesRead = readTask.GetAwaiter().GetResult();
-                if(stopCheck())
+                if (stopCheck())
                 {
                     yield break;
                 }
 
-                if(bytesRead != 0)
+                if (bytesRead != 0)
                 {
                     chunkData = new ChunkData()
                     {
@@ -221,14 +222,14 @@ public class CellLoader : IBasicSplitterCallback
                 }
 
                 chunkRead += bytesRead;
-                if(chunkRead == chunk.Length)
+                if (chunkRead == chunk.Length)
                 {
                     chunkRead = 0;
                     chunkIndex++;
                 }
             }
 
-            if(chunkData != null)
+            if (chunkData != null)
             {
                 yield return chunkData;
                 chunkData = null;
@@ -246,9 +247,9 @@ public class CellLoader : IBasicSplitterCallback
 
     void IBasicSplitterCallback.StreamFound(IStreamDefinition stream)
     {
-        if(stream.StreamType == StreamType.Audio)
+        if (stream.StreamType == StreamType.Audio)
         {
-            if(!this.audioStreamsFound.Contains(stream.StreamId))
+            if (!this.audioStreamsFound.Contains(stream.StreamId))
             {
                 this.audioStreamsFound.Add(stream.StreamId);
             }
@@ -258,9 +259,9 @@ public class CellLoader : IBasicSplitterCallback
     DataHolder HoldData(CombinedBuffer buffer, int index, int length)
     {
         DataHolder holder;
-        if(this.memoryDataUsed + length > MaxMemoryUsed)
+        if (this.memoryDataUsed + length > MaxMemoryUsed)
         {
-            if(this.dataFile == null)
+            if (this.dataFile == null)
             {
                 this.dataFile = new FileStream(Path.GetTempFileName(), FileMode.Open, FileAccess.ReadWrite);
             }
@@ -284,10 +285,10 @@ public class CellLoader : IBasicSplitterCallback
 
         DataHolder holder = HoldData(this.buffer, packetOffset, packetLength);
         StreamPackHeaderBuffer buffer = new StreamPackHeaderBuffer() { DataHolder = holder, SCR = scr, MuxRate = muxRate };
-        if(!this.discardDataDueToAngle)
+        if (!this.discardDataDueToAngle)
         {
             UpdateFirstPts(Convert.ToDouble(scr) / (300.0 * 90.0));
-            if((this.previousScr != 0) && (scr > this.previousScr))
+            if ((this.previousScr != 0) && (scr > this.previousScr))
             {
                 UpdateLastPts(Convert.ToDouble(scr + this.previousScr) / (2.0 * 300.0 * 90.0));
             }
@@ -304,7 +305,7 @@ public class CellLoader : IBasicSplitterCallback
     {
         DataHolder holder = HoldData(this.buffer, packetOffset, packetLength);
         HeaderPacketBuffer buffer = new HeaderPacketBuffer() { DataHolder = holder, PacketTypeCode = packetTypeCode };
-        if(!this.discardDataDueToAngle)
+        if (!this.discardDataDueToAngle)
         {
             this.packets.Add(buffer);
         }
@@ -323,15 +324,15 @@ public class CellLoader : IBasicSplitterCallback
 
     void IBasicSplitterCallback.StreamPacket(IStreamDefinition streamDef, int packetOffset, int packetLength, long bufferPosition, int pesHeaderLength)
     {
-        if(streamDef.StreamType == StreamType.Audio)
+        if (streamDef.StreamType == StreamType.Audio)
         {
             DealWithAudio(streamDef, packetOffset, packetLength, bufferPosition, pesHeaderLength);
         }
-        if(!this.discardDataDueToAngle)
+        if (!this.discardDataDueToAngle)
         {
-            if(streamDef.StreamType == StreamType.Audio)
+            if (streamDef.StreamType == StreamType.Audio)
             {
-                if(!this.acceptAnyAudio && !this.audioData.ContainsKey(streamDef.StreamId))
+                if (!this.acceptAnyAudio && !this.audioData.ContainsKey(streamDef.StreamId))
                 {
                     return;
                 }
@@ -347,9 +348,9 @@ public class CellLoader : IBasicSplitterCallback
 
     void UpdateFirstPts(double? pts)
     {
-        if(pts.HasValue)
+        if (pts.HasValue)
         {
-            if(this.FirstPts.HasValue)
+            if (this.FirstPts.HasValue)
             {
                 this.FirstPts = Math.Min(this.FirstPts.Value, pts.Value);
             }
@@ -362,9 +363,9 @@ public class CellLoader : IBasicSplitterCallback
 
     void UpdateLastPts(double? pts)
     {
-        if(pts.HasValue)
+        if (pts.HasValue)
         {
-            if(this.LastPts.HasValue)
+            if (this.LastPts.HasValue)
             {
                 this.LastPts = Math.Max(this.LastPts.Value, pts.Value);
             }
@@ -377,19 +378,19 @@ public class CellLoader : IBasicSplitterCallback
 
     void IBasicSplitterCallback.AngleCellChanged(bool isAngle, CellIdVobId cellVobId, long bufferPosition)
     {
-        if(isAngle)
+        if (isAngle)
         {
-            if(this.angleCellIds.Contains(cellVobId) || ((this.angleCellIds.Count == 0) && this.vobCellIds.Contains(cellVobId)))
+            if (this.angleCellIds.Contains(cellVobId) || ((this.angleCellIds.Count == 0) && this.vobCellIds.Contains(cellVobId)))
             {
-                if(this.savedPackets.Count != 0)
+                if (this.savedPackets.Count != 0)
                 {
-                    if(this.discardDataDueToAngle)
+                    if (this.discardDataDueToAngle)
                     {
                         this.packets.AddRange(this.savedPackets);
                     }
                     this.savedPackets.Clear();
                 }
-                if(!this.wasAngle.HasValue || this.wasAngle.Value)
+                if (!this.wasAngle.HasValue || this.wasAngle.Value)
                 {
                     Debug.WriteLine($"Angle Good {cellVobId.ToString()}");
                     this.wasAngle = false;
@@ -398,11 +399,11 @@ public class CellLoader : IBasicSplitterCallback
             }
             else
             {
-                if(!this.discardDataDueToAngle)
+                if (!this.discardDataDueToAngle)
                 {
-                    while(this.packets.Count > 0)
+                    while (this.packets.Count > 0)
                     {
-                        if(this.packets[this.packets.Count - 1] is StreamPackHeaderBuffer or HeaderPacketBuffer)
+                        if (this.packets[this.packets.Count - 1] is StreamPackHeaderBuffer or HeaderPacketBuffer)
                         {
                             this.packets.RemoveAt(this.packets.Count - 1);
                         }
@@ -412,7 +413,7 @@ public class CellLoader : IBasicSplitterCallback
                         }
                     }
                 }
-                if(!this.wasAngle.HasValue || !this.wasAngle.Value)
+                if (!this.wasAngle.HasValue || !this.wasAngle.Value)
                 {
                     Debug.WriteLine($"Angle Discard {cellVobId.ToString()}");
                     this.wasAngle = true;
@@ -422,15 +423,15 @@ public class CellLoader : IBasicSplitterCallback
         }
         else
         {
-            if(this.savedPackets.Count != 0)
+            if (this.savedPackets.Count != 0)
             {
-                if(this.discardDataDueToAngle)
+                if (this.discardDataDueToAngle)
                 {
                     this.packets.AddRange(this.savedPackets);
                 }
                 this.savedPackets.Clear();
             }
-            if(this.wasAngle.HasValue)
+            if (this.wasAngle.HasValue)
             {
                 Debug.WriteLine("No Angle");
                 this.wasAngle = null;
@@ -442,93 +443,97 @@ public class CellLoader : IBasicSplitterCallback
     void IBasicSplitterCallback.StreamData(IStreamDefinition stream, int packetOffset, int packetLength,
         double? pts, long bufferPosition)
     {
-        if(this.discardDataDueToAngle)
+        if (this.discardDataDueToAngle)
         {
             return;
         }
 
-        switch(stream.StreamType)
+        switch (stream.StreamType)
         {
-        case StreamType.Video:
-            UpdateFirstPts(pts);
-            if(pts.HasValue)
-            {
-                if(!this.FirstVideoPts.HasValue)
+            case StreamType.Video:
+                UpdateFirstPts(pts);
+                if (pts.HasValue)
                 {
-                    this.FirstVideoPts = pts.Value;
-                }
-                else
-                {
-                    this.FirstVideoPts = Math.Min(pts.Value, this.FirstVideoPts.Value);
-                }
-            }
-            else
-            {
-                if(!this.FirstVideoPts.HasValue)
-                {
-                    Debug.WriteLine("Video before first pts");
-                }
-            }
-            break;
-        case StreamType.Subtitle:
-            UpdateFirstPts(pts);
-            break;
-        case StreamType.Audio:
-            UpdateFirstPts(pts);
-            if(pts.HasValue)
-            {
-                if(!this.FirstAudioPts.HasValue)
-                {
-                    this.FirstAudioPts = pts.Value;
-                }
-                else
-                {
-                    this.FirstAudioPts = Math.Min(pts.Value, this.FirstAudioPts.Value);
-                }
-            }
-            else
-            {
-                if(!this.FirstAudioPts.HasValue)
-                {
-                    Debug.WriteLine("Audio before first pts");
-                }
-            }
-            if(this.acceptAnyAudio && !this.audioData.ContainsKey(stream.StreamId))
-            {
-                AudioAttributes attribs = new AudioAttributes()
-                { Channels = 2, CodeExtension = AudioCodeExtension.Normal, 
-                    CodingMode = AudioCodingMode.AC3, Language = "en", 
-                    TrackId = this.audioData.Count + 1 };
-                this.audioData[stream.StreamId] = new AudioStreamData() 
-                { Item = new AudioStreamItem(stream.StreamId, attribs) };
-            }
-
-            AudioStreamData data;
-            if(this.audioData.TryGetValue(stream.StreamId, out data))
-            {
-                if(pts.HasValue)
-                {
-                    if(!data.Pts.HasValue && (data.BytesSincePts != 0))
+                    if (!this.FirstVideoPts.HasValue)
                     {
-                        double audioPts = pts.Value -
-                            (double)data.BytesSincePts /
-                                ((double)data.Item.KBitsPerSecond / 8.0);
-                        UpdateFirstPts(audioPts);
+                        this.FirstVideoPts = pts.Value;
                     }
-                    data.Pts = pts.Value;
-                    data.BytesSincePts = 0;
+                    else
+                    {
+                        this.FirstVideoPts = Math.Min(pts.Value, this.FirstVideoPts.Value);
+                    }
+                }
+                else
+                {
+                    if (!this.FirstVideoPts.HasValue)
+                    {
+                        Debug.WriteLine("Video before first pts");
+                    }
+                }
+                break;
+            case StreamType.Subtitle:
+                UpdateFirstPts(pts);
+                break;
+            case StreamType.Audio:
+                UpdateFirstPts(pts);
+                if (pts.HasValue)
+                {
+                    if (!this.FirstAudioPts.HasValue)
+                    {
+                        this.FirstAudioPts = pts.Value;
+                    }
+                    else
+                    {
+                        this.FirstAudioPts = Math.Min(pts.Value, this.FirstAudioPts.Value);
+                    }
+                }
+                else
+                {
+                    if (!this.FirstAudioPts.HasValue)
+                    {
+                        Debug.WriteLine("Audio before first pts");
+                    }
+                }
+                if (this.acceptAnyAudio && !this.audioData.ContainsKey(stream.StreamId))
+                {
+                    AudioAttributes attribs = new AudioAttributes()
+                    {
+                        Channels = 2,
+                        CodeExtension = AudioCodeExtension.Normal,
+                        CodingMode = AudioCodingMode.AC3,
+                        Language = "en",
+                        TrackId = this.audioData.Count + 1
+                    };
+                    this.audioData[stream.StreamId] = new AudioStreamData()
+                    { Item = new AudioStreamItem(stream.StreamId, attribs) };
                 }
 
-                data.BytesSincePts += packetLength;
-                if(data.Pts.HasValue)
+                AudioStreamData data;
+                if (this.audioData.TryGetValue(stream.StreamId, out data))
                 {
-                    double audioPts = data.Pts.Value
-                        + (double)data.BytesSincePts / (2 * ((double)data.Item.KBitsPerSecond / 8.0));
-                    //UpdateLastPts(audioPts);
-                    data.LastPts = audioPts;
+                    if (pts.HasValue)
+                    {
+                        if (!data.Pts.HasValue && (data.BytesSincePts != 0))
+                        {
+                            double audioPts = pts.Value -
+                                (double)data.BytesSincePts /
+                                    ((double)data.Item.KBitsPerSecond / 8.0);
+                            UpdateFirstPts(audioPts);
+                        }
+                        data.Pts = pts.Value;
+                        data.BytesSincePts = 0;
+                    }
+
+                    data.BytesSincePts += packetLength;
+                    if (data.Pts.HasValue)
+                    {
+                        double audioPts = data.Pts.Value
+                            + (double)data.BytesSincePts / (2 * ((double)data.Item.KBitsPerSecond / 8.0));
+                        //UpdateLastPts(audioPts);
+                        data.LastPts = audioPts;
+                    }
                 }
-            }
-            break;
+                break;
         }
     }
 

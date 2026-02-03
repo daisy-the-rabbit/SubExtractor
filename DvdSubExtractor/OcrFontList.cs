@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class OcrFontList : IDisposable
 {
     List<OcrFont> normalFonts = [];
@@ -36,11 +37,11 @@ public class OcrFontList : IDisposable
     {
         get
         {
-            foreach(OcrFont font in NormalFonts)
+            foreach (OcrFont font in NormalFonts)
             {
                 yield return font;
             }
-            foreach(OcrFont font in ItalicFonts)
+            foreach (OcrFont font in ItalicFonts)
             {
                 yield return font;
             }
@@ -52,11 +53,11 @@ public class OcrFontList : IDisposable
             {
                 yield return font;
             }*/
-            if(this.genericNormalFont != null)
+            if (this.genericNormalFont != null)
             {
                 yield return this.genericNormalFont;
             }
-            if(this.genericItalicFont != null)
+            if (this.genericItalicFont != null)
             {
                 yield return this.genericItalicFont;
             }
@@ -65,7 +66,7 @@ public class OcrFontList : IDisposable
 
     public void AddRange(IEnumerable<SubtitleLine> lineList)
     {
-        foreach(SubtitleLine line in lineList)
+        foreach (SubtitleLine line in lineList)
         {
             Add(line);
         }
@@ -74,7 +75,7 @@ public class OcrFontList : IDisposable
     public void Add(SubtitleLine line)
     {
         OcrFont fontNormal = new OcrFont(false, line);
-        if(fontNormal.ComparableCharacterCount > 0)
+        if (fontNormal.ComparableCharacterCount > 0)
         //if(fontNormal.ComparableCharacterCount > 1)
         {
             normalFonts.Add(fontNormal);
@@ -88,7 +89,7 @@ public class OcrFontList : IDisposable
         }*/
 
         OcrFont fontItalic = new OcrFont(true, line);
-        if(fontItalic.ComparableCharacterCount > 0)
+        if (fontItalic.ComparableCharacterCount > 0)
         //if(fontItalic.ComparableCharacterCount > 1)
         {
             italicFonts.Add(fontItalic);
@@ -110,13 +111,13 @@ public class OcrFontList : IDisposable
         {
             moreMerge = false;
 
-            for(int index = 0; index < this.normalFonts.Count - 1; index++)
+            for (int index = 0; index < this.normalFonts.Count - 1; index++)
             {
                 OcrFont font1 = this.normalFonts[index];
-                for(int index2 = index + 1; index2 < this.normalFonts.Count; index2++)
+                for (int index2 = index + 1; index2 < this.normalFonts.Count; index2++)
                 {
                     OcrFont font2 = this.normalFonts[index2];
-                    if(font1.IsMatchingFont(font2) == OcrFont.Matching.Yes)
+                    if (font1.IsMatchingFont(font2) == OcrFont.Matching.Yes)
                     {
                         font1.MergeFonts(font2);
                         this.normalFonts.RemoveAt(index2);
@@ -124,25 +125,25 @@ public class OcrFontList : IDisposable
                         index2--;
                     }
                 }
-                if(moreMerge)
+                if (moreMerge)
                 {
                     break;
                 }
             }
-        } while(moreMerge);
+        } while (moreMerge);
 
         this.italicFonts.Sort();
         do
         {
             moreMerge = false;
 
-            for(int index = 0; index < this.italicFonts.Count - 1; index++)
+            for (int index = 0; index < this.italicFonts.Count - 1; index++)
             {
                 OcrFont font1 = this.italicFonts[index];
-                for(int index2 = index + 1; index2 < this.italicFonts.Count; index2++)
+                for (int index2 = index + 1; index2 < this.italicFonts.Count; index2++)
                 {
                     OcrFont font2 = this.italicFonts[index2];
-                    if(font1.IsMatchingFont(font2) == OcrFont.Matching.Yes)
+                    if (font1.IsMatchingFont(font2) == OcrFont.Matching.Yes)
                     {
                         font1.MergeFonts(font2);
                         this.italicFonts.RemoveAt(index2);
@@ -150,12 +151,12 @@ public class OcrFontList : IDisposable
                         index2--;
                     }
                 }
-                if(moreMerge)
+                if (moreMerge)
                 {
                     break;
                 }
             }
-        } while(moreMerge);
+        } while (moreMerge);
     }
 
     public void BuildFontLineMap()
@@ -163,10 +164,10 @@ public class OcrFontList : IDisposable
         this.linesWithFonts.Clear();
 
         Dictionary<SubtitleLine, OcrFont> normalFontMap = new Dictionary<SubtitleLine, OcrFont>();
-        foreach(OcrFont font in NormalFonts)
+        foreach (OcrFont font in NormalFonts)
         {
             font.UpdateFontKerning();
-            foreach(SubtitleLine line in font.Lines)
+            foreach (SubtitleLine line in font.Lines)
             {
                 normalFontMap[line] = font;
             }
@@ -180,13 +181,13 @@ public class OcrFontList : IDisposable
             }
         }*/
 
-        foreach(OcrFont font in ItalicFonts)
+        foreach (OcrFont font in ItalicFonts)
         {
             font.UpdateFontKerning();
-            foreach(SubtitleLine line in font.Lines)
+            foreach (SubtitleLine line in font.Lines)
             {
                 OcrFont normal;
-                if(normalFontMap.TryGetValue(line, out normal))
+                if (normalFontMap.TryGetValue(line, out normal))
                 {
                     this.linesWithFonts.Add(line, new LineAndFonts()
                     {
@@ -235,7 +236,7 @@ public class OcrFontList : IDisposable
             }
         }*/
 
-        foreach(KeyValuePair<SubtitleLine, OcrFont> pair in normalFontMap)
+        foreach (KeyValuePair<SubtitleLine, OcrFont> pair in normalFontMap)
         {
             this.linesWithFonts.Add(pair.Key, new LineAndFonts()
             {
@@ -250,11 +251,11 @@ public class OcrFontList : IDisposable
     {
         FontKerning emptyNormalKerning = new FontKerning(false);
         FontKerning emptyItalicKerning = new FontKerning(true);
-        foreach(LineAndFonts lineAndFonts in this.linesWithFonts.Values)
+        foreach (LineAndFonts lineAndFonts in this.linesWithFonts.Values)
         {
-            FontKerning normal = (lineAndFonts.NormalFont != null) ? 
+            FontKerning normal = (lineAndFonts.NormalFont != null) ?
                 lineAndFonts.NormalFont.Kerning : emptyNormalKerning;
-            FontKerning italic = (lineAndFonts.ItalicFont != null) ? 
+            FontKerning italic = (lineAndFonts.ItalicFont != null) ?
                 lineAndFonts.ItalicFont.Kerning : emptyItalicKerning;
             lineAndFonts.Line.InsertSpaces(normal, italic);
         }
@@ -265,7 +266,7 @@ public class OcrFontList : IDisposable
         string text;
         float tallest;
         KeyValuePair<OcrCharacter, float> tallestPair = ocrFont.TallestComparableCharacter;
-        if(tallestPair.Key == null)
+        if (tallestPair.Key == null)
         {
             tallestPair = ocrFont.TallestCharacter;
         }
@@ -274,18 +275,18 @@ public class OcrFontList : IDisposable
 
         float minimumHeightDifference = float.MaxValue;
         Font closestFont = null;
-        foreach(Font font in fonts)
+        foreach (Font font in fonts)
         {
             SizeF sizeText = TextRenderer.MeasureText(text, font);
             float adjustedHeight = sizeText.Height * windowsToDvdFontHeightConversion;
             float heightDifference = Math.Abs(adjustedHeight - tallest);
-            if(heightDifference < minimumHeightDifference)
+            if (heightDifference < minimumHeightDifference)
             {
                 minimumHeightDifference = heightDifference;
                 closestFont = font;
             }
         }
-        if(closestFont != null)
+        if (closestFont != null)
         {
             ocrFont.MatchingRealFont = closestFont;
         }
@@ -307,7 +308,7 @@ public class OcrFontList : IDisposable
         this.genericItalicFont = new OcrFont(true);
         this.genericItalicFont.MatchingRealFont = genericItalicFont;
 
-        foreach(OcrFont font in this.NormalFonts)
+        foreach (OcrFont font in this.NormalFonts)
         {
             MatchFont(font, normalFonts, windowsToDvdFontHeightConversion);
         }
@@ -315,7 +316,7 @@ public class OcrFontList : IDisposable
         {
             MatchFont(font, g, normalFonts);
         }*/
-        foreach(OcrFont font in this.ItalicFonts)
+        foreach (OcrFont font in this.ItalicFonts)
         {
             MatchFont(font, italicFonts, windowsToDvdFontHeightConversion);
         }
@@ -328,9 +329,9 @@ public class OcrFontList : IDisposable
     public OcrFont FindDominantFontForLine(SubtitleLine line)
     {
         LineAndFonts landf;
-        if(this.linesWithFonts.TryGetValue(line, out landf))
+        if (this.linesWithFonts.TryGetValue(line, out landf))
         {
-            if(line.DominantFont == SubtitleLine.DominantFontStyle.Normal)
+            if (line.DominantFont == SubtitleLine.DominantFontStyle.Normal)
             {
                 return landf.NormalFont ?? this.genericNormalFont;
             }
@@ -345,7 +346,7 @@ public class OcrFontList : IDisposable
     public KeyValuePair<OcrFont, OcrFont> FindFontsForLine(SubtitleLine line)
     {
         LineAndFonts landf;
-        if(this.linesWithFonts.TryGetValue(line, out landf))
+        if (this.linesWithFonts.TryGetValue(line, out landf))
         {
             return new KeyValuePair<OcrFont, OcrFont>(
                 landf.NormalFont ?? this.genericNormalFont,

@@ -1,10 +1,11 @@
 using System.Buffers.Binary;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 class CellSaver
 {
     Dictionary<int, SubtitlePacker> packers = new Dictionary<int, SubtitlePacker>();
@@ -21,14 +22,14 @@ class CellSaver
     public CellSaver(double ptsOffset, PartialSaveStatus lastCellStatus, double? startPts, double? endPts)
     {
         this.ptsOffset = ptsOffset;
-        if(lastCellStatus == PartialSaveStatus.AfterEnd)
+        if (lastCellStatus == PartialSaveStatus.AfterEnd)
         {
             throw new ArgumentException("lastCellStatus cannot be AfterEnd at start");
         }
         this.PartialSaveStatus = lastCellStatus;
         this.startPts = startPts;
         this.endPts = endPts;
-        if(this.startPts.HasValue != this.endPts.HasValue)
+        if (this.startPts.HasValue != this.endPts.HasValue)
         {
             throw new ArgumentException("startPts and endPts must either both have values or neither");
         }
@@ -36,7 +37,7 @@ class CellSaver
         paddingPacket[1] = 0;
         paddingPacket[2] = 1;
         paddingPacket[3] = MpegPSSplitter.PaddingStreamCode;
-        for(int index = 6; index < this.paddingPacket.Length; index++)
+        for (int index = 6; index < this.paddingPacket.Length; index++)
         {
             this.paddingPacket[index] = 0xff;
         }
@@ -62,7 +63,7 @@ class CellSaver
 
     void WriteMpegPacket(FileStream mpegOut, byte[] data)
     {
-        if((this.sectorOffset + data.Length != SectorSize) &&
+        if ((this.sectorOffset + data.Length != SectorSize) &&
             (this.sectorOffset + data.Length + PacketHeaderSize > SectorSize))
         {
             WritePaddingPacket(mpegOut, SectorSize - this.sectorOffset);
@@ -78,14 +79,14 @@ class CellSaver
         try
         {
             int packetIndex = 0;
-            foreach(PacketBuffer buffer in packets)
+            foreach (PacketBuffer buffer in packets)
             {
-                if(stopFunc())
+                if (stopFunc())
                 {
                     return;
                 }
 
-                if(buffer.DataHolder != null)
+                if (buffer.DataHolder != null)
                 {
                     buffer.DataHolder.LoadInMemory();
                 }
@@ -93,46 +94,46 @@ class CellSaver
                 {
                     OnSavedPacket();
                     packetIndex++;
-                    if(packetIndex > packets.Count - 1000)
+                    if (packetIndex > packets.Count - 1000)
                     {
                         this.writeCountdown = 1000;
                     }
 
-                    if(buffer is StreamPackHeaderBuffer packHeader)
+                    if (buffer is StreamPackHeaderBuffer packHeader)
                     {
                         double dScr = OffsetPackHeader(packHeader);
-                        if(!this.FirstPackHeaderPts.HasValue)
+                        if (!this.FirstPackHeaderPts.HasValue)
                         {
                             this.FirstPackHeaderPts = dScr;
                         }
-                        switch(this.PartialSaveStatus)
+                        switch (this.PartialSaveStatus)
                         {
-                        case PartialSaveStatus.BeforeStart:
-                            if(dScr >= this.startPts.Value)
-                            {
-                                if(dScr <= this.endPts.Value)
+                            case PartialSaveStatus.BeforeStart:
+                                if (dScr >= this.startPts.Value)
                                 {
-                                    this.PartialSaveStatus = PartialSaveStatus.InRange;
+                                    if (dScr <= this.endPts.Value)
+                                    {
+                                        this.PartialSaveStatus = PartialSaveStatus.InRange;
+                                    }
+                                    else
+                                    {
+                                        this.PartialSaveStatus = PartialSaveStatus.AfterEnd;
+                                    }
                                 }
-                                else
+                                break;
+                            case PartialSaveStatus.InRange:
+                                if (this.endPts.HasValue && (dScr > this.endPts.Value))
                                 {
                                     this.PartialSaveStatus = PartialSaveStatus.AfterEnd;
+                                    return;
                                 }
-                            }
-                            break;
-                        case PartialSaveStatus.InRange:
-                            if(this.endPts.HasValue && (dScr > this.endPts.Value))
-                            {
-                                this.PartialSaveStatus = PartialSaveStatus.AfterEnd;
-                                return;
-                            }
-                            break;
+                                break;
                         }
 
-                        if((this.PartialSaveStatus == PartialSaveStatus.InRange) &&
+                        if ((this.PartialSaveStatus == PartialSaveStatus.InRange) &&
                             (mpegOut != null) && !this.headerWrittenLast)
                         {
-                            if(this.sectorOffset != 0)
+                            if (this.sectorOffset != 0)
                             {
                                 WritePaddingPacket(mpegOut, SectorSize - this.sectorOffset);
                                 this.sectorOffset = 0;
@@ -142,54 +143,54 @@ class CellSaver
                         }
                     }
 
-                    if(this.PartialSaveStatus != PartialSaveStatus.InRange)
+                    if (this.PartialSaveStatus != PartialSaveStatus.InRange)
                     {
                         continue;
                     }
 
-                    if(buffer is PalettePacketBuffer palette && (storage != null))
+                    if (buffer is PalettePacketBuffer palette && (storage != null))
                     {
                         storage.AddPalette(palette.Palette);
                     }
-                    if(buffer is HeaderPacketBuffer header && (mpegOut != null))
+                    if (buffer is HeaderPacketBuffer header && (mpegOut != null))
                     {
                         WriteMpegPacket(mpegOut, header.DataHolder.Data);
                         this.headerWrittenLast = false;
                     }
-                    if(buffer is StreamPacketBuffer stream)
+                    if (buffer is StreamPacketBuffer stream)
                     {
                         IStreamDefinition defn = stream.StreamDefinition;
                         double? pts = OffsetBuffer(stream);
-                        switch(defn.StreamType)
+                        switch (defn.StreamType)
                         {
-                        case StreamType.Subtitle:
-                            if(storage != null)
-                            {
-                                SubtitlePacker packer;
-                                if(!this.packers.TryGetValue(defn.StreamId, out packer))
+                            case StreamType.Subtitle:
+                                if (storage != null)
                                 {
-                                    packer = new SubtitlePacker(defn.StreamId, storage);
-                                    this.packers[defn.StreamId] = packer;
+                                    SubtitlePacker packer;
+                                    if (!this.packers.TryGetValue(defn.StreamId, out packer))
+                                    {
+                                        packer = new SubtitlePacker(defn.StreamId, storage);
+                                        this.packers[defn.StreamId] = packer;
+                                    }
+                                    CombinedBuffer combo = new CombinedBuffer(stream.DataHolder.Data);
+                                    packer.HandleBytes(combo, stream.PesHeaderLength,
+                                        stream.DataHolder.Length - stream.PesHeaderLength, pts, 0);
                                 }
-                                CombinedBuffer combo = new CombinedBuffer(stream.DataHolder.Data);
-                                packer.HandleBytes(combo, stream.PesHeaderLength,
-                                    stream.DataHolder.Length - stream.PesHeaderLength, pts, 0);
-                            }
-                            break;
-                        case StreamType.Audio:
-                        case StreamType.Video:
-                            if(mpegOut != null)
-                            {
-                                WriteMpegPacket(mpegOut, stream.DataHolder.Data);
-                                this.headerWrittenLast = false;
-                            }
-                            break;
+                                break;
+                            case StreamType.Audio:
+                            case StreamType.Video:
+                                if (mpegOut != null)
+                                {
+                                    WriteMpegPacket(mpegOut, stream.DataHolder.Data);
+                                    this.headerWrittenLast = false;
+                                }
+                                break;
                         }
                     }
                 }
                 finally
                 {
-                    if(buffer.DataHolder != null)
+                    if (buffer.DataHolder != null)
                     {
                         buffer.DataHolder.ReleaseFromMemory();
                     }
@@ -198,7 +199,7 @@ class CellSaver
         }
         finally
         {
-            if((mpegOut != null) && (this.sectorOffset != 0))
+            if ((mpegOut != null) && (this.sectorOffset != 0))
             {
                 WritePaddingPacket(mpegOut, SectorSize - this.sectorOffset);
                 this.sectorOffset = 0;
@@ -210,7 +211,7 @@ class CellSaver
     {
         double dScr = 0;
         byte[] data = packHeader.DataHolder.Data;
-        if((data[4] >> 6) == 0x01)
+        if ((data[4] >> 6) == 0x01)
         {
             ulong scr = (
                 (((ulong)data[4] & 0x38) << 27) |
@@ -223,7 +224,7 @@ class CellSaver
             ) * 300L + (
                 (((ulong)data[8] & 0x03) << 7) |
                 (((ulong)data[9] & 0xfe) >> 1));
-            if(this.writeCountdown > 0)
+            if (this.writeCountdown > 0)
             {
                 this.writeCountdown--;
             }
@@ -276,7 +277,7 @@ class CellSaver
         double? dPts = null;
         byte[] data = streamBuffer.DataHolder.Data;
         int ptsDtsFlag = data[7] & 0xc0;
-        if((ptsDtsFlag & 0x80) != 0)
+        if ((ptsDtsFlag & 0x80) != 0)
         {
             ulong pts = (((ulong)data[9] & 0x0e) << 29) |
                 ((ulong)data[10] << 22) |
@@ -284,7 +285,7 @@ class CellSaver
                 ((ulong)data[12] << 7) |
                 ((ulong)data[13] >> 1);
 
-            if(this.writeCountdown > 0)
+            if (this.writeCountdown > 0)
             {
                 this.writeCountdown--;
             }
@@ -298,7 +299,7 @@ class CellSaver
             data[12] = (byte)((newPts >> 7) & 0xff);
             data[13] = (byte)((byte)((newPts << 1) & 0xff) | (data[13] & 0x01));
 
-            if((ptsDtsFlag & 0x40) != 0)
+            if ((ptsDtsFlag & 0x40) != 0)
             {
                 ulong dts = (((ulong)data[14] & 0x0e) << 29) |
                     ((ulong)data[15] << 22) |
