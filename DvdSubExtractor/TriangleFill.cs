@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Data;
 
 namespace DvdSubExtractor;
+
 public enum Corner
 {
     TopLeft = 0,
@@ -37,7 +38,7 @@ public partial class TriangleFill : UserControl
         get { return this.origin; }
         set
         {
-            if(value != this.origin)
+            if (value != this.origin)
             {
                 this.origin = value;
                 Invalidate();
@@ -54,7 +55,7 @@ public partial class TriangleFill : UserControl
         get { return this.fillColor; }
         set
         {
-            if(value != this.fillColor)
+            if (value != this.fillColor)
             {
                 this.fillColor = value;
                 Invalidate();
@@ -77,7 +78,7 @@ public partial class TriangleFill : UserControl
             _ => [new Point(rect.Right - 1, rect.Top), new Point(rect.Right - 1, rect.Bottom), new Point(rect.Left - 1, rect.Bottom)],
         };
 
-        using(SolidBrush fillBrush = new SolidBrush(this.ForeColor))
+        using (SolidBrush fillBrush = new SolidBrush(this.ForeColor))
         {
             e.Graphics.FillPolygon(fillBrush, points);
         }
@@ -87,17 +88,17 @@ public partial class TriangleFill : UserControl
             e.Graphics.DrawLine(linePen, points[1], points[2]);
         }*/
 
-        switch(this.origin)
+        switch (this.origin)
         {
-        case Corner.TopLeft:
-        case Corner.TopRight:
-            e.Graphics.DrawLine(SystemPens.ControlDark, rect.Location, new Point(rect.Right, rect.Top));
-            break;
-        case Corner.BottomLeft:
-        case Corner.BottomRight:
-        default:
-            e.Graphics.DrawLine(SystemPens.ControlDark, new Point(rect.Left, rect.Bottom - 1), new Point(rect.Right, rect.Bottom - 1));
-            break;
+            case Corner.TopLeft:
+            case Corner.TopRight:
+                e.Graphics.DrawLine(SystemPens.ControlDark, rect.Location, new Point(rect.Right, rect.Top));
+                break;
+            case Corner.BottomLeft:
+            case Corner.BottomRight:
+            default:
+                e.Graphics.DrawLine(SystemPens.ControlDark, new Point(rect.Left, rect.Bottom - 1), new Point(rect.Right, rect.Bottom - 1));
+                break;
         }
     }
 }

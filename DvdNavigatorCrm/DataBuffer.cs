@@ -20,6 +20,7 @@
  */
 
 namespace DvdNavigatorCrm;
+
 public class DataBuffer : IDataBuffer
 {
     static volatile int nextId;
@@ -33,12 +34,12 @@ public class DataBuffer : IDataBuffer
     public DataBuffer(byte[] buffer, int offset, int length) : this()
     {
         this.buffer = buffer;
-        if((offset < 0) || (offset >= buffer.Length))
+        if ((offset < 0) || (offset >= buffer.Length))
         {
             throw new ArgumentOutOfRangeException("offset");
         }
         this.Offset = offset;
-        if((length <= 0) || (offset + length > buffer.Length))
+        if ((length <= 0) || (offset + length > buffer.Length))
         {
             throw new ArgumentOutOfRangeException("length");
         }
@@ -53,12 +54,12 @@ public class DataBuffer : IDataBuffer
     protected void Initialize(byte[] buffer, int offset, int length)
     {
         this.buffer = buffer;
-        if((offset < 0) || (offset >= buffer.Length))
+        if ((offset < 0) || (offset >= buffer.Length))
         {
             throw new ArgumentOutOfRangeException("offset");
         }
         this.Offset = offset;
-        if((length <= 0) || (offset + length > buffer.Length))
+        if ((length <= 0) || (offset + length > buffer.Length))
         {
             throw new ArgumentOutOfRangeException("length");
         }

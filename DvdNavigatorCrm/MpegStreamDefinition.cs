@@ -21,6 +21,7 @@
 
 
 namespace DvdNavigatorCrm;
+
 class ProgramStreamMapEntry
 {
     byte[] descriptor;
@@ -62,11 +63,11 @@ class MpegStreamDefinition : StreamDefinition
 
     internal void FindPSStreamCodec(Dictionary<int, ProgramStreamMapEntry> programStreamMap)
     {
-        if(IsAudioStream(this.StreamId))
+        if (IsAudioStream(this.StreamId))
         {
             this.StreamType = StreamType.Audio;
             this.Codec = Codec.MPGA;
-            if(programStreamMap.TryGetValue(this.StreamId, out ProgramStreamMapEntry entry))
+            if (programStreamMap.TryGetValue(this.StreamId, out ProgramStreamMapEntry entry))
             {
                 this.Language = entry.Lang;
                 this.Codec = entry.TypeCode switch
@@ -77,11 +78,11 @@ class MpegStreamDefinition : StreamDefinition
                 };
             }
         }
-        else if(IsVideoStream(this.StreamId))
+        else if (IsVideoStream(this.StreamId))
         {
             this.StreamType = StreamType.Video;
             this.Codec = Codec.MPGV;
-            if(programStreamMap.TryGetValue(this.StreamId, out ProgramStreamMapEntry entry2))
+            if (programStreamMap.TryGetValue(this.StreamId, out ProgramStreamMapEntry entry2))
             {
                 this.Language = entry2.Lang;
                 this.Codec = entry2.TypeCode switch
@@ -96,7 +97,7 @@ class MpegStreamDefinition : StreamDefinition
         else
         {
             ProgramStreamMapEntry entry;
-            if(programStreamMap.TryGetValue(this.StreamId, out entry))
+            if (programStreamMap.TryGetValue(this.StreamId, out entry))
             {
                 this.Language = entry.Lang;
             }
@@ -106,44 +107,44 @@ class MpegStreamDefinition : StreamDefinition
     internal void FindPSPrivateStreamCodec(Dictionary<int, ProgramStreamMapEntry> programStreamMap)
     {
         ProgramStreamMapEntry entry;
-        if(programStreamMap.TryGetValue(this.StreamId, out entry))
+        if (programStreamMap.TryGetValue(this.StreamId, out entry))
         {
             this.Language = entry.Lang;
         }
 
-        if((this.StreamId & 0xf8) == 0x88)
+        if ((this.StreamId & 0xf8) == 0x88)
         {
             this.Codec = Codec.DTS;
             this.StreamType = StreamType.Audio;
             this.subHeaderSize = 3;
             return;
         }
-        if((this.StreamId & 0xf0) == 0x80)
+        if ((this.StreamId & 0xf0) == 0x80)
         {
             this.Codec = Codec.AC3;
             this.StreamType = StreamType.Audio;
             this.subHeaderSize = 3;
             return;
         }
-        if((this.StreamId & 0xe0) == 0x20)
+        if ((this.StreamId & 0xe0) == 0x20)
         {
             this.Codec = Codec.SPU;
             this.StreamType = StreamType.Subtitle;
             return;
         }
-        if((this.StreamId & 0xf0) == 0xa0)
+        if ((this.StreamId & 0xf0) == 0xa0)
         {
             this.Codec = Codec.LPCM;
             this.StreamType = StreamType.Audio;
             return;
         }
-        if((this.StreamId & 0xff) == 0x70)
+        if ((this.StreamId & 0xff) == 0x70)
         {
             this.Codec = Codec.OGT;
             this.StreamType = StreamType.Subtitle;
             return;
         }
-        if((this.StreamId & 0xfc) == 0x00)
+        if ((this.StreamId & 0xfc) == 0x00)
         {
             this.Codec = Codec.CVD;
             this.StreamType = StreamType.Subtitle;
@@ -155,33 +156,33 @@ class MpegStreamDefinition : StreamDefinition
     {
         this.Language = entry.Lang;
 
-        switch(streamType)
+        switch (streamType)
         {
-        case 0x02:  // MPEG-2 video
-            this.StreamType = StreamType.Video;
-            this.Codec = Codec.MPGV;
-            return;
-        case 0x03:  // MPEG-2 audio
-        case 0x04:  // MPEG-2 audio
-            this.StreamType = StreamType.Audio;
-            this.Codec = Codec.MPGA;
-            return;
-        case 0x11:  // MPEG4 (audio)
-        case 0x0f:  // ISO/IEC 13818-7 Audio with ADTS transport syntax
-            this.StreamType = StreamType.Audio;
-            this.Codec = Codec.MP4A;
-            return;
-        case 0x10:  // MPEG4 (video)
-            this.StreamType = StreamType.Video;
-            this.Codec = Codec.MP4V;
-            return;
-        case 0x1B:  // H264 <- check transport syntax/needed descriptor
-            this.StreamType = StreamType.Video;
-            this.Codec = Codec.H264;
-            return;
+            case 0x02:  // MPEG-2 video
+                this.StreamType = StreamType.Video;
+                this.Codec = Codec.MPGV;
+                return;
+            case 0x03:  // MPEG-2 audio
+            case 0x04:  // MPEG-2 audio
+                this.StreamType = StreamType.Audio;
+                this.Codec = Codec.MPGA;
+                return;
+            case 0x11:  // MPEG4 (audio)
+            case 0x0f:  // ISO/IEC 13818-7 Audio with ADTS transport syntax
+                this.StreamType = StreamType.Audio;
+                this.Codec = Codec.MP4A;
+                return;
+            case 0x10:  // MPEG4 (video)
+                this.StreamType = StreamType.Video;
+                this.Codec = Codec.MP4V;
+                return;
+            case 0x1B:  // H264 <- check transport syntax/needed descriptor
+                this.StreamType = StreamType.Video;
+                this.Codec = Codec.H264;
+                return;
         }
 
-        if(IsAudioStream(this.StreamId))
+        if (IsAudioStream(this.StreamId))
         {
             this.StreamType = StreamType.Audio;
             this.Codec = entry.TypeCode switch
@@ -191,7 +192,7 @@ class MpegStreamDefinition : StreamDefinition
                 _ => Codec.MPGA,
             };
         }
-        else if(IsVideoStream(this.StreamId))
+        else if (IsVideoStream(this.StreamId))
         {
             this.StreamType = StreamType.Video;
             this.Codec = entry.TypeCode switch
@@ -208,42 +209,42 @@ class MpegStreamDefinition : StreamDefinition
     {
         this.Language = entry.Lang;
 
-        switch(entry.RegistrationId)
+        switch (entry.RegistrationId)
         {
-        case AC3RegistrationId:
-            this.Codec = Codec.AC3;
-            this.StreamType = StreamType.Audio;
-            this.subHeaderSize = 3;
-            return;
-        case Dts1RegistrationId:
-        case Dts2RegistrationId:
-        case Dts3RegistrationId:
-            this.Codec = Codec.DTS;
-            this.StreamType = StreamType.Audio;
-            this.subHeaderSize = 3;
-            return;
+            case AC3RegistrationId:
+                this.Codec = Codec.AC3;
+                this.StreamType = StreamType.Audio;
+                this.subHeaderSize = 3;
+                return;
+            case Dts1RegistrationId:
+            case Dts2RegistrationId:
+            case Dts3RegistrationId:
+                this.Codec = Codec.DTS;
+                this.StreamType = StreamType.Audio;
+                this.subHeaderSize = 3;
+                return;
         }
 
-        switch(streamType)
+        switch (streamType)
         {
-        case 0x81:
-            this.Codec = Codec.AC3;
-            this.StreamType = StreamType.Audio;
-            this.subHeaderSize = 3;
-            return;
-        case 0x82:
-            this.Codec = Codec.SPU;
-            this.StreamType = StreamType.Subtitle;
-            return;
-        case 0x83:  // LPCM (audio)
-            this.Codec = Codec.LPCM;
-            this.StreamType = StreamType.Audio;
-            return;
-        case 0x85:  // DTS (audio)
-            this.Codec = Codec.DTS;
-            this.StreamType = StreamType.Audio;
-            this.subHeaderSize = 3;
-            return;
+            case 0x81:
+                this.Codec = Codec.AC3;
+                this.StreamType = StreamType.Audio;
+                this.subHeaderSize = 3;
+                return;
+            case 0x82:
+                this.Codec = Codec.SPU;
+                this.StreamType = StreamType.Subtitle;
+                return;
+            case 0x83:  // LPCM (audio)
+                this.Codec = Codec.LPCM;
+                this.StreamType = StreamType.Audio;
+                return;
+            case 0x85:  // DTS (audio)
+                this.Codec = Codec.DTS;
+                this.StreamType = StreamType.Audio;
+                this.subHeaderSize = 3;
+                return;
         }
     }
 }

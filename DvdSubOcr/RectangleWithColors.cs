@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public class RectangleWithColors
 {
     SortedSet<int> colors = new SortedSet<int>();

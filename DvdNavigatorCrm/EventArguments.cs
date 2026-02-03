@@ -1,4 +1,5 @@
 namespace DvdNavigatorCrm;
+
 public class TraceEventArgs : EventArgs
 {
     public TraceEventArgs(string text)

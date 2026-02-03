@@ -1,4 +1,5 @@
 namespace DvdNavigatorCrm;
+
 public enum StreamType
 {
     Unknown = 0,

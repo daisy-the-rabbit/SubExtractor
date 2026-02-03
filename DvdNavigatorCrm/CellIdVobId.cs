@@ -20,6 +20,7 @@
  */
 
 namespace DvdNavigatorCrm;
+
 public record CellIdVobId(int CellId, int VobId)
 {
     public override string ToString()

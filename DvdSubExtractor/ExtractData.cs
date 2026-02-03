@@ -3,6 +3,7 @@ using DvdNavigatorCrm;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class ExtractData
 {
     const float PlaybackTimeDifferential = 0.8f;
@@ -31,15 +32,15 @@ public class ExtractData
     {
         get
         {
-            if(!String.IsNullOrEmpty(this.SelectedSubtitleBinaryFile))
+            if (!String.IsNullOrEmpty(this.SelectedSubtitleBinaryFile))
             {
                 string binaryFileExt = Path.GetExtension(this.SelectedSubtitleBinaryFile).ToLowerInvariant();
-                if(binaryFileExt == ".sup")
+                if (binaryFileExt == ".sup")
                 {
                     return true;
                 }
             }
-            if((this.WorkingData != null) && (this.WorkingData.VideoAttributes.HorizontalResolution > 1400))
+            if ((this.WorkingData != null) && (this.WorkingData.VideoAttributes.HorizontalResolution > 1400))
             {
                 return true;
             }
@@ -64,7 +65,7 @@ public class ExtractData
 
     public event EventHandler IsCurrentStepCompleteUpdated;
 
-    public bool IsCurrentStepComplete 
+    public bool IsCurrentStepComplete
     {
         get { return this.isCurrentStepComplete; }
         set
@@ -88,7 +89,7 @@ public class ExtractData
 
     public event EventHandler HelpTextUpdated;
 
-    public string HelpText 
+    public string HelpText
     {
         get { return this.helpText; }
         set
@@ -120,7 +121,7 @@ public class ExtractData
     public void LoadDvdPrograms(string dvdFolder)
     {
         this.DvdFolder = Path.GetFullPath(dvdFolder);
-        if(dvdFolder.Length <= 3)
+        if (dvdFolder.Length <= 3)
         {
             DriveInfo drive = new DriveInfo(dvdFolder.Substring(0, 1));
             this.DvdName = drive.VolumeLabel;
@@ -132,7 +133,7 @@ public class ExtractData
         this.programs.Clear();
 
         string dvdPath = this.DvdFolder;
-        if(!Directory.Exists(dvdPath))
+        if (!Directory.Exists(dvdPath))
         {
             return;
         }
@@ -140,23 +141,23 @@ public class ExtractData
         try
         {
             string[] trackIfos = Directory.GetFiles(dvdPath, "*_0.ifo");
-            if((trackIfos.Length == 0) && Directory.Exists(Path.Combine(dvdPath, "VIDEO_TS")))
+            if ((trackIfos.Length == 0) && Directory.Exists(Path.Combine(dvdPath, "VIDEO_TS")))
             {
                 dvdPath = Path.Combine(dvdPath, "VIDEO_TS");
                 trackIfos = Directory.GetFiles(dvdPath, "*_0.ifo");
             }
 
-            foreach(string ifoPath in trackIfos)
+            foreach (string ifoPath in trackIfos)
             {
                 DvdTitleSet titleSet = new DvdTitleSet(ifoPath);
-                if(titleSet.IsValidTitleSet)
+                if (titleSet.IsValidTitleSet)
                 {
                     titleSet.Parse();
 
-                    for(int titleIndex = 0; titleIndex < titleSet.Titles.Count; titleIndex++)
+                    for (int titleIndex = 0; titleIndex < titleSet.Titles.Count; titleIndex++)
                     {
                         DvdTitle title = titleSet.Titles[titleIndex];
-                        if(title.PlaybackTime >= Properties.Settings.Default.MinimumDvdTrackLength)
+                        if (title.PlaybackTime >= Properties.Settings.Default.MinimumDvdTrackLength)
                         {
                             this.programs.Add(new DvdTrackItem(titleSet, titleIndex));
                         }
@@ -164,34 +165,34 @@ public class ExtractData
                 }
             }
         }
-        catch(IOException ex)
+        catch (IOException ex)
         {
             MessageBox.Show("IOException: " + ex.Message);
         }
         finally
         {
-            if(this.programs.Count != 0)
+            if (this.programs.Count != 0)
             {
                 this.programs.Sort();
                 this.programs.Reverse();
                 // sort groups of tracks that are within 20% of each other's playback time
                 // by track order instead of time
-                for(int index = 0; index < programs.Count - 1; index++)
+                for (int index = 0; index < programs.Count - 1; index++)
                 {
                     int endNameSort = index;
-                    while((endNameSort + 1 < programs.Count) &&
+                    while ((endNameSort + 1 < programs.Count) &&
                         (this.programs[index].PlaybackTime * PlaybackTimeDifferential <
                             this.programs[endNameSort + 1].PlaybackTime))
                     {
                         endNameSort++;
                     }
-                    if(endNameSort != index)
+                    if (endNameSort != index)
                     {
                         this.programs.Sort(index, endNameSort - index + 1, new DvdTrackItem.SortByName());
                         index = endNameSort;
                     }
                 }
-                for(int index = 0; index < programs.Count; index++)
+                for (int index = 0; index < programs.Count; index++)
                 {
                     this.programs[index].ProgramNumber = index + 1;
                 }
@@ -201,7 +202,7 @@ public class ExtractData
 
     public string ComputeMpegFileName(DvdTrackItem item)
     {
-        if(item.Angle == 0)
+        if (item.Angle == 0)
         {
             return $"{this.DvdName} Track {item.ProgramNumber}.mpg";
         }
@@ -213,7 +214,7 @@ public class ExtractData
 
     public string ComputeSubtitleDataFileName(DvdTrackItem item)
     {
-        if(item.Angle == 0)
+        if (item.Angle == 0)
         {
             return $"{this.DvdName} Track {item.ProgramNumber}.bin";
         }
@@ -225,7 +226,7 @@ public class ExtractData
 
     public string ComputeD2vFileName(DvdTrackItem item)
     {
-        if(item.Angle == 0)
+        if (item.Angle == 0)
         {
             return $"{this.DvdName} Track {item.ProgramNumber}.d2v";
         }

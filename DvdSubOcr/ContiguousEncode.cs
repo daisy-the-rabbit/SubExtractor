@@ -1,10 +1,11 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubOcr;
+
 public class ContiguousEncode
 {
     byte[] buffer;
@@ -49,13 +50,13 @@ public class ContiguousEncode
     {
         int intersectRectIndex = sections.Count;
         sections.Add(newRect);
-        while(intersectRectIndex != -1)
+        while (intersectRectIndex != -1)
         {
             RectangleWithColors intersectRect = sections[intersectRectIndex];
             int newIntersectRectIndex = -1;
-            for(int rectIndex = 0; rectIndex < sections.Count; rectIndex++)
+            for (int rectIndex = 0; rectIndex < sections.Count; rectIndex++)
             {
-                if((rectIndex != intersectRectIndex) && 
+                if ((rectIndex != intersectRectIndex) &&
                     sections[rectIndex].Rectangle.IntersectsWith(intersectRect.Rectangle))
                 {
                     sections[rectIndex].MergeWith(intersectRect);
@@ -67,23 +68,23 @@ public class ContiguousEncode
             intersectRectIndex = newIntersectRectIndex;
         }
     }
-        
+
 
     public IList<RectangleWithColors> FindSections(IEnumerable<int> colorIndexes, bool is1080p)
     {
         bool[] goodColors = new bool[256];
-        for(int index = 0; index < 256; index++)
+        for (int index = 0; index < 256; index++)
         {
             goodColors[index] = false;
         }
-        foreach(int index in colorIndexes)
+        foreach (int index in colorIndexes)
         {
             goodColors[index] = true;
         }
 
         int sectionMarginX = SubConstants.SectionMarginX;
         int sectionMarginY = SubConstants.SectionMarginY;
-        if(is1080p)
+        if (is1080p)
         {
             sectionMarginX *= 2;
             sectionMarginY *= 2;
@@ -93,12 +94,12 @@ public class ContiguousEncode
         {
             int dataIndex = this.bufferOffset;
 
-            for(int y = 0; y < this.height; y++)
+            for (int y = 0; y < this.height; y++)
             {
-                for(int x = 0; x < this.width; x++)
+                for (int x = 0; x < this.width; x++)
                 {
                     byte value = this.buffer[dataIndex];
-                    if(goodColors[value])
+                    if (goodColors[value])
                     {
                         Rectangle newRect = new Rectangle(
                             x - sectionMarginX, y - sectionMarginY,
@@ -111,7 +112,7 @@ public class ContiguousEncode
                 dataIndex += (this.stride - this.width);
             }
         }
-        foreach(RectangleWithColors rect in sections)
+        foreach (RectangleWithColors rect in sections)
         {
             rect.TrimRectangle(sectionMarginX, sectionMarginY);
         }
@@ -121,13 +122,13 @@ public class ContiguousEncode
     public IEnumerable<BlocksAndPalette> FindAllEncodesAndPalettes(IList<int> colorIndexes)
     {
         int maxCombinations = Convert.ToInt32(Math.Pow(2, colorIndexes.Count));
-        for(int bitIndex = 1; bitIndex < maxCombinations; bitIndex++)
+        for (int bitIndex = 1; bitIndex < maxCombinations; bitIndex++)
         {
             List<int> subColors = [];
             int roller = 1;
-            for(int colorIndex = 0; colorIndex < colorIndexes.Count; colorIndex++)
+            for (int colorIndex = 0; colorIndex < colorIndexes.Count; colorIndex++)
             {
-                if((bitIndex & roller) != 0)
+                if ((bitIndex & roller) != 0)
                 {
                     subColors.Add(colorIndexes[colorIndex]);
                 }
@@ -140,9 +141,9 @@ public class ContiguousEncode
             int countedBlocks = 0;
             int pixelCount = 0;
             int colorBitFlags = 0;
-            foreach(BlockEncode block in blocks)
+            foreach (BlockEncode block in blocks)
             {
-                if(block.PixelCount >= SubConstants.MinimumCountablePixelCount)
+                if (block.PixelCount >= SubConstants.MinimumCountablePixelCount)
                 {
                     pixelCount += block.PixelCount;
                     countedBlocks++;
@@ -151,9 +152,9 @@ public class ContiguousEncode
             }
 
             int colorCount = 0;
-            for(int index = 0, bitFlag = 1; index < 16; index++, bitFlag <<= 1)
+            for (int index = 0, bitFlag = 1; index < 16; index++, bitFlag <<= 1)
             {
-                if((bitFlag & colorBitFlags) == bitFlag)
+                if ((bitFlag & colorBitFlags) == bitFlag)
                 {
                     colorCount++;
                 }
@@ -162,13 +163,13 @@ public class ContiguousEncode
             // the same block data
             //if(colorCount == colorIndexes.Count)
             {
-                if(countedBlocks != 0)
+                if (countedBlocks != 0)
                 {
                     averagePixelCount = Convert.ToInt32(pixelCount / countedBlocks);
                 }
-                else if(blocks.Count != 0)
+                else if (blocks.Count != 0)
                 {
-                    foreach(BlockEncode block in blocks)
+                    foreach (BlockEncode block in blocks)
                     {
                         pixelCount += block.PixelCount;
                     }
@@ -186,16 +187,16 @@ public class ContiguousEncode
         this.splitEncodes.Clear();
 
         bool[] colorValidity = new bool[256];
-        foreach(int index in colorIndexes)
+        foreach (int index in colorIndexes)
         {
             colorValidity[index] = true;
         }
 
         bool[] encodeValidity;
-        if(encodeColors != null)
+        if (encodeColors != null)
         {
             encodeValidity = new bool[256];
-            foreach(int index in encodeColors)
+            foreach (int index in encodeColors)
             {
                 encodeValidity[index] = true;
             }
@@ -302,7 +303,7 @@ public class ContiguousEncode
                 {
                     int ptOffset = y * (this.width + 4) + rect.Left;
                     int ptOffsetEnd = ptOffset + rect.Width;
-                    while(ptOffset < ptOffsetEnd)
+                    while (ptOffset < ptOffsetEnd)
                     {
                         sb.Append(ValueToHexChar(
                             encodeGroupMap[ptOffset] == encodeGroupId,
@@ -317,14 +318,14 @@ public class ContiguousEncode
                     new Rectangle(0, 0, this.width, this.height));
                 int encodeRowOffset = this.bufferOffset + colorRect.Top * stride + colorRect.Left;
                 int encodeColorBits = 0;
-                for(int y = colorRect.Top; y < colorRect.Bottom; y++)
+                for (int y = colorRect.Top; y < colorRect.Bottom; y++)
                 {
                     int encodeDataOffset = encodeRowOffset;
                     int encodeDataEnd = encodeDataOffset + colorRect.Width;
-                    while(encodeDataOffset < encodeDataEnd)
+                    while (encodeDataOffset < encodeDataEnd)
                     {
                         byte color = this.buffer[encodeDataOffset];
-                        if(encodeValidity[color])
+                        if (encodeValidity[color])
                         {
                             encodeColorBits |= (1 << color);
                         }
@@ -337,10 +338,10 @@ public class ContiguousEncode
             }
         }
 
-        if(this.ocrMap != null)
+        if (this.ocrMap != null)
         {
             List<BlockEncode> splitEncodes = [];
-            foreach(BlockEncode encode in encodes)
+            foreach (BlockEncode encode in encodes)
             {
                 RecursiveSplitEncode(encode, splitEncodes);
             }
@@ -354,7 +355,7 @@ public class ContiguousEncode
     private void RecursiveSplitEncode(BlockEncode encode, List<BlockEncode> encodeList)
     {
         OcrMap.SplitMapEntry split = this.ocrMap.FindSplit(encode.FullEncode);
-        if(split != null)
+        if (split != null)
         {
             this.splitEncodes.Add(encode.FullEncode);
 
@@ -377,7 +378,7 @@ public class ContiguousEncode
     private static char ValueToHexChar(bool b1, bool b2, bool b3, bool b4)
     {
         int value = (b1 ? 8 : 0) + (b2 ? 4 : 0) + (b3 ? 2 : 0) + (b4 ? 1 : 0);
-        if(value < 10)
+        if (value < 10)
         {
             return (char)('0' + value);
         }

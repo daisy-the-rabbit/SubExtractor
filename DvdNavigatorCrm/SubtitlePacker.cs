@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 public class SubtitlePacker
 {
     int streamId;
@@ -21,19 +22,19 @@ public class SubtitlePacker
     public DecoderStatus HandleBytes(IByteBuffer buffer, int offset, int length,
         double? pts, long bufferPosition)
     {
-        if((this.dataLength == 0) || (pts.HasValue && this.currentPts.HasValue && (this.currentPts.Value != pts.Value)))
+        if ((this.dataLength == 0) || (pts.HasValue && this.currentPts.HasValue && (this.currentPts.Value != pts.Value)))
         {
             this.dataLength = (buffer[offset] << 8) + buffer[offset + 1];
             this.controlSequenceOffset = (buffer[offset + 2] << 8) + buffer[offset + 3];
 
             // sanity check, in case we missed the start of the subtitle and got a funny length
-            if((this.controlSequenceOffset >= this.dataLength) || (length > this.dataLength))
+            if ((this.controlSequenceOffset >= this.dataLength) || (length > this.dataLength))
             {
                 Reset();
                 return DecoderStatus.None;
             }
 
-            if((this.byteBuffer == null) || (this.byteBuffer.Length < this.dataLength))
+            if ((this.byteBuffer == null) || (this.byteBuffer.Length < this.dataLength))
             {
                 this.byteBuffer = new byte[this.dataLength];
             }
@@ -45,13 +46,13 @@ public class SubtitlePacker
         else
         {
             // sanity check, in case we missed the start of the subtitle and got a funny length
-            if(length > this.dataLength - this.bytesReceived)
+            if (length > this.dataLength - this.bytesReceived)
             {
                 Reset();
                 return DecoderStatus.None;
             }
 
-            if(!this.currentPts.HasValue)
+            if (!this.currentPts.HasValue)
             {
                 this.currentPts = pts;
             }
@@ -59,14 +60,14 @@ public class SubtitlePacker
             this.bytesReceived += length;
         }
 
-        if(this.bytesReceived != this.dataLength)
+        if (this.bytesReceived != this.dataLength)
         {
             //Debug.WriteLine(string.Format("HandleBytes this.bytesReceived {0} != this.dataLength {1}",
             //    this.bytesReceived, this.dataLength));
             return DecoderStatus.NeedData;
         }
 
-        if(this.currentPts.HasValue)
+        if (this.currentPts.HasValue)
         {
             //Debug.WriteLine(
             //    string.Format("AddSubtitlePacket id {0:x2}, len {1}, pts {2:f2}, pos {3}",

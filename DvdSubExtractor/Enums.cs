@@ -1,4 +1,5 @@
 namespace DvdSubExtractor;
+
 enum AudioSource
 {
     AC3_2Channel = 0,

@@ -1,6 +1,7 @@
 using System.Reflection;
 
 namespace DvdSubExtractor;
+
 public partial class SubWizard
 {
     static string[] stepNames = ["Choose DVD Folder",
