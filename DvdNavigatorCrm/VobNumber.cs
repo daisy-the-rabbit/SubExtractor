@@ -1,4 +1,5 @@
 namespace DvdNavigatorCrm;
+
 public class VobNumber
 {
     public int IfoFileNumber;
@@ -9,9 +10,9 @@ public class VobNumber
     {
         VobNumber vob = new VobNumber();
         vob.IfoFileNumber = 1;
-        foreach(long size in vobSizes)
+        foreach (long size in vobSizes)
         {
-            if(cellStart < size)
+            if (cellStart < size)
             {
                 vob.IfoOffset = (int)cellStart;
                 vob.IfoRemainder = (int)(size - vob.IfoOffset);

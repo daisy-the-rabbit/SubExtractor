@@ -1,10 +1,11 @@
 using System.Buffers.Binary;
-using System.IO;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using DvdNavigatorCrm;
 
 namespace DvdNavigatorCrm;
+
 public class TitleSaver
 {
     const int MaxPsmLength = 1024;
@@ -54,16 +55,16 @@ public class TitleSaver
         public float PlaybackTime { get; set; }
     }
 
-    public TitleSaver(DvdTitleSet titleSet, int titleIndex, DvdTitle title, IEnumerable<int> angles, 
-        string storageFileName, string mpegFileName, 
+    public TitleSaver(DvdTitleSet titleSet, int titleIndex, DvdTitle title, IEnumerable<int> angles,
+        string storageFileName, string mpegFileName,
         string chapterFileName, double? startPts, double? endPts) :
         this(titleSet, titleIndex, title, angles, titleSet.Titles[titleIndex].AudioStreams,
         storageFileName, mpegFileName, chapterFileName, startPts, endPts)
     {
     }
 
-    public TitleSaver(DvdTitleSet titleSet, int titleIndex, DvdTitle title, IEnumerable<int> angles, 
-        IEnumerable<int> audioStreamIds, string storageFileName, string mpegFileName, 
+    public TitleSaver(DvdTitleSet titleSet, int titleIndex, DvdTitle title, IEnumerable<int> angles,
+        IEnumerable<int> audioStreamIds, string storageFileName, string mpegFileName,
         string chapterFileName, double? startPts, double? endPts)
     {
         this.titleSet = titleSet;
@@ -74,51 +75,51 @@ public class TitleSaver
         int ifoNumber = Int32.Parse(Path.GetFileNameWithoutExtension(this.titleSet.FileName).Substring(4, 2));
         this.startPts = startPts;
         this.endPts = endPts;
-        if(this.startPts.HasValue != this.endPts.HasValue)
+        if (this.startPts.HasValue != this.endPts.HasValue)
         {
             throw new ArgumentException("startPts and endPts must either both have values or neither");
         }
-        if(this.startPts.HasValue)
+        if (this.startPts.HasValue)
         {
             this.maximumLength = Convert.ToInt64((this.endPts.Value - this.startPts.Value) * MaxBytesPerMilliSecond);
         }
 
-        if(!String.IsNullOrEmpty(storageFileName))
+        if (!String.IsNullOrEmpty(storageFileName))
         {
             this.storage = SubtitleStorage.CreateWriter(storageFileName);
             int angle = 0;
-            foreach(int nextAngle in this.angles)
+            foreach (int nextAngle in this.angles)
             {
-                if(nextAngle != 0)
+                if (nextAngle != 0)
                 {
                     angle = nextAngle;
                     break;
                 }
             }
             this.storage.AddHeader(dvdPath, ifoNumber, titleIndex, angle);
-            foreach(int streamId in this.title.SubtitleStreams)
+            foreach (int streamId in this.title.SubtitleStreams)
             {
                 SubpictureAttributes subAttributes = this.title.GetSubtitleStream(streamId);
                 this.storage.AddStream(streamId, subAttributes);
             }
         }
 
-        if(!String.IsNullOrEmpty(mpegFileName))
+        if (!String.IsNullOrEmpty(mpegFileName))
         {
             // truncate the file
             this.fsMpeg = File.Create(mpegFileName);
         }
 
-        if(!String.IsNullOrEmpty(chapterFileName))
+        if (!String.IsNullOrEmpty(chapterFileName))
         {
             // truncate the file
             this.chaptersWriter = File.CreateText(chapterFileName);
         }
 
-        for(int vobIndex = 1; vobIndex <= 9; vobIndex++)
+        for (int vobIndex = 1; vobIndex <= 9; vobIndex++)
         {
             string vobName = $"{ifoFileBase}{vobIndex}.VOB";
-            if(File.Exists(vobName))
+            if (File.Exists(vobName))
             {
                 this.vobFileSizes.Add(new FileInfo(vobName).Length);
             }
@@ -128,13 +129,13 @@ public class TitleSaver
             }
         }
 
-        foreach(int streamId in audioStreamIds)
+        foreach (int streamId in audioStreamIds)
         {
             AudioAttributes audioAttributes = this.title.GetAudioStream(streamId);
             this.audioStreams.Add(new AudioStreamItem(streamId, audioAttributes));
         }
 
-        if(this.startPts.HasValue && (this.startPts.Value > 0))
+        if (this.startPts.HasValue && (this.startPts.Value > 0))
         {
             this.partialSaveStatus = PartialSaveStatus.BeforeStart;
         }
@@ -162,23 +163,23 @@ public class TitleSaver
             TitleChainData chainData = new TitleChainData(SaverCellType.First);
             int oldProgramChainIndex = -1;
             this.TotalLength = 0L;
-            foreach(TitleCell cell in this.title.TitleCells)
+            foreach (TitleCell cell in this.title.TitleCells)
             {
-                if(this.angles.Contains(cell.CellAngle))
+                if (this.angles.Contains(cell.CellAngle))
                 {
                     bool isDiscontinuity = false;
-                    if(this.TotalLength != 0L)
+                    if (this.TotalLength != 0L)
                     {
-                        if(cell.Cell.IsStcDiscontinuity || (cell.ProgramChainIndex != oldProgramChainIndex))
+                        if (cell.Cell.IsStcDiscontinuity || (cell.ProgramChainIndex != oldProgramChainIndex))
                         {
                             isDiscontinuity = true;
                         }
                     }
                     oldProgramChainIndex = cell.ProgramChainIndex;
 
-                    if(chainData.Chunks.Count != 0)
+                    if (chainData.Chunks.Count != 0)
                     {
-                        if(isDiscontinuity)
+                        if (isDiscontinuity)
                         {
                             chainData.CellType |= SaverCellType.Last;
                             chains.Add(chainData);
@@ -193,7 +194,7 @@ public class TitleSaver
                     }
 
                     chainData.VobCellIds.Add(new CellIdVobId(cell.Cell.CellId, cell.Cell.VobId));
-                    if(cell.CellAngle != 0)
+                    if (cell.CellAngle != 0)
                     {
                         chainData.AngleCellIds.Add(new CellIdVobId(cell.Cell.CellId, cell.Cell.VobId));
                     }
@@ -206,13 +207,13 @@ public class TitleSaver
                 }
                 else
                 {
-                    if(cell.CellAngle == 0)
+                    if (cell.CellAngle == 0)
                     {
                         oldProgramChainIndex = -1;
                     }
                 }
             }
-            if(chainData.Chunks.Count != 0)
+            if (chainData.Chunks.Count != 0)
             {
                 chainData.CellType |= SaverCellType.Last;
                 chains.Add(chainData);
@@ -222,22 +223,22 @@ public class TitleSaver
             this.tooManyBytesRead = false;
             this.chainPtsOffset = null;
             this.TotalRead = 0L;
-            foreach(TitleChainData chain in chains)
+            foreach (TitleChainData chain in chains)
             {
                 LoadAndSaveChain(chain.CellType, chain.Chunks, chain.VobCellIds, chain.AngleCellIds, chain.PlaybackTime);
-                if(IsLoadStopped() || (this.partialSaveStatus == PartialSaveStatus.AfterEnd))
+                if (IsLoadStopped() || (this.partialSaveStatus == PartialSaveStatus.AfterEnd))
                 {
                     break;
                 }
             }
 
-            if(this.chaptersWriter != null)
+            if (this.chaptersWriter != null)
             {
                 int chapterNumber = 1;
                 double lastChapter = -MinimumMillisecondsChapterLength - 1;
-                foreach(double chapterOffset in this.chapterOffsets)
+                foreach (double chapterOffset in this.chapterOffsets)
                 {
-                    if(chapterOffset >= lastChapter + MinimumMillisecondsChapterLength)
+                    if (chapterOffset >= lastChapter + MinimumMillisecondsChapterLength)
                     {
                         TimeSpan timeStart = new TimeSpan(Convert.ToInt64(chapterOffset) * 10000L);
                         string timeLine = $"CHAPTER{chapterNumber:d2}={timeStart.Hours:d2}:{timeStart.Minutes:d2}:{timeStart.Seconds:d2}.{timeStart.Milliseconds:d3}";
@@ -250,10 +251,10 @@ public class TitleSaver
                 }
             }
 
-            if(this.storage != null)
+            if (this.storage != null)
             {
                 List<AudioStreamItem> audioInOrder = [];
-                foreach(int streamId in this.audioStreamsInOrderFound)
+                foreach (int streamId in this.audioStreamsInOrderFound)
                 {
                     audioInOrder.AddRange(this.audioStreams.Where(
                         item => item.StreamId == streamId));
@@ -268,7 +269,7 @@ public class TitleSaver
             this.chaptersWriter?.Dispose();
         }
 
-        foreach(KeyValuePair<int, long> entry in this.audioLengths)
+        foreach (KeyValuePair<int, long> entry in this.audioLengths)
         {
             Debug.WriteLine($"Stream {entry.Key:x} had {entry.Value} bytes");
         }
@@ -281,7 +282,7 @@ public class TitleSaver
         VobNumber vob = VobNumber.Calculate(vobFileSizes, cellStart);
         string ifoFilePath = $"{ifoFileBase}{vob.IfoFileNumber}.VOB";
 
-        while(cellLength > vob.IfoRemainder)
+        while (cellLength > vob.IfoRemainder)
         {
             chunks.Add(new TitleChunk(ifoFilePath, vob.IfoOffset, vob.IfoRemainder,
                 totalLength, isDiscontinuity, cell.ProgramChain.Palette,
@@ -303,7 +304,7 @@ public class TitleSaver
     {
         this.TotalRead += e.ByteCount;
         this.updateMethod($"{this.TotalRead >> 20}M of {this.TotalLength >> 20}M read");
-        if(this.maximumLength.HasValue && (this.TotalRead > this.maximumLength.Value))
+        if (this.maximumLength.HasValue && (this.TotalRead > this.maximumLength.Value))
         {
             this.tooManyBytesRead = true;
         }
@@ -312,7 +313,7 @@ public class TitleSaver
     void saver_SavedPacket(object sender, EventArgs e)
     {
         this.packetsSaved++;
-        if((this.packetsSaved % 1024) == 0)
+        if ((this.packetsSaved % 1024) == 0)
         {
             this.updateMethod($"{this.TotalRead >> 20}M of {this.TotalLength >> 20}M read, {this.packetsSaved >> 10}k of {this.totalPacketsToSave >> 10}k packets written");
         }
@@ -340,21 +341,21 @@ public class TitleSaver
         loader.BytesRead -= this.loader_BytesRead;
 
         // skip cells without both audio and video. They're just trouble - messing up synchronization no end
-        if(this.stopRun || !loader.FirstAudioPts.HasValue || !loader.FirstVideoPts.HasValue)
+        if (this.stopRun || !loader.FirstAudioPts.HasValue || !loader.FirstVideoPts.HasValue)
         {
             this.TotalRead = previousTotalRead;
             return;
         }
 
-        foreach(int streamId in loader.AudioStreamsFound)
+        foreach (int streamId in loader.AudioStreamsFound)
         {
-            if(!this.audioStreamsInOrderFound.Contains(streamId))
+            if (!this.audioStreamsInOrderFound.Contains(streamId))
             {
                 this.audioStreamsInOrderFound.Add(streamId);
             }
         }
 
-        foreach(KeyValuePair<int, long> entry in loader.AudioLengths)
+        foreach (KeyValuePair<int, long> entry in loader.AudioLengths)
         {
             long lastLength;
             this.audioLengths.TryGetValue(entry.Key, out lastLength);
@@ -385,20 +386,20 @@ public class TitleSaver
             }
         }*/
 
-        if(!this.chainPtsOffset.HasValue)
+        if (!this.chainPtsOffset.HasValue)
         {
             // start our new mpeg file at 0 timestamp
             this.chainPtsOffset = -loader.FirstPts.Value;
         }
         else
         {
-            if((cellType & SaverCellType.First) == SaverCellType.First)
+            if ((cellType & SaverCellType.First) == SaverCellType.First)
             {
                 this.chainPtsOffset = this.previousCellPtsEnd - loader.FirstPts.Value;
             }
             else
             {
-                if(Math.Abs(this.previousCellPtsEnd - loader.FirstPts.Value) >= 500.0)
+                if (Math.Abs(this.previousCellPtsEnd - loader.FirstPts.Value) >= 500.0)
                 {
                     // cells in a chain shouldn't be discontinuous, but DVD authors are evil,
                     // so if the jump is 1 second or more make an adjustment
@@ -409,14 +410,14 @@ public class TitleSaver
         }
 
         long filePosition = 0;
-        if(this.storage != null)
+        if (this.storage != null)
         {
-            if(this.fsMpeg != null)
+            if (this.fsMpeg != null)
             {
                 this.fsMpeg.Flush();
                 filePosition = this.fsMpeg.Position;
             }
-            this.storage.AddCellStartOffsets(this.chainPtsOffset.Value, cellType, filePosition, loader.FirstPts.Value, 
+            this.storage.AddCellStartOffsets(this.chainPtsOffset.Value, cellType, filePosition, loader.FirstPts.Value,
                 loader.FirstAudioPts.Value, loader.FirstVideoPts.Value);
         }
 
@@ -429,13 +430,13 @@ public class TitleSaver
         saver.Run(loader.Packets, this.fsMpeg, this.storage, new Func<bool>(this.IsRunStopped));
         saver.SavedPacket -= this.saver_SavedPacket;
         loader.ClearPackets();
-        if(saver.FirstPackHeaderPts.HasValue)
+        if (saver.FirstPackHeaderPts.HasValue)
         {
             this.chapterOffsets.Add(saver.FirstPackHeaderPts.Value - this.chapterFunnyBusiness);
         }
         this.partialSaveStatus = saver.PartialSaveStatus;
 
-        if((cellType & SaverCellType.Last) == SaverCellType.Last)
+        if ((cellType & SaverCellType.Last) == SaverCellType.Last)
         {
             // if we're ending a chain, store the adjusted pts since the next chain will be 
             // discontinuous anyway
@@ -452,10 +453,10 @@ public class TitleSaver
     void InitializeCrc()
     {
         uint i, j, k;
-        for(i = 0; i < 256; i++)
+        for (i = 0; i < 256; i++)
         {
             k = 0;
-            for(j = (i << 24) | 0x800000; j != 0x80000000; j <<= 1)
+            for (j = (i << 24) | 0x800000; j != 0x80000000; j <<= 1)
             {
                 k = (k << 1) ^ ((((k ^ j) & 0x80000000) != 0) ? (uint)0x04c11db7 : 0);
             }
@@ -490,28 +491,28 @@ public class TitleSaver
         psm[esMapOffset + 3] = 0;
         esMapLength += 4;
 
-        foreach(int streamId in this.title.AudioStreams)
+        foreach (int streamId in this.title.AudioStreams)
         {
             esMapOffset = 12 + infoLength + esMapLength;
             AudioAttributes audioAttributes = this.title.GetAudioStream(streamId);
 
-            switch(audioAttributes.CodingMode)
+            switch (audioAttributes.CodingMode)
             {
-            case AudioCodingMode.MPEG1:
-            case AudioCodingMode.MPEG2:
-                psm[esMapOffset] = 0x04;
-                psm[esMapOffset + 1] = (byte)(streamId & 0xff);
-                break;
-            case AudioCodingMode.AC3:
-            case AudioCodingMode.DTS:
-            case AudioCodingMode.LPCM:
-            default:
-                psm[esMapOffset] = 0x81;
-                //psm[esMapOffset + 1] = (byte)(streamId & 0xff);
-                psm[esMapOffset + 1] = 0x81;
-                break;
+                case AudioCodingMode.MPEG1:
+                case AudioCodingMode.MPEG2:
+                    psm[esMapOffset] = 0x04;
+                    psm[esMapOffset + 1] = (byte)(streamId & 0xff);
+                    break;
+                case AudioCodingMode.AC3:
+                case AudioCodingMode.DTS:
+                case AudioCodingMode.LPCM:
+                default:
+                    psm[esMapOffset] = 0x81;
+                    //psm[esMapOffset + 1] = (byte)(streamId & 0xff);
+                    psm[esMapOffset + 1] = 0x81;
+                    break;
             }
-            if((audioAttributes.Language == null) || (audioAttributes.Language.Length < 2))
+            if ((audioAttributes.Language == null) || (audioAttributes.Language.Length < 2))
             {
                 psm[esMapOffset + 2] = 0;
                 psm[esMapOffset + 3] = 0;
@@ -525,7 +526,7 @@ public class TitleSaver
                 psm[esMapOffset + 5] = 4;
 
                 byte[] lang;
-                if(audioAttributes.Language.Length > 2)
+                if (audioAttributes.Language.Length > 2)
                 {
                     lang = Encoding.ASCII.GetBytes(audioAttributes.Language);
                 }
@@ -544,7 +545,7 @@ public class TitleSaver
                 esMapLength += 10;
             }
         }
-        
+
         BinaryPrimitives.WriteUInt16BigEndian(psm.AsSpan(10 + infoLength), (ushort)esMapLength);
         psmLength += esMapLength;
 
@@ -559,7 +560,7 @@ public class TitleSaver
         realPsm[realPsm.Length - 1] = 0;
 
         uint crc = 0xffffffff;
-        for(int i = 0; i < realPsm.Length; i++)
+        for (int i = 0; i < realPsm.Length; i++)
         {
             crc = (crc << 8) ^ crc32_table[((crc >> 24) ^ realPsm[i]) & 0xff];
         }

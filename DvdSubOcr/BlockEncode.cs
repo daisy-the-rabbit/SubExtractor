@@ -1,9 +1,10 @@
 namespace DvdSubOcr;
+
 public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
 {
     int? pixelCount;
 
-    public BlockEncode(string fullEncode) 
+    public BlockEncode(string fullEncode)
         : this(Point.Empty, fullEncode, 0)
     {
     }
@@ -19,7 +20,7 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
 
         int charWidth = this.Width / 4;
         int lastColumnWidth = 0;
-        for(int index = charWidth - 1; index < this.Encode.Length; index += charWidth)
+        for (int index = charWidth - 1; index < this.Encode.Length; index += charWidth)
         {
             int columnWidth = this.Encode[index] switch
             {
@@ -47,10 +48,10 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
     {
         get
         {
-            if(!this.pixelCount.HasValue)
+            if (!this.pixelCount.HasValue)
             {
                 this.pixelCount = 0;
-                foreach(Char c in this.Encode)
+                foreach (Char c in this.Encode)
                 {
                     pixelCount += CharacterCount(c);
                 }
@@ -71,27 +72,27 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
         IList<int> matchIndexes, OcrMap ocrMap, bool isHighDef)
     {
         matchIndexes.Clear();
-        if(!ocrMap.IsMatch(this.FullEncode, entry.FullEncode, isHighDef))
+        if (!ocrMap.IsMatch(this.FullEncode, entry.FullEncode, isHighDef))
         {
             return false;
         }
 
-        foreach(KeyValuePair<Point, string> piece in entry.ExtraPieces)
+        foreach (KeyValuePair<Point, string> piece in entry.ExtraPieces)
         {
             int oldMatchCount = matchIndexes.Count;
-            for(int blockIndex = 0; blockIndex < otherBlocks.Count; blockIndex++)
+            for (int blockIndex = 0; blockIndex < otherBlocks.Count; blockIndex++)
             {
-                if(!illegalBlocks.Contains(blockIndex))
+                if (!illegalBlocks.Contains(blockIndex))
                 {
                     Point offset = otherBlocks[blockIndex].Origin - new Size(this.Origin);
-                    if(ocrMap.IsMatch(offset, otherBlocks[blockIndex].FullEncode, piece.Key, piece.Value, isHighDef))
+                    if (ocrMap.IsMatch(offset, otherBlocks[blockIndex].FullEncode, piece.Key, piece.Value, isHighDef))
                     {
                         matchIndexes.Add(blockIndex);
                         break;
                     }
                 }
             }
-            if(matchIndexes.Count == oldMatchCount)
+            if (matchIndexes.Count == oldMatchCount)
             {
                 matchIndexes.Clear();
                 return false;
@@ -103,31 +104,31 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
     public Rectangle CalculateBounds(IList<int> extraBlocks, IList<BlockEncode> blocks)
     {
         Rectangle bounds = new Rectangle(this.Origin, new Size(this.TrueWidth, this.Height));
-        foreach(int index in extraBlocks)
+        foreach (int index in extraBlocks)
         {
             BlockEncode block = blocks[index];
-            bounds = Rectangle.Union(bounds, 
+            bounds = Rectangle.Union(bounds,
                 new Rectangle(block.Origin, new Size(block.TrueWidth, block.Height)));
         }
         return bounds;
     }
 
-    public Bitmap CreateBlockBitmap(Color foreColor, Color backColor, 
+    public Bitmap CreateBlockBitmap(Color foreColor, Color backColor,
         int minimumWidth, int minimumHeight)
     {
         Bitmap bmp = new Bitmap(Math.Max(this.Width + 4, minimumWidth),
             Math.Max(this.Height + 4, minimumHeight));
-        using(Graphics g = Graphics.FromImage(bmp))
+        using (Graphics g = Graphics.FromImage(bmp))
         {
             g.Clear(backColor);
         }
 
         IList<bool> decoded = DecodeToBoolArray();
-        for(int y = 0; y < this.Height; y++)
+        for (int y = 0; y < this.Height; y++)
         {
-            for(int x = 0; x < this.Width; x++)
+            for (int x = 0; x < this.Width; x++)
             {
-                if(decoded[y * this.Width + x])
+                if (decoded[y * this.Width + x])
                 {
                     bmp.SetPixel(x + 2, y + 2, foreColor);
                 }
@@ -141,7 +142,7 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
         bool[] decode = new bool[this.Width * this.Height];
 
         int decIndex = 0;
-        foreach(char c in this.Encode)
+        foreach (char c in this.Encode)
         {
             int hex = HexCharToValue(c);
             decode[decIndex++] = ((hex & 8) != 0);
@@ -160,7 +161,7 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
 
         int decIndex = border * (1 + newWidth);
         int lineWidth = this.Width / 4;
-        foreach(char c in this.Encode)
+        foreach (char c in this.Encode)
         {
             int hex = HexCharToValue(c);
             decode[decIndex++] = ((hex & 8) != 0);
@@ -168,7 +169,7 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
             decode[decIndex++] = ((hex & 2) != 0);
             decode[decIndex++] = ((hex & 1) != 0);
             lineWidth--;
-            if(lineWidth == 0)
+            if (lineWidth == 0)
             {
                 decIndex += 2 * border;
                 lineWidth = this.Width / 4;
@@ -189,15 +190,15 @@ public class BlockEncode : IComparable<BlockEncode>, IEquatable<BlockEncode>
 
     public static int HexCharToValue(char c)
     {
-        if((c >= '0') && (c <= '9'))
+        if ((c >= '0') && (c <= '9'))
         {
             return (int)(c - '0');
         }
-        if((c >= 'a') && (c <= 'f'))
+        if ((c >= 'a') && (c <= 'f'))
         {
             return 10 + (int)(c - 'a');
         }
-        if((c >= 'A') && (c <= 'F'))
+        if ((c >= 'A') && (c <= 'F'))
         {
             return 10 + (int)(c - 'A');
         }

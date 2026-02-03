@@ -1,13 +1,14 @@
 using System.Runtime.InteropServices;
 
 namespace DvdSubExtractor;
+
 static class NativeMethods
 {
     public static bool SupportsTaskProgress
     {
         get
         {
-            if(System.Environment.OSVersion.Version.Major == 6)
+            if (System.Environment.OSVersion.Version.Major == 6)
             {
                 return (System.Environment.OSVersion.Version.Minor >= 1);
             }

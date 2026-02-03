@@ -1,4 +1,5 @@
 namespace DvdSubExtractor;
+
 public class TypeEventArgs : EventArgs
 {
     public TypeEventArgs(Type type)

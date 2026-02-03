@@ -1,4 +1,5 @@
 namespace DvdSubExtractor;
+
 internal static class ThemeManager
 {
     const int WM_THEMECHANGED = 0x031A;
@@ -10,11 +11,11 @@ internal static class ThemeManager
 
     public static string NormalizeTheme(string theme)
     {
-        if(string.Equals(theme, DarkTheme, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(theme, DarkTheme, StringComparison.OrdinalIgnoreCase))
         {
             return DarkTheme;
         }
-        if(string.Equals(theme, LightTheme, StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(theme, LightTheme, StringComparison.OrdinalIgnoreCase))
         {
             return LightTheme;
         }
@@ -24,7 +25,7 @@ internal static class ThemeManager
     public static void ApplyThemeToOpenForms(string theme)
     {
         ApplyNativeTheme(NormalizeTheme(theme));
-        foreach(Form form in Application.OpenForms)
+        foreach (Form form in Application.OpenForms)
         {
             ApplyThemeToControlTree(form);
             form.Invalidate(true);
@@ -35,7 +36,7 @@ internal static class ThemeManager
     public static void ApplyTheme(Control root, string theme)
     {
         ApplyNativeTheme(NormalizeTheme(theme));
-        if(root != null)
+        if (root != null)
         {
             ApplyThemeToControlTree(root);
         }
@@ -44,11 +45,11 @@ internal static class ThemeManager
     static void ApplyNativeTheme(string theme)
     {
         SystemColorMode mode = SystemColorMode.System;
-        if(theme == DarkTheme)
+        if (theme == DarkTheme)
         {
             mode = SystemColorMode.Dark;
         }
-        else if(theme == LightTheme)
+        else if (theme == LightTheme)
         {
             mode = SystemColorMode.Classic;
         }
@@ -57,43 +58,43 @@ internal static class ThemeManager
 
     static void ApplyThemeToControlTree(Control control)
     {
-        if(control == null)
+        if (control == null)
         {
             return;
         }
 
-        if(control.BackColor.IsSystemColor || control.BackColor == Control.DefaultBackColor)
+        if (control.BackColor.IsSystemColor || control.BackColor == Control.DefaultBackColor)
         {
             control.ResetBackColor();
         }
 
-        if(control.ForeColor.IsSystemColor || control.ForeColor == Control.DefaultForeColor)
+        if (control.ForeColor.IsSystemColor || control.ForeColor == Control.DefaultForeColor)
         {
             control.ResetForeColor();
         }
 
-        if(control is ToolStrip toolStrip)
+        if (control is ToolStrip toolStrip)
         {
-            foreach(ToolStripItem item in toolStrip.Items)
+            foreach (ToolStripItem item in toolStrip.Items)
             {
-                if(item.BackColor.IsEmpty || item.BackColor.IsSystemColor)
+                if (item.BackColor.IsEmpty || item.BackColor.IsSystemColor)
                 {
                     item.ResetBackColor();
                 }
 
-                if(item.ForeColor.IsEmpty || item.ForeColor.IsSystemColor)
+                if (item.ForeColor.IsEmpty || item.ForeColor.IsSystemColor)
                 {
                     item.ResetForeColor();
                 }
             }
         }
 
-        foreach(Control child in control.Controls)
+        foreach (Control child in control.Controls)
         {
             ApplyThemeToControlTree(child);
         }
 
-        if(control.IsHandleCreated)
+        if (control.IsHandleCreated)
         {
             SendMessage(control.Handle, WM_THEMECHANGED, IntPtr.Zero, IntPtr.Zero);
             SendMessage(control.Handle, WM_SYSCOLORCHANGE, IntPtr.Zero, IntPtr.Zero);

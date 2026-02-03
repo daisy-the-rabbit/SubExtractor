@@ -2,6 +2,7 @@ using DvdNavigatorCrm;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class OcrWorkingData : IDisposable
 {
     static readonly int[] FontSizes = [
@@ -37,7 +38,7 @@ public class OcrWorkingData : IDisposable
 
     public void ClearCompiledLines()
     {
-        if(this.FontList != null)
+        if (this.FontList != null)
         {
             this.FontList.Dispose();
             this.FontList = null;
@@ -49,22 +50,22 @@ public class OcrWorkingData : IDisposable
     {
         this.ClearCompiledLines();
         this.FontList = new OcrFontList();
-        for(int index = 0; index < this.Rectangles.Count; index++)
+        for (int index = 0; index < this.Rectangles.Count; index++)
         {
             IList<OcrRectangle> rectList = this.Rectangles[index];
             IList<SubtitleLine> lines = [];
-            if(rectList != null)
+            if (rectList != null)
             {
                 int rectIndex = 0;
-                foreach(OcrRectangle rect in rectList)
+                foreach (OcrRectangle rect in rectList)
                 {
                     bool commentAdded = false;
-                    foreach(SubtitleLine line in rect.SubtitleText.Lines)
+                    foreach (SubtitleLine line in rect.SubtitleText.Lines)
                     {
                         SubtitleLine newLine = new SubtitleLine(
                             line.Text, line.TextBounds, line.BlockIndexes, line.Bounds, line.ColorIndex);
                         line.RectangleIndex = rectIndex;
-                        if(!commentAdded)
+                        if (!commentAdded)
                         {
                             newLine.Comment = rect.Comment;
                             commentAdded = true;
@@ -84,7 +85,7 @@ public class OcrWorkingData : IDisposable
 
         List<Font> allNormalFonts = [];
         List<Font> allItalicFonts = [];
-        foreach(int fontSize in FontSizes)
+        foreach (int fontSize in FontSizes)
         {
             allNormalFonts.Add(new Font(Properties.Settings.Default.SubitleFileFontName, fontSize, FontStyle.Regular));
             allItalicFonts.Add(new Font(Properties.Settings.Default.SubitleFileFontName, fontSize, FontStyle.Italic));
@@ -103,9 +104,9 @@ public class OcrWorkingData : IDisposable
     public void CorrectSpellings(OcrMap ocrMap)
     {
         int subCount = this.AllLinesBySubtitle.Count;
-        for(int subIndex = 0; subIndex < subCount; subIndex++)
+        for (int subIndex = 0; subIndex < subCount; subIndex++)
         {
-            foreach(SubtitleLine line in this.AllLinesBySubtitle[subIndex])
+            foreach (SubtitleLine line in this.AllLinesBySubtitle[subIndex])
             {
                 line.CorrectSpelling(ocrMap);
             }
@@ -119,9 +120,9 @@ public class OcrWorkingData : IDisposable
     {
         get
         {
-            foreach(IList<SubtitleLine> lineList in this.allLinesBySubtitle.Values)
+            foreach (IList<SubtitleLine> lineList in this.allLinesBySubtitle.Values)
             {
-                foreach(SubtitleLine line in lineList)
+                foreach (SubtitleLine line in lineList)
                 {
                     yield return line;
                 }
@@ -131,7 +132,7 @@ public class OcrWorkingData : IDisposable
 
     public void Dispose()
     {
-        if(this.FontList != null)
+        if (this.FontList != null)
         {
             this.FontList.Dispose();
             this.FontList = null;

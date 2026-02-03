@@ -2,6 +2,7 @@ using System.IO;
 using DvdNavigatorCrm;
 
 namespace DvdSubExtractor;
+
 public class DvdTrackItem : IComparable<DvdTrackItem>
 {
     HashSet<int> selectedAudioStreams = new HashSet<int>();
@@ -18,15 +19,15 @@ public class DvdTrackItem : IComparable<DvdTrackItem>
         this.TitleIndex = titleIndex;
         this.Title = title;
         this.PlaybackTime = this.Title.PlaybackTime;
-        if(this.PlaybackTime > MinimumTrackTimeAutoCheck)
+        if (this.PlaybackTime > MinimumTrackTimeAutoCheck)
         {
             this.IsSelected = true;
         }
-        foreach(int streamId in this.Title.AudioStreams)
+        foreach (int streamId in this.Title.AudioStreams)
         {
             this.selectedAudioStreams.Add(streamId);
         }
-        if(this.Title.AngleCount != 0)
+        if (this.Title.AngleCount != 0)
         {
             this.Angle = 1;
         }
@@ -34,9 +35,9 @@ public class DvdTrackItem : IComparable<DvdTrackItem>
 
         this.ChapterCount = 1;
         this.CellCount = 1;
-        foreach(TitleCell cell in title.TitleCells.Skip(1))
+        foreach (TitleCell cell in title.TitleCells.Skip(1))
         {
-            if(cell.Cell.IsStcDiscontinuity)
+            if (cell.Cell.IsStcDiscontinuity)
             {
                 this.ChapterCount++;
             }
@@ -77,9 +78,9 @@ public class DvdTrackItem : IComparable<DvdTrackItem>
     {
         public int Compare(DvdTrackItem x, DvdTrackItem y)
         {
-            int compareResult = string.Compare(x.TitleSet.FileName, 
+            int compareResult = string.Compare(x.TitleSet.FileName,
                 y.TitleSet.FileName, StringComparison.InvariantCultureIgnoreCase);
-            if(compareResult == 0)
+            if (compareResult == 0)
             {
                 compareResult = x.TitleIndex.CompareTo(y.TitleIndex);
             }

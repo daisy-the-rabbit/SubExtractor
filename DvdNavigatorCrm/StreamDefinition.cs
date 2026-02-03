@@ -21,6 +21,7 @@
 
 
 namespace DvdNavigatorCrm;
+
 public class StreamDefinition : IStreamDefinition
 {
     public StreamDefinition(int streamId)

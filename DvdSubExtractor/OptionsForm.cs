@@ -6,6 +6,7 @@ using DvdNavigatorCrm;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public partial class OptionsForm : Form
 {
     string fontFamilyName;
@@ -35,7 +36,7 @@ public partial class OptionsForm : Form
             _ => 0,
         };
 
-        if(Directory.Exists(Properties.Settings.Default.OutputDirectory))
+        if (Directory.Exists(Properties.Settings.Default.OutputDirectory))
         {
             this.labelOutputDirectory.Text = Properties.Settings.Default.OutputDirectory;
         }
@@ -48,7 +49,7 @@ public partial class OptionsForm : Form
         this.minimumTrackLengthUpDown.Value = Convert.ToDecimal(Properties.Settings.Default.MinimumDvdTrackLength);
         this.sampleVideoLengthUpDown.Value = Convert.ToDecimal(Properties.Settings.Default.SampleVideoLength);
 
-        if(File.Exists(Properties.Settings.Default.SampleVideoPlayerPath))
+        if (File.Exists(Properties.Settings.Default.SampleVideoPlayerPath))
         {
             this.videoPlayerLabel.Text = Properties.Settings.Default.SampleVideoPlayerPath;
         }
@@ -57,7 +58,7 @@ public partial class OptionsForm : Form
             this.videoPlayerLabel.Text = "";
         }
 
-        if(File.Exists(Properties.Settings.Default.SubtitleEditorPath))
+        if (File.Exists(Properties.Settings.Default.SubtitleEditorPath))
         {
             this.subtitleEditorLabel.Text = Properties.Settings.Default.SubtitleEditorPath;
         }
@@ -66,7 +67,7 @@ public partial class OptionsForm : Form
             this.subtitleEditorLabel.Text = "";
         }
 
-        if(File.Exists(Properties.Settings.Default.DgIndexPath))
+        if (File.Exists(Properties.Settings.Default.DgIndexPath))
         {
             this.dgIndexLabel.Text = Properties.Settings.Default.DgIndexPath;
         }
@@ -91,15 +92,15 @@ public partial class OptionsForm : Form
         this.horizontalMargin4x3UpDown.Value = Convert.ToDecimal(Properties.Settings.Default.SubtitleHorizontal4x3Margin);
         this.horizontalMargin16x9UpDown.Value = Convert.ToDecimal(Properties.Settings.Default.SubtitleHorizontal16x9Margin);
 
-        switch(Properties.Settings.Default.SubtitleColorScheme)
+        switch (Properties.Settings.Default.SubtitleColorScheme)
         {
-        case 1:
-            this.dvdColorsButton.Checked = true;
-            break;
-        case 0:
-        default:
-            this.customColorsButton.Checked = true;
-            break;
+            case 1:
+                this.dvdColorsButton.Checked = true;
+                break;
+            case 0:
+            default:
+                this.customColorsButton.Checked = true;
+                break;
         }
         colorsButton_CheckedChanged(this, EventArgs.Empty);
 
@@ -127,7 +128,7 @@ public partial class OptionsForm : Form
 
     void UpdateFontName()
     {
-        if(this.fontBold)
+        if (this.fontBold)
         {
             this.fontFamilyLabel.Text = $"{this.fontFamilyName} {this.fontSize:f0} (Bold)";
         }
@@ -140,9 +141,9 @@ public partial class OptionsForm : Form
     private void outputDirectoryButton_Click(object sender, EventArgs e)
     {
         this.folderBrowserDialog.SelectedPath = this.labelOutputDirectory.Text;
-        if(this.folderBrowserDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.folderBrowserDialog.ShowDialog(this) == DialogResult.OK)
         {
-            if(Directory.Exists(this.folderBrowserDialog.SelectedPath))
+            if (Directory.Exists(this.folderBrowserDialog.SelectedPath))
             {
                 this.labelOutputDirectory.Text = this.folderBrowserDialog.SelectedPath;
             }
@@ -171,7 +172,7 @@ public partial class OptionsForm : Form
         Properties.Settings.Default.SubtitleForeColor = Color.FromArgb(Convert.ToInt32((double)this.textOpacityUpDown.Value * 255.0 / 100.0), this.textColorLabel.ForeColor);
         Properties.Settings.Default.SubtitleBorderColor = Color.FromArgb(Convert.ToInt32((double)this.borderOpacityUpDown.Value * 255.0 / 100.0), this.borderColorLabel.BackColor);
         Properties.Settings.Default.SubtitleShadingColor = Color.FromArgb(Convert.ToInt32((double)this.shadingOpacityUpDown.Value * 255.0 / 100.0), this.shadingColorLabel.BackColor);
-        if(this.dvdColorsButton.Checked)
+        if (this.dvdColorsButton.Checked)
         {
             Properties.Settings.Default.SubtitleColorScheme = 1;
         }
@@ -180,7 +181,7 @@ public partial class OptionsForm : Form
             Properties.Settings.Default.SubtitleColorScheme = 0;
         }
 
-        if(this.dataWithProgramCheckBox.Checked != Properties.Settings.Default.DataFileInExeDirectory)
+        if (this.dataWithProgramCheckBox.Checked != Properties.Settings.Default.DataFileInExeDirectory)
         {
             string oldLocation = OcrMap.StorageFilePath(Properties.Settings.Default.DataFileInExeDirectory);
             string newLocation = OcrMap.StorageFilePath(this.dataWithProgramCheckBox.Checked);
@@ -188,35 +189,35 @@ public partial class OptionsForm : Form
             bool canUseNewLocation = false;
             bool newFileExists = File.Exists(newLocation);
             bool oldFileExists = File.Exists(oldLocation);
-            if(oldFileExists && (!newFileExists || (File.GetLastWriteTime(oldLocation) > File.GetLastWriteTime(newLocation))))
+            if (oldFileExists && (!newFileExists || (File.GetLastWriteTime(oldLocation) > File.GetLastWriteTime(newLocation))))
             {
                 try
                 {
-                    if(newFileExists)
+                    if (newFileExists)
                     {
                         File.Delete(newLocation);
                     }
                     File.Copy(oldLocation, newLocation);
                     canUseNewLocation = true;
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show("Unable to copy OcrMap.bin file to new location: " + ex.Message);
                 }
             }
             else
             {
-                if(!newFileExists)
+                if (!newFileExists)
                 {
                     try
                     {
-                        using(FileStream fs = File.Create(newLocation))
+                        using (FileStream fs = File.Create(newLocation))
                         {
                         }
                         File.Delete(newLocation);
                         canUseNewLocation = true;
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         MessageBox.Show("Unable to access OcrMap.bin file in new location: " + ex.Message);
                     }
@@ -226,15 +227,15 @@ public partial class OptionsForm : Form
                     canUseNewLocation = true;
                 }
             }
-            if(canUseNewLocation)
+            if (canUseNewLocation)
             {
-                if(oldFileExists)
+                if (oldFileExists)
                 {
                     try
                     {
                         File.Delete(oldLocation);
                     }
-                    catch(Exception)
+                    catch (Exception)
                     {
                     }
                 }
@@ -258,7 +259,7 @@ public partial class OptionsForm : Form
 
         Properties.Settings.Default.Save();
 
-        if(this.ocrMap != null)
+        if (this.ocrMap != null)
         {
             this.ocrMap.Save();
         }
@@ -266,12 +267,12 @@ public partial class OptionsForm : Form
         bool themeChanged = !string.Equals(previousTheme, this.pendingTheme, StringComparison.Ordinal);
         bool dpiChanged = !string.Equals(previousDpiScale, this.pendingDpiScale, StringComparison.Ordinal);
         bool helpTextChanged = previousShowHelpText != this.pendingShowHelpText;
-        if(themeChanged || dpiChanged || helpTextChanged)
+        if (themeChanged || dpiChanged || helpTextChanged)
         {
             DialogResult result = MessageBox.Show(this,
                 "The settings change will not be applied until the application is restarted. Restart now?",
                 "Settings Changed", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
-            if(result == DialogResult.OK)
+            if (result == DialogResult.OK)
             {
                 Application.Restart();
                 Environment.Exit(0);
@@ -286,7 +287,7 @@ public partial class OptionsForm : Form
 
     private void videoPlayerButton_Click(object sender, EventArgs e)
     {
-        if(File.Exists(this.videoPlayerLabel.Text))
+        if (File.Exists(this.videoPlayerLabel.Text))
         {
             this.openFileDialog.InitialDirectory = Path.GetDirectoryName(this.videoPlayerLabel.Text);
         }
@@ -296,9 +297,9 @@ public partial class OptionsForm : Form
         }
         this.openFileDialog.Filter = "Programs (*.exe)|*.exe|All files (*.*)|*.*";
 
-        if(this.openFileDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.openFileDialog.ShowDialog(this) == DialogResult.OK)
         {
-            if(File.Exists(this.openFileDialog.FileName))
+            if (File.Exists(this.openFileDialog.FileName))
             {
                 this.videoPlayerLabel.Text = this.openFileDialog.FileName;
             }
@@ -311,10 +312,10 @@ public partial class OptionsForm : Form
 
     public static void TraceMpegFile(IWin32Window window)
     {
-        using(OpenFileDialog openFileDialog = new OpenFileDialog())
+        using (OpenFileDialog openFileDialog = new OpenFileDialog())
         {
             openFileDialog.Filter = "Mpeg Files (*.mpg)|*.mpg|All files (*.*)|*.*";
-            if(openFileDialog.ShowDialog(window) == DialogResult.OK)
+            if (openFileDialog.ShowDialog(window) == DialogResult.OK)
             {
                 //int fileLength = TraceMpegLength;
                 int fileLength = Convert.ToInt32(Math.Min((long)Int32.MaxValue,
@@ -326,7 +327,7 @@ public partial class OptionsForm : Form
                    Path.GetFileNameWithoutExtension(openFileDialog.FileName) + ".Trace.txt");
                 traceFileWriter = File.CreateText(traceFilePath);
                 loader.SplitterTrace += loader_SplitterTrace;
-                loader.Run([chunk], delegate() { return false; });
+                loader.Run([chunk], delegate () { return false; });
                 loader.SplitterTrace -= loader_SplitterTrace;
                 traceFileWriter.Close();
                 traceFileWriter = null;
@@ -337,7 +338,7 @@ public partial class OptionsForm : Form
 
     static void loader_SplitterTrace(object sender, TraceEventArgs e)
     {
-        if(traceFileWriter != null)
+        if (traceFileWriter != null)
         {
             traceFileWriter.WriteLine(e.Text);
         }
@@ -347,7 +348,7 @@ public partial class OptionsForm : Form
     {
         get
         {
-            if(!File.Exists(Properties.Settings.Default.DgIndexPath))
+            if (!File.Exists(Properties.Settings.Default.DgIndexPath))
             {
                 MessageBox.Show("DgIndex is not configured.  Please open the Options dialog and set it.");
                 return false;
@@ -360,7 +361,7 @@ public partial class OptionsForm : Form
     {
         get
         {
-            if(!File.Exists(Properties.Settings.Default.SampleVideoPlayerPath))
+            if (!File.Exists(Properties.Settings.Default.SampleVideoPlayerPath))
             {
                 MessageBox.Show("Video Player is not configured.  Please open the Options dialog and set it.");
                 return false;
@@ -373,7 +374,7 @@ public partial class OptionsForm : Form
     {
         get
         {
-            if(!Directory.Exists(Properties.Settings.Default.OutputDirectory))
+            if (!Directory.Exists(Properties.Settings.Default.OutputDirectory))
             {
                 MessageBox.Show("Output Path does not exist.  Please open the Options dialog and set it.");
                 return false;
@@ -384,7 +385,7 @@ public partial class OptionsForm : Form
 
     private void subtitleEditorButton_Click(object sender, EventArgs e)
     {
-        if(File.Exists(this.subtitleEditorLabel.Text))
+        if (File.Exists(this.subtitleEditorLabel.Text))
         {
             this.openFileDialog.InitialDirectory = Path.GetDirectoryName(this.subtitleEditorLabel.Text);
         }
@@ -394,9 +395,9 @@ public partial class OptionsForm : Form
         }
         this.openFileDialog.Filter = "Programs (*.exe)|*.exe|All files (*.*)|*.*";
 
-        if(this.openFileDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.openFileDialog.ShowDialog(this) == DialogResult.OK)
         {
-            if(File.Exists(this.openFileDialog.FileName))
+            if (File.Exists(this.openFileDialog.FileName))
             {
                 this.subtitleEditorLabel.Text = this.openFileDialog.FileName;
             }
@@ -405,7 +406,7 @@ public partial class OptionsForm : Form
 
     private void dgIndexButton_Click(object sender, EventArgs e)
     {
-        if(File.Exists(this.dgIndexLabel.Text))
+        if (File.Exists(this.dgIndexLabel.Text))
         {
             this.openFileDialog.InitialDirectory = Path.GetDirectoryName(this.dgIndexLabel.Text);
         }
@@ -415,9 +416,9 @@ public partial class OptionsForm : Form
         }
         this.openFileDialog.Filter = "Programs (*.exe)|*.exe|All files (*.*)|*.*";
 
-        if(this.openFileDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.openFileDialog.ShowDialog(this) == DialogResult.OK)
         {
-            if(File.Exists(this.openFileDialog.FileName))
+            if (File.Exists(this.openFileDialog.FileName))
             {
                 this.dgIndexLabel.Text = this.openFileDialog.FileName;
             }
@@ -432,7 +433,7 @@ public partial class OptionsForm : Form
     private void fontFamilyButton_Click(object sender, EventArgs e)
     {
         this.fontDialog1.Font = new Font(this.fontFamilyName, this.fontSize, this.fontBold ? FontStyle.Bold : FontStyle.Regular);
-        if(this.fontDialog1.ShowDialog(this) == DialogResult.OK)
+        if (this.fontDialog1.ShowDialog(this) == DialogResult.OK)
         {
             this.fontFamilyName = this.fontDialog1.Font.Name;
             this.fontBold = this.fontDialog1.Font.Bold;
@@ -465,7 +466,7 @@ public partial class OptionsForm : Form
     private void textColorButton_Click(object sender, EventArgs e)
     {
         colorDialog1.Color = this.textColorLabel.ForeColor;
-        if(colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+        if (colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
         {
             this.textColorLabel.ForeColor = colorDialog1.Color;
         }
@@ -474,7 +475,7 @@ public partial class OptionsForm : Form
     private void borderColorButton_Click(object sender, EventArgs e)
     {
         colorDialog1.Color = this.borderColorLabel.BackColor;
-        if(colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+        if (colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
         {
             this.borderColorLabel.BackColor = colorDialog1.Color;
         }
@@ -483,7 +484,7 @@ public partial class OptionsForm : Form
     private void shadingColorButton_Click(object sender, EventArgs e)
     {
         colorDialog1.Color = this.shadingColorLabel.BackColor;
-        if(colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
+        if (colorDialog1.ShowDialog(this) == System.Windows.Forms.DialogResult.OK)
         {
             this.shadingColorLabel.BackColor = colorDialog1.Color;
         }
@@ -491,7 +492,7 @@ public partial class OptionsForm : Form
 
     void colorsButton_CheckedChanged(object sender, EventArgs e)
     {
-        if(this.dvdColorsButton.Checked)
+        if (this.dvdColorsButton.Checked)
         {
             this.textColorLabel.Enabled = false;
             this.textColorButton.Enabled = false;
@@ -510,7 +511,7 @@ public partial class OptionsForm : Form
     private void themeComboBox_SelectedIndexChanged(object sender, EventArgs e)
     {
         string selectedTheme = this.themeComboBox.SelectedItem as string;
-        if(string.IsNullOrWhiteSpace(selectedTheme))
+        if (string.IsNullOrWhiteSpace(selectedTheme))
         {
             selectedTheme = ThemeManager.SystemTheme;
         }
@@ -536,16 +537,16 @@ public partial class OptionsForm : Form
     {
         this.lAndIListBox.Items.Clear();
         string filter = this.filterLandITextBox.Text.Trim();
-        if(String.IsNullOrWhiteSpace(filter))
+        if (String.IsNullOrWhiteSpace(filter))
         {
-            foreach(string s in this.allWords)
+            foreach (string s in this.allWords)
             {
                 this.lAndIListBox.Items.Add(s);
             }
         }
         else
         {
-            foreach(string s in this.allWords.Where(s => s.StartsWith(filter, StringComparison.CurrentCultureIgnoreCase)))
+            foreach (string s in this.allWords.Where(s => s.StartsWith(filter, StringComparison.CurrentCultureIgnoreCase)))
             {
                 this.lAndIListBox.Items.Add(s);
             }
@@ -554,7 +555,7 @@ public partial class OptionsForm : Form
 
     private void tabControl1_SelectedIndexChanged(object sender, EventArgs e)
     {
-        if(this.tabControl1.SelectedTab == this.tabPage3)
+        if (this.tabControl1.SelectedTab == this.tabPage3)
         {
             InitializeIandLWords();
         }
@@ -562,26 +563,26 @@ public partial class OptionsForm : Form
 
     void InitializeIandLWords()
     {
-        if(this.ocrMap == null)
+        if (this.ocrMap == null)
         {
             this.ocrMap = new OcrMap();
             try
             {
                 this.ocrMap.Load();
             }
-            catch(Exception)
+            catch (Exception)
             {
                 MessageBox.Show("OCR Map failed to load - probably out of date");
             }
         }
 
-        if(this.allWords.Count == 0)
+        if (this.allWords.Count == 0)
         {
             this.allWords.AddRange(this.ocrMap.SpellingWords);
             this.allWords.Sort(StringComparer.CurrentCultureIgnoreCase);
         }
 
-        if(this.lAndIListBox.Items.Count == 0)
+        if (this.lAndIListBox.Items.Count == 0)
         {
             LoadLandIList();
         }
@@ -589,7 +590,7 @@ public partial class OptionsForm : Form
 
     private void removeFromIandListButton_Click(object sender, EventArgs e)
     {
-        if((this.ocrMap != null) && (this.lAndIListBox.Items.Count > 0) && (this.lAndIListBox.SelectedIndex >= 0))
+        if ((this.ocrMap != null) && (this.lAndIListBox.Items.Count > 0) && (this.lAndIListBox.SelectedIndex >= 0))
         {
             string removedWord = this.lAndIListBox.SelectedItem as string;
             this.ocrMap.RemoveLandIWord(removedWord);
@@ -604,7 +605,7 @@ public partial class OptionsForm : Form
 
     private void clearlAndIListButton_Click(object sender, EventArgs e)
     {
-        if(MessageBox.Show("Are you sure you want to remove all the l and I spelling words in the database?", "Clear List", MessageBoxButtons.OKCancel) == System.Windows.Forms.DialogResult.OK)
+        if (MessageBox.Show("Are you sure you want to remove all the l and I spelling words in the database?", "Clear List", MessageBoxButtons.OKCancel) == System.Windows.Forms.DialogResult.OK)
         {
             this.ocrMap.ClearLandIWords();
             this.lAndIListBox.Items.Clear();

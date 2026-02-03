@@ -1,8 +1,9 @@
 namespace DvdSubOcr;
+
 public class BlocksAndPalette
 {
     public BlocksAndPalette(IEnumerable<BlockEncode> blocks,
-        IEnumerable<int> indexes, IEnumerable<string> splitEncodes, 
+        IEnumerable<int> indexes, IEnumerable<string> splitEncodes,
         int averagePixels, int countedBlocks)
     {
         this.Blocks = new List<BlockEncode>(blocks);

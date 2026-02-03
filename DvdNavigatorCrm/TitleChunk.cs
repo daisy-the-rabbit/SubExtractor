@@ -1,6 +1,7 @@
 using System.IO;
 
 namespace DvdNavigatorCrm;
+
 public class TitleChunk
 {
     public const int MaxTitleChunkLength = 1 << 24;     // 16MB limit
@@ -28,7 +29,7 @@ public class TitleChunk
     public override string ToString()
     {
         string cellText = $"{Path.GetFileNameWithoutExtension(this.FilePath)} Start {this.StartOffset >> 10}K Length {this.Length >> 10}K Position {this.Position}";
-        if(this.IsDiscontinuity)
+        if (this.IsDiscontinuity)
         {
             cellText += " Disc";
         }
