@@ -1,0 +1,31 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DvdSubOcr", "DvdSubOcr\DvdSubOcr.csproj", "{F23F15F4-0267-486E-8E17-6C658E40C820}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DvdNavigatorCrm", "DvdNavigatorCrm\DvdNavigatorCrm.csproj", "{17CEC523-AA01-4410-8BFA-4CAB1C97DD69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DvdSubExtractor", "DvdSubExtractor\DvdSubExtractor.csproj", "{DBB0CD6F-791D-4438-9725-7F4C3A45ADB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F23F15F4-0267-486E-8E17-6C658E40C820}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F23F15F4-0267-486E-8E17-6C658E40C820}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F23F15F4-0267-486E-8E17-6C658E40C820}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F23F15F4-0267-486E-8E17-6C658E40C820}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17CEC523-AA01-4410-8BFA-4CAB1C97DD69}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17CEC523-AA01-4410-8BFA-4CAB1C97DD69}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17CEC523-AA01-4410-8BFA-4CAB1C97DD69}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17CEC523-AA01-4410-8BFA-4CAB1C97DD69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DBB0CD6F-791D-4438-9725-7F4C3A45ADB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBB0CD6F-791D-4438-9725-7F4C3A45ADB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBB0CD6F-791D-4438-9725-7F4C3A45ADB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBB0CD6F-791D-4438-9725-7F4C3A45ADB8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

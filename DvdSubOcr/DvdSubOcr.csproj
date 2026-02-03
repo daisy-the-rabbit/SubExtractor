@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
+    <NoWarn>$(NoWarn);CA1416;CA2022</NoWarn>
+    <PlatformTarget>x64</PlatformTarget>
+    <OutputType>Library</OutputType>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="BlockViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="CharacterSelector.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="FlatTitleBar.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Update="MatchSoFarView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DvdNavigatorCrm\DvdNavigatorCrm.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\TransIcon2.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Brush.cur" />
+  </ItemGroup>
+</Project>

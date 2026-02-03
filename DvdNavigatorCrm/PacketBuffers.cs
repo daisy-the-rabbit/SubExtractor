@@ -1,0 +1,33 @@
+using System.IO;
+using System.Diagnostics;
+using System.Threading;
+using DvdNavigatorCrm;
+
+namespace DvdNavigatorCrm;
+public class PacketBuffer
+{
+    public DataHolder DataHolder;
+}
+
+class HeaderPacketBuffer : PacketBuffer
+{
+    public int PacketTypeCode;
+}
+
+class StreamPackHeaderBuffer : PacketBuffer
+{
+    public ulong SCR;
+    public uint MuxRate;
+}
+
+class StreamPacketBuffer : PacketBuffer
+{
+    public IStreamDefinition StreamDefinition;
+    public int PesHeaderLength;
+}
+
+class PalettePacketBuffer : PacketBuffer
+{
+    public IList<int> Palette;
+}
+

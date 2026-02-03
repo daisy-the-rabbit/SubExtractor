@@ -1,0 +1,21 @@
+using System.Reflection;
+
+namespace DvdSubExtractor;
+public partial class SubWizard
+{
+    static string[] stepNames = ["Choose DVD Folder",
+        "Choose Tracks", "Re-Encode Tracks", "Load Subtitles File",
+        "OCR Subtitles", "Spelling and Spacing", "Create Subtitle File", "Word Spacing Adjustment"];
+
+    void Localize()
+    {
+        this.previousStepButton.Text = "\U0001F870 Previous Step";
+        this.nextButton.Text = "Next Step \U0001F872";
+        this.openFileToolStripMenuItem.Text = "Open Subtitle File";
+        this.openDvdToolStripMenuItem.Text = "Open DVD Folder";
+        this.optionsButton.Text = "Options...";
+        this.aboutButton.Text = "About...";
+        this.Text = "Subtitle Extractor";
+    }
+}
+

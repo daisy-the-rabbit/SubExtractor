@@ -1,0 +1,63 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore DvdSubOcr.sln
+
+      - name: Publish
+        run: >
+          dotnet publish DvdSubExtractor/DvdSubExtractor.csproj
+          -c Release
+          -r win-x64
+          --self-contained
+          -p:PublishSingleFile=true
+          -p:PublishReadyToRun=true
+          -p:IncludeAllContentForSelfExtract=true
+          -o publish
+
+      - name: Create zip
+        run: Compress-Archive -Path publish/DvdSubExtractor.exe, publish/OcrMapOrig.bin -DestinationPath SubExtractor-${{ github.ref_name }}.zip
+
+      - name: Extract release notes
+        id: extract-notes
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}".TrimStart('v')
+          $changelog = Get-Content CHANGELOG.md -Raw
+          # Match the section for this version until the next version header or end of file
+          $pattern = "(?ms)^## \[$version\].*?(?=^## \[|\z)"
+          $match = [regex]::Match($changelog, $pattern)
+          if ($match.Success) {
+            # Remove the version header line itself, keep just the content
+            $notes = $match.Value -replace "^## \[$version\].*\r?\n", ""
+            $notes = $notes.Trim()
+            $notes | Out-File -FilePath release-notes.md -Encoding utf8
+          } else {
+            "No changelog entry found for version $version" | Out-File -FilePath release-notes.md -Encoding utf8
+          }
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: SubExtractor-${{ github.ref_name }}.zip
+          body_path: release-notes.md
