@@ -66,7 +66,8 @@ Version 2.0.0 is a major modernization of the codebase, bringing the application
 ## Requirements
 
 - Windows 7 or later, 64-bit
-- [.NET 10 runtime](https://dotnet.microsoft.com/download/dotnet/10.0)
+
+No additional runtime installation is required - the .NET 10 runtime is bundled in the release builds.
 
 ## Building from source
 
