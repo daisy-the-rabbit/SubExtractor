@@ -4,6 +4,7 @@ using System.IO;
 using DvdNavigatorCrm;
 
 namespace DvdSubExtractor;
+
 public partial class LoadFolderStep : UserControl, IWizardItem
 {
     ExtractData data;
@@ -16,7 +17,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
     public void Initialize(ExtractData data)
     {
         this.data = data;
-        if(!string.IsNullOrEmpty(this.data.DvdFolder))
+        if (!string.IsNullOrEmpty(this.data.DvdFolder))
         {
             this.dvdFolderPath.Text = this.data.DvdName;
             this.dvdPathTextBox.Text = this.data.DvdFolder;
@@ -26,7 +27,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
         {
             this.reloadButton.Enabled = false;
         }
-        if(this.data.Programs.Count != 0)
+        if (this.data.Programs.Count != 0)
         {
             LoadProgramChains();
         }
@@ -40,7 +41,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
 
     bool IsComplete
     {
-        get 
+        get
         {
             return this.programChainListbox.Items.Count != 0;
         }
@@ -48,14 +49,14 @@ public partial class LoadFolderStep : UserControl, IWizardItem
 
     string HelpText
     {
-        get 
+        get
         {
             return "This is where you choose the DVD you want to work with. " +
                 "This should be a folder on a local or network hard drive which contains " +
                 "a sub-folder named VIDEO_TS from a DVD, or just has the IFO and VOB files " +
-                "found in a VIDEO_TS folder directly within it.\n\nActual optical DVDs almost certainly " + 
-                "won't work, since they are encrypted and unreadable by programs like this.  " + 
-                "You need to find and run a program (such as DVDFab HD Decrypter) that will " + 
+                "found in a VIDEO_TS folder directly within it.\n\nActual optical DVDs almost certainly " +
+                "won't work, since they are encrypted and unreadable by programs like this.  " +
+                "You need to find and run a program (such as DVDFab HD Decrypter) that will " +
                 "backup your DVDs to your hard drive first.\n\n" +
                 "When you've chosen the DVD folder and some programs have appeared in ths " +
                 "listbox, hit Next";
@@ -65,17 +66,17 @@ public partial class LoadFolderStep : UserControl, IWizardItem
     private void dvdFolderBrowseButton_Click(object sender, EventArgs e)
     {
         this.folderBrowserDialog.SelectedPath = Properties.Settings.Default.DvdFolderPath;
-        if(this.folderBrowserDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.folderBrowserDialog.ShowDialog(this) == DialogResult.OK)
         {
-            if(Directory.Exists(this.folderBrowserDialog.SelectedPath))
+            if (Directory.Exists(this.folderBrowserDialog.SelectedPath))
             {
                 string selectedPath = this.folderBrowserDialog.SelectedPath;
-                if(!CheckFolderPath(selectedPath))
+                if (!CheckFolderPath(selectedPath))
                 {
                     return;
                 }
                 this.data.LoadDvdPrograms(selectedPath);
-                if(this.data.Programs.Count == 0)
+                if (this.data.Programs.Count == 0)
                 {
                     return;
                 }
@@ -85,7 +86,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
                 Properties.Settings.Default.DvdFolderPath = selectedPath;
                 Properties.Settings.Default.Save();
                 LoadProgramChains();
-                if(Properties.Settings.Default.InitialStepIsBrowse)
+                if (Properties.Settings.Default.InitialStepIsBrowse)
                 {
                     Properties.Settings.Default.InitialStepIsBrowse = false;
                     Properties.Settings.Default.Save();
@@ -96,19 +97,19 @@ public partial class LoadFolderStep : UserControl, IWizardItem
 
     bool CheckFolderPath(string selectedPath)
     {
-        if(!Directory.Exists(selectedPath))
+        if (!Directory.Exists(selectedPath))
         {
             MessageBox.Show(this, "Path does not exist", "Folder error", MessageBoxButtons.OK);
             return false;
         }
 
         string root = Path.GetPathRoot(selectedPath);
-        if((root == selectedPath) || (Path.Combine(root, "VIDEO_TS") == selectedPath))
+        if ((root == selectedPath) || (Path.Combine(root, "VIDEO_TS") == selectedPath))
         {
             DriveInfo drive = new DriveInfo(root.Substring(0, 1));
-            if(drive.DriveType == DriveType.CDRom)
+            if (drive.DriveType == DriveType.CDRom)
             {
-                if(MessageBox.Show(this,
+                if (MessageBox.Show(this,
                     "This DVD probably won't work because it's encrypted, " +
                     "you need to backup your DVD to a hard drive first.  Continue?",
                     "Possible Error", MessageBoxButtons.YesNo) == DialogResult.No)
@@ -125,7 +126,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
         this.programChainListbox.Items.Clear();
 
         IList<DvdTrackItem> tracks = this.data.Programs;
-        if(tracks.Count != 0)
+        if (tracks.Count != 0)
         {
             this.programChainListbox.Items.AddRange(tracks.ToArray());
         }
@@ -139,12 +140,12 @@ public partial class LoadFolderStep : UserControl, IWizardItem
     private void reloadButton_Click(object sender, EventArgs e)
     {
         string selectedPath = Path.GetFullPath(this.dvdPathTextBox.Text);
-        if(!CheckFolderPath(selectedPath))
+        if (!CheckFolderPath(selectedPath))
         {
             return;
         }
         this.data.LoadDvdPrograms(selectedPath);
-        if(this.data.Programs.Count == 0)
+        if (this.data.Programs.Count == 0)
         {
             return;
         }
@@ -157,7 +158,7 @@ public partial class LoadFolderStep : UserControl, IWizardItem
 
     private void dvdPathTextBox_TextChanged(object sender, EventArgs e)
     {
-        this.reloadButton.Enabled =  (this.dvdPathTextBox.Text.Length != 0);
+        this.reloadButton.Enabled = (this.dvdPathTextBox.Text.Length != 0);
     }
 }
 

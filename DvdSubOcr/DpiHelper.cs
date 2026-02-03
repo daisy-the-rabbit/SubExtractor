@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public static class DpiHelper
 {
     private const float BaseDpi = 96.0f;

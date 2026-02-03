@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace DvdSubOcr;
+
 public partial class BlockViewer : UserControl
 {
     [DllImport("user32.dll")]
@@ -23,7 +24,7 @@ public partial class BlockViewer : UserControl
     static Cursor LoadBrushCursor()
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
-        using(Stream stream = assembly.GetManifestResourceStream("DvdSubOcr.Brush.cur"))
+        using (Stream stream = assembly.GetManifestResourceStream("DvdSubOcr.Brush.cur"))
         {
             return new Cursor(stream);
         }
@@ -129,7 +130,7 @@ public partial class BlockViewer : UserControl
     {
         this.ocrFeedback = ocr;
         this.ocrShown = DateTime.Now;
-        if(!this.timerFeedback.Enabled)
+        if (!this.timerFeedback.Enabled)
         {
             this.timerFeedback.Start();
         }
@@ -146,14 +147,14 @@ public partial class BlockViewer : UserControl
 
     public void BeginSplit(OcrMap map, bool isHighDef)
     {
-        if(this.characterSplitter == null)
+        if (this.characterSplitter == null)
         {
             this.isHighDef = isHighDef;
             this.splitResult = "";
-            if(this.blockEncode != null)
+            if (this.blockEncode != null)
             {
                 this.beforeSplitWidth = this.Width;
-                if(this.blockEncode.Width * this.scaledMag > this.Width)
+                if (this.blockEncode.Width * this.scaledMag > this.Width)
                 {
                     this.Width = this.blockEncode.Width * this.scaledMag;
                     this.BringToFront();
@@ -171,14 +172,14 @@ public partial class BlockViewer : UserControl
 
     public void CancelSplit()
     {
-        if(this.characterSplitter != null)
+        if (this.characterSplitter != null)
         {
             this.Cursor = Cursors.Default;
             this.characterSplitter = null;
             this.splitResult = "";
             this.splitPixels.Clear();
 
-            if(this.Width != this.beforeSplitWidth)
+            if (this.Width != this.beforeSplitWidth)
             {
                 this.Width = this.beforeSplitWidth;
             }
@@ -191,20 +192,20 @@ public partial class BlockViewer : UserControl
         }
     }
 
-    public bool SplitActive 
+    public bool SplitActive
     {
         get { return (this.characterSplitter != null); }
     }
 
     public bool CommitSplit()
     {
-        if(this.characterSplitter == null)
+        if (this.characterSplitter == null)
         {
             throw new InvalidOperationException("CommitSplit with no split");
         }
 
         this.Cursor = Cursors.Default;
-        if(this.splitPixels.Count == 0)
+        if (this.splitPixels.Count == 0)
         {
             return false;
         }
@@ -212,7 +213,7 @@ public partial class BlockViewer : UserControl
         IList<BlockEncode> encodes1, encodes2;
         this.characterSplitter.FindSplitEncodes(this.splitPixels, out encodes1, out encodes2);
 
-        if((encodes1.Count != 1) || (encodes2.Count != 1))
+        if ((encodes1.Count != 1) || (encodes2.Count != 1))
         {
             MessageBox.Show("A Split must have exactly 2 contiguous parts. Don't worry if you temporarily " +
                 "have to split an i or j from its dot during this stage, a 2nd split will fix this");
@@ -221,14 +222,14 @@ public partial class BlockViewer : UserControl
 
         this.characterSplitter.OcrMap.AddSplit(this.blockEncode.FullEncode,
             new OcrSplit(encodes1[0].Origin, encodes1[0].FullEncode),
-            new OcrSplit(encodes2[0].Origin, encodes2[0].FullEncode), 
+            new OcrSplit(encodes2[0].Origin, encodes2[0].FullEncode),
             this.MovieId);
 
         this.splitResult = "";
         this.characterSplitter = null;
         this.splitPixels.Clear();
 
-        if(this.Width != this.beforeSplitWidth)
+        if (this.Width != this.beforeSplitWidth)
         {
             this.Width = this.beforeSplitWidth;
         }
@@ -241,7 +242,7 @@ public partial class BlockViewer : UserControl
     protected virtual void OnSplitComplete()
     {
         EventHandler temp = SplitComplete;
-        if(temp != null)
+        if (temp != null)
         {
             temp(this, EventArgs.Empty);
         }
@@ -255,18 +256,18 @@ public partial class BlockViewer : UserControl
 
             this.splitResult = "";
             CharacterSplit.SplitResult result = new CharacterSplit.SplitResult();
-            if(this.characterSplitter.AutoTestSplits(result, false, isHighDef))
+            if (this.characterSplitter.AutoTestSplits(result, false, isHighDef))
             {
                 this.splitFont = result.Entry1.OcrCharacter.Italic ?
                     this.splitFontItalic : this.splitFontNormal;
                 this.splitResult = new string(result.Entry1.OcrCharacter.Value, 1);
-                if(result.Entry2 != null)
+                if (result.Entry2 != null)
                 {
                     //this.splitResult = this.splitResult.Insert(0, new string(result.Entry2.OcrCharacter.Value, 1));
                     this.splitResult += new string(result.Entry2.OcrCharacter.Value, 1);
                 }
                 this.splitPixels.Clear();
-                foreach(Point p in result.SplitPixels)
+                foreach (Point p in result.SplitPixels)
                 {
                     this.splitPixels.Add(p);
                 }
@@ -290,9 +291,9 @@ public partial class BlockViewer : UserControl
         this.blockEncode = block;
 
         List<BlockEncode> othersSelected = [];
-        if(otherSelectedBlocks != null)
+        if (otherSelectedBlocks != null)
         {
-            foreach(BlockEncode encode in otherSelectedBlocks)
+            foreach (BlockEncode encode in otherSelectedBlocks)
             {
                 othersSelected.Add(encode);
             }
@@ -300,11 +301,11 @@ public partial class BlockViewer : UserControl
         this.otherSelectedBlocks = othersSelected;
 
         List<OtherEncode> others = [];
-        if(allEncodes != null)
+        if (allEncodes != null)
         {
-            foreach(BlockEncode encode in allEncodes)
+            foreach (BlockEncode encode in allEncodes)
             {
-                if(!object.ReferenceEquals(encode, block))
+                if (!object.ReferenceEquals(encode, block))
                 {
                     others.Add(new OtherEncode(encode));
                 }
@@ -320,34 +321,34 @@ public partial class BlockViewer : UserControl
         Color defaultColor, HashSet<Point> alternatePoints, Color alternateColor,
         Bitmap bitmap, HashSet<Point> writtenPoints, int mag)
     {
-        if(writtenPoints != null)
+        if (writtenPoints != null)
         {
             writtenPoints.Clear();
         }
-        for(int y = 0; y < height; y++)
+        for (int y = 0; y < height; y++)
         {
-            for(int x = 0; x < width; x++)
+            for (int x = 0; x < width; x++)
             {
-                if(decodePoints[y * width + x])
+                if (decodePoints[y * width + x])
                 {
                     Color color = defaultColor;
-                    if((alternatePoints != null) && alternatePoints.Contains(new Point(x, y)))
+                    if ((alternatePoints != null) && alternatePoints.Contains(new Point(x, y)))
                     {
                         color = alternateColor;
                     }
 
                     int drawX = origin.X + mag * x;
                     int drawY = origin.Y + mag * y;
-                    if((drawX >= 0) && (drawX + mag - 1 < bitmap.Width) &&
+                    if ((drawX >= 0) && (drawX + mag - 1 < bitmap.Width) &&
                         (drawY >= 0) && (drawY + mag - 1 < bitmap.Height))
                     {
-                        for(int dy = 0; dy < mag; dy++)
+                        for (int dy = 0; dy < mag; dy++)
                         {
-                            for(int dx = 0; dx < mag; dx++)
+                            for (int dx = 0; dx < mag; dx++)
                             {
                                 Point p = new Point(drawX + dx, drawY + dy);
                                 bitmap.SetPixel(p.X, p.Y, color);
-                                if(writtenPoints != null)
+                                if (writtenPoints != null)
                                 {
                                     writtenPoints.Add(p);
                                 }
@@ -361,7 +362,7 @@ public partial class BlockViewer : UserControl
 
     private void RedrawBlockPicture()
     {
-        using(Graphics g = Graphics.FromImage(this.blockView))
+        using (Graphics g = Graphics.FromImage(this.blockView))
         {
             g.Clear(SystemColors.Control);
             Rectangle rect = this.ClientRectangle;
@@ -372,7 +373,7 @@ public partial class BlockViewer : UserControl
             //g.DrawRectangle(Pens.Black, rect);
         }
 
-        if(this.blockEncode != null)
+        if (this.blockEncode != null)
         {
             IList<bool> blockDecoded = this.blockEncode.DecodeToBoolArray();
             this.blockOffset = new Point(
@@ -381,14 +382,14 @@ public partial class BlockViewer : UserControl
             DrawEncode(blockDecoded, this.blockOffset, this.blockEncode.Width,
                 this.blockEncode.Height, SystemColors.ControlText, this.splitPixels,
                 Color.LightGreen, this.blockView, this.encodePixels, this.scaledMag);
-            if(this.characterSplitter == null)
+            if (this.characterSplitter == null)
             {
-                foreach(OtherEncode other in this.otherEncodes)
+                foreach (OtherEncode other in this.otherEncodes)
                 {
                     Color otherColor = SystemColors.ControlDark;
-                    foreach(BlockEncode encode in this.otherSelectedBlocks)
+                    foreach (BlockEncode encode in this.otherSelectedBlocks)
                     {
-                        if(object.ReferenceEquals(encode, other.Encode))
+                        if (object.ReferenceEquals(encode, other.Encode))
                         {
                             otherColor = SystemColors.ControlText;
                             break;
@@ -408,7 +409,7 @@ public partial class BlockViewer : UserControl
 
     private void PaintBucketFill(MouseEventArgs e)
     {
-        if(!this.SplitActive)
+        if (!this.SplitActive)
         {
             return;
         }
@@ -416,7 +417,7 @@ public partial class BlockViewer : UserControl
         Point blockPoint = new Point((e.X - this.blockOffset.X) / this.scaledMag, (e.Y - this.blockOffset.Y) / this.scaledMag);
         IList<bool> blockDecoded = this.blockEncode.DecodeToBoolArray();
         Rectangle blockRect = new Rectangle(0, 0, this.blockEncode.Width, this.blockEncode.Height);
-        if(!blockRect.Contains(blockPoint) || !blockDecoded[blockPoint.Y * blockRect.Width + blockPoint.X])
+        if (!blockRect.Contains(blockPoint) || !blockDecoded[blockPoint.Y * blockRect.Width + blockPoint.X])
         {
             return;
         }
@@ -433,14 +434,14 @@ public partial class BlockViewer : UserControl
         blockPoint.X--;
         this.splitPixels.Remove(blockPoint);
 
-        while(futurePoints.Count != 0)
+        while (futurePoints.Count != 0)
         {
-            foreach(Point p in futurePoints)
+            foreach (Point p in futurePoints)
             {
-                if(!checkedPoints.Contains(p))
+                if (!checkedPoints.Contains(p))
                 {
                     checkedPoints.Add(p);
-                    if(blockRect.Contains(p) && !this.splitPixels.Contains(p) && blockDecoded[p.Y * blockRect.Width + p.X])
+                    if (blockRect.Contains(p) && !this.splitPixels.Contains(p) && blockDecoded[p.Y * blockRect.Width + p.X])
                     {
                         this.splitPixels.Add(p);
                         futurePoints.Add(new Point(p.X - 1, p.Y - 1));
@@ -463,7 +464,7 @@ public partial class BlockViewer : UserControl
     private void HandleMouseEvent(MouseEventArgs e)
     {
         //base.OnMouseDown(e);
-        if(!this.SplitActive)
+        if (!this.SplitActive)
         {
             return;
         }
@@ -473,30 +474,30 @@ public partial class BlockViewer : UserControl
         Rectangle blockRect = new Rectangle(0, 0, this.blockEncode.Width, this.blockEncode.Height);
 
         bool pointAdded = false;
-        if(blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
+        if (blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
         {
             this.splitPixels.Add(blockPoint);
             pointAdded = true;
         }
         blockPoint.X++;
-        if(blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
+        if (blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
         {
             this.splitPixels.Add(blockPoint);
             pointAdded = true;
         }
         blockPoint.Y++;
-        if(blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
+        if (blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
         {
             this.splitPixels.Add(blockPoint);
             pointAdded = true;
         }
         blockPoint.X--;
-        if(blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
+        if (blockRect.Contains(blockPoint) && !this.splitPixels.Contains(blockPoint))
         {
             this.splitPixels.Add(blockPoint);
             pointAdded = true;
         }
-        if(!pointAdded)
+        if (!pointAdded)
         {
             return;
         }
@@ -509,17 +510,17 @@ public partial class BlockViewer : UserControl
         this.splitResult = "";
         IList<BlockEncode> encodes1, encodes2;
         this.characterSplitter.FindSplitEncodes(this.splitPixels, out encodes1, out encodes2);
-        if(encodes1.Count == 1)
+        if (encodes1.Count == 1)
         {
-            foreach(OcrEntry entry in this.characterSplitter.OcrMap.FindMatches(encodes1[0].FullEncode, this.MovieId, this.isHighDef, 0))
+            foreach (OcrEntry entry in this.characterSplitter.OcrMap.FindMatches(encodes1[0].FullEncode, this.MovieId, this.isHighDef, 0))
             {
                 this.splitResult += entry.OcrCharacter.Value;
                 break;
             }
         }
-        if(encodes2.Count == 1)
+        if (encodes2.Count == 1)
         {
-            foreach(OcrEntry entry in this.characterSplitter.OcrMap.FindMatches(encodes2[0].FullEncode, this.MovieId, this.isHighDef, 0))
+            foreach (OcrEntry entry in this.characterSplitter.OcrMap.FindMatches(encodes2[0].FullEncode, this.MovieId, this.isHighDef, 0))
             {
                 this.splitResult += entry.OcrCharacter.Value;
                 break;
@@ -554,9 +555,9 @@ public partial class BlockViewer : UserControl
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
-        if(e.Button == MouseButtons.Left)
+        if (e.Button == MouseButtons.Left)
         {
-            if(this.SplitActive)
+            if (this.SplitActive)
             {
                 PaintBucketFill(e);
                 //HandleMouseEvent(e);
@@ -564,9 +565,9 @@ public partial class BlockViewer : UserControl
             else
             {
                 Point p = new Point(e.X, e.Y);
-                foreach(OtherEncode other in this.otherEncodes)
+                foreach (OtherEncode other in this.otherEncodes)
                 {
-                    if(other.Pixels.Contains(p))
+                    if (other.Pixels.Contains(p))
                     {
                         OnEncodeClicked(other.Encode);
                         break;
@@ -574,9 +575,9 @@ public partial class BlockViewer : UserControl
                 }
             }
         }
-        else if(e.Button == MouseButtons.Right)
+        else if (e.Button == MouseButtons.Right)
         {
-            if(this.SplitActive)
+            if (this.SplitActive)
             {
                 this.splitPixels.Clear();
                 this.splitResult = "";
@@ -589,19 +590,19 @@ public partial class BlockViewer : UserControl
     {
         base.OnSizeChanged(e);
 
-        if(this.blockView != null)
+        if (this.blockView != null)
         {
             this.blockView.Dispose();
         }
         this.blockView = new Bitmap(this.ClientRectangle.Width, this.ClientRectangle.Height);
-        UpdateBlockPicture(this.blockEncode, this.otherSelectedBlocks, 
+        UpdateBlockPicture(this.blockEncode, this.otherSelectedBlocks,
             this.otherEncodes.ConvertAll(val => val.Encode));
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
         e.Graphics.DrawImage(this.blockView, this.ClientRectangle);
-        if(!string.IsNullOrEmpty(this.splitResult))
+        if (!string.IsNullOrEmpty(this.splitResult))
         {
             StringFormat format = new StringFormat(StringFormatFlags.NoWrap | StringFormatFlags.NoClip);
             format.Alignment = StringAlignment.Far;
@@ -610,22 +611,22 @@ public partial class BlockViewer : UserControl
             e.Graphics.DrawString(this.splitResult, this.splitFont, this.accentBrush, this.ClientRectangle, format);
         }
 
-        if(!string.IsNullOrEmpty(this.Message))
+        if (!string.IsNullOrEmpty(this.Message))
         {
             e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
-            e.Graphics.DrawString(this.Message, this.messageFont, this.messageBrush, 
+            e.Graphics.DrawString(this.Message, this.messageFont, this.messageBrush,
                 this.ClientRectangle, this.messageFormat);
         }
 
-        if(this.ocrFeedback != null)
+        if (this.ocrFeedback != null)
         {
             Font f = this.feedbackNormal;
-            if(this.ocrFeedback.Italic)
+            if (this.ocrFeedback.Italic)
             {
                 f = this.feedbackItalic;
             }
             e.Graphics.DrawString(new string(this.ocrFeedback.Value, 1),
-                f, this.feedbackBrush, Convert.ToSingle(this.Width), Convert.ToSingle(this.Height), 
+                f, this.feedbackBrush, Convert.ToSingle(this.Width), Convert.ToSingle(this.Height),
                 this.feedbackFormat);
         }
     }
@@ -633,7 +634,7 @@ public partial class BlockViewer : UserControl
     private void timerFeedback_Tick(object sender, EventArgs e)
     {
         DateTime now = DateTime.Now;
-        if((now < this.ocrShown) || ((now - this.ocrShown).TotalMilliseconds > OcrShowTime))
+        if ((now < this.ocrShown) || ((now - this.ocrShown).TotalMilliseconds > OcrShowTime))
         {
             this.timerFeedback.Stop();
             this.ocrFeedback = null;

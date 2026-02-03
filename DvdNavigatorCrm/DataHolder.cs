@@ -1,6 +1,7 @@
 using System.IO;
 
 namespace DvdNavigatorCrm;
+
 public class DataHolder
 {
     Stream stream;
@@ -25,7 +26,7 @@ public class DataHolder
 
     public void LoadInMemory()
     {
-        if(this.data == null)
+        if (this.data == null)
         {
             this.data = AllocateBuffer(this.Length);
             this.stream.Seek(this.streamOffset, SeekOrigin.Begin);
@@ -35,7 +36,7 @@ public class DataHolder
 
     public void ReleaseFromMemory()
     {
-        if(this.stream != null)
+        if (this.stream != null)
         {
             this.data = null;
         }

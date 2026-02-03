@@ -1,6 +1,7 @@
 using DvdSubOcr;
 
 namespace DvdSubOcr;
+
 class BlockReducer
 {
     BlockEncode encode;
@@ -18,8 +19,8 @@ class BlockReducer
         this.reducedBlocks = new Dictionary<string, int>();
         this.ReducedEncodes = this.reducedBlocks;
         this.FullEncode = this.encode.FullEncode;
-        
-        if(((encode.TrueWidth <= Div2Size1) && (encode.Height <= Div2Size2)) || 
+
+        if (((encode.TrueWidth <= Div2Size1) && (encode.Height <= Div2Size2)) ||
             ((encode.Height <= Div2Size1) && (encode.TrueWidth <= Div2Size2)))
         {
             ReduceBy2();
@@ -64,12 +65,12 @@ class BlockReducer
         int yMax = -1;
         int xMin = reducWidth;
         int xMax = -1;
-        for(int y = heightOffset; y < height - 1; y += 2)
+        for (int y = heightOffset; y < height - 1; y += 2)
         {
             int offset = y * width;
-            for(int x = widthOffset; x < width - 1; x += 2)
+            for (int x = widthOffset; x < width - 1; x += 2)
             {
-                if((orig[offset + x] ? 1 : 0) + (orig[offset + x + 1] ? 1 : 0)
+                if ((orig[offset + x] ? 1 : 0) + (orig[offset + x + 1] ? 1 : 0)
                     + (orig[offset + width + x] ? 1 : 0) + (orig[offset + width + x + 1] ? 1 : 0)
                     >= MinCountFor2Reduc)
                 {
@@ -86,7 +87,7 @@ class BlockReducer
             }
             reducOffset += 3;
         }
-        if(xMax >= xMin)
+        if (xMax >= xMin)
         {
             string encode = CreateEncode(reduc, reducWidth, yMin, yMax, xMin, xMax);
             int count;
@@ -125,14 +126,14 @@ class BlockReducer
         int yMax = -1;
         int xMin = reducWidth;
         int xMax = -1;
-        for(int y = heightOffset; y < height - 2; y += 3)
+        for (int y = heightOffset; y < height - 2; y += 3)
         {
             int offset = y * width;
             int offset2 = offset + width;
             int offset3 = offset2 + width;
-            for(int x = widthOffset; x < width - 2; x += 3)
+            for (int x = widthOffset; x < width - 2; x += 3)
             {
-                if((orig[offset + x] ? 1 : 0) + (orig[offset + x + 1] ? 1 : 0) + (orig[offset + x + 2] ? 1 : 0)
+                if ((orig[offset + x] ? 1 : 0) + (orig[offset + x + 1] ? 1 : 0) + (orig[offset + x + 2] ? 1 : 0)
                     + (orig[offset2 + x] ? 1 : 0) + (orig[offset2 + x + 1] ? 1 : 0) + (orig[offset2 + x + 2] ? 1 : 0)
                     + (orig[offset3 + x] ? 1 : 0) + (orig[offset3 + x + 1] ? 1 : 0) + (orig[offset3 + x + 2] ? 1 : 0)
                     >= MinCountFor3Reduc)
@@ -150,7 +151,7 @@ class BlockReducer
             }
             reducOffset += 3;
         }
-        if(xMax >= xMin)
+        if (xMax >= xMin)
         {
             string encode = CreateEncode(reduc, reducWidth, yMin, yMax, xMin, xMax);
             int count;
@@ -163,11 +164,11 @@ class BlockReducer
     {
         int encodeWidth = (xMax - xMin) / 4 * 4 + 4;
         StringBuilder sb = new StringBuilder(encodeWidth.ToString("d3"));
-        for(int y = yMin; y <= yMax; y++)
+        for (int y = yMin; y <= yMax; y++)
         {
             int ptOffset = y * reducWidth + xMin;
             int ptOffsetEnd = ptOffset + xMax - xMin + 1;
-            while(ptOffset < ptOffsetEnd)
+            while (ptOffset < ptOffsetEnd)
             {
                 sb.Append(ValueToHexChar(reduc[ptOffset], reduc[ptOffset + 1], reduc[ptOffset + 2], reduc[ptOffset + 3]));
                 ptOffset += 4;
@@ -179,7 +180,7 @@ class BlockReducer
     private static char ValueToHexChar(bool b1, bool b2, bool b3, bool b4)
     {
         int value = (b1 ? 8 : 0) + (b2 ? 4 : 0) + (b3 ? 2 : 0) + (b4 ? 1 : 0);
-        if(value < 10)
+        if (value < 10)
         {
             return (char)('0' + value);
         }

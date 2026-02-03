@@ -2,6 +2,7 @@ using System.Diagnostics;
 using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public class OcrFont : IComparable<OcrFont>
 {
     const float AllowableVariation = 1.125f;
@@ -19,19 +20,19 @@ public class OcrFont : IComparable<OcrFont>
         this.Kerning = new FontKerning(isItalic);
         this.Lines = this.lines.AsReadOnly();
 
-        if(line != null)
+        if (line != null)
         {
             Dictionary<OcrCharacter, IList<SizeF>> characterSizes = new Dictionary<OcrCharacter, IList<SizeF>>();
-            for(int index = 0; index < line.Text.Count; index++)
+            for (int index = 0; index < line.Text.Count; index++)
             {
                 OcrCharacter ocr = line.Text[index];
-                if(ocr.Italic == this.IsItalic)
+                if (ocr.Italic == this.IsItalic)
                 {
                     this.TotalCharacterCount++;
-                    if(!SubConstants.UselessForFontMatchingCharacters.Contains(ocr.Value))
+                    if (!SubConstants.UselessForFontMatchingCharacters.Contains(ocr.Value))
                     {
                         IList<SizeF> sizes;
-                        if(!characterSizes.TryGetValue(ocr, out sizes))
+                        if (!characterSizes.TryGetValue(ocr, out sizes))
                         {
                             sizes = [];
                             characterSizes[ocr] = sizes;
@@ -41,11 +42,11 @@ public class OcrFont : IComparable<OcrFont>
                 }
             }
 
-            foreach(KeyValuePair<OcrCharacter, IList<SizeF>> pair in characterSizes)
+            foreach (KeyValuePair<OcrCharacter, IList<SizeF>> pair in characterSizes)
             {
                 SizeF minSize = new SizeF(pair.Value.Min(size => size.Width), pair.Value.Min(size => size.Height));
                 SizeF maxSize = new SizeF(pair.Value.Max(size => size.Width), pair.Value.Max(size => size.Height));
-                if(IsCloseEnoughMatch(minSize, maxSize))
+                if (IsCloseEnoughMatch(minSize, maxSize))
                 {
                     this.textSizes[pair.Key] = new SizeF(
                         pair.Value.Average(size => size.Width), pair.Value.Average(size => size.Height));
@@ -75,9 +76,9 @@ public class OcrFont : IComparable<OcrFont>
         {
             float maxHeight = 0.0f;
             OcrCharacter maxChar = null;
-            foreach(KeyValuePair<OcrCharacter, SizeF> entry in this.textSizes)
+            foreach (KeyValuePair<OcrCharacter, SizeF> entry in this.textSizes)
             {
-                if(entry.Value.Height > maxHeight)
+                if (entry.Value.Height > maxHeight)
                 {
                     maxHeight = entry.Value.Height;
                     maxChar = entry.Key;
@@ -92,11 +93,11 @@ public class OcrFont : IComparable<OcrFont>
         {
             float maxHeight = 0.0f;
             OcrCharacter maxChar = null;
-            foreach(SubtitleLine line in this.lines)
+            foreach (SubtitleLine line in this.lines)
             {
-                for(int index = 0; index < line.Text.Count; index++)
+                for (int index = 0; index < line.Text.Count; index++)
                 {
-                    if(line.TextBounds[index].Height > maxHeight)
+                    if (line.TextBounds[index].Height > maxHeight)
                     {
                         maxHeight = line.TextBounds[index].Height;
                         maxChar = line.Text[index];
@@ -119,7 +120,7 @@ public class OcrFont : IComparable<OcrFont>
     public void UpdateFontKerning()
     {
         this.Kerning.ClearWeights();
-        foreach(SubtitleLine line in this.Lines)
+        foreach (SubtitleLine line in this.Lines)
         {
             this.Kerning.AddTextWeights(line.Text, line.TextBounds);
         }
@@ -134,19 +135,19 @@ public class OcrFont : IComparable<OcrFont>
 
     public Matching IsMatchingFont(OcrFont other)
     {
-        if(this.IsItalic != other.IsItalic)
+        if (this.IsItalic != other.IsItalic)
         {
             throw new InvalidOperationException("Cannot compare Italic and non-Italic fonts");
         }
 
         int matches = 0;
         int failures = 0;
-        foreach(KeyValuePair<OcrCharacter, SizeF> pair in this.textSizes)
+        foreach (KeyValuePair<OcrCharacter, SizeF> pair in this.textSizes)
         {
             SizeF otherSize;
-            if(other.textSizes.TryGetValue(pair.Key, out otherSize))
+            if (other.textSizes.TryGetValue(pair.Key, out otherSize))
             {
-                if(IsCloseEnoughMatch(pair.Value, otherSize))
+                if (IsCloseEnoughMatch(pair.Value, otherSize))
                 {
                     matches++;
                 }
@@ -157,9 +158,9 @@ public class OcrFont : IComparable<OcrFont>
             }
         }
 
-        if(matches != 0)
+        if (matches != 0)
         {
-            if(((float)matches / ((float)(matches + failures)) >= MinimumAgreementCharacters))
+            if (((float)matches / ((float)(matches + failures)) >= MinimumAgreementCharacters))
             {
                 return Matching.Yes;
             }
@@ -170,7 +171,7 @@ public class OcrFont : IComparable<OcrFont>
 
     public void MergeFonts(OcrFont other)
     {
-        if(this.IsItalic != other.IsItalic)
+        if (this.IsItalic != other.IsItalic)
         {
             throw new InvalidOperationException("Cannot merge Italic and non-Italic fonts");
         }
@@ -178,10 +179,10 @@ public class OcrFont : IComparable<OcrFont>
         SortedDictionary<OcrCharacter, SizeF> newTextSizes = new SortedDictionary<OcrCharacter, SizeF>();
         SortedDictionary<OcrCharacter, int> newTextWeights = new SortedDictionary<OcrCharacter, int>();
 
-        foreach(KeyValuePair<OcrCharacter, SizeF> pair in this.textSizes)
+        foreach (KeyValuePair<OcrCharacter, SizeF> pair in this.textSizes)
         {
             SizeF otherSize;
-            if(other.textSizes.TryGetValue(pair.Key, out otherSize))
+            if (other.textSizes.TryGetValue(pair.Key, out otherSize))
             {
                 int thisWeight = this.textWeights[pair.Key];
                 int otherWeight = other.textWeights[pair.Key];
@@ -200,10 +201,10 @@ public class OcrFont : IComparable<OcrFont>
                 newTextWeights.Add(pair.Key, this.textWeights[pair.Key]);
             }
         }
-        
-        foreach(KeyValuePair<OcrCharacter, SizeF> pair in other.textSizes)
+
+        foreach (KeyValuePair<OcrCharacter, SizeF> pair in other.textSizes)
         {
-            if(!this.textSizes.ContainsKey(pair.Key))
+            if (!this.textSizes.ContainsKey(pair.Key))
             {
                 newTextSizes.Add(pair.Key, pair.Value);
                 newTextWeights.Add(pair.Key, other.textWeights[pair.Key]);
@@ -223,7 +224,7 @@ public class OcrFont : IComparable<OcrFont>
         SizeF sizeMin = new SizeF(Math.Min(original.Width, test.Width),
             Math.Min(original.Height, test.Height));
 
-        if(!sizeMin.IsEmpty)
+        if (!sizeMin.IsEmpty)
         {
             return (sizeMax.Width / sizeMin.Width < AllowableVariation) &&
                 (sizeMax.Height / sizeMin.Height < AllowableVariation);

@@ -1,4 +1,5 @@
 namespace DvdSubExtractor;
+
 public record CreateSubOptions
 {
     public string FileName { get; init; }

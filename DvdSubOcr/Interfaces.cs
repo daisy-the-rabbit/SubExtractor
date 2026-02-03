@@ -1,4 +1,5 @@
 namespace DvdSubOcr;
+
 public interface ISubtitleInformation
 {
     int Left { get; }

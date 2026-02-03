@@ -1,12 +1,13 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using DvdSubOcr;
 using DvdNavigatorCrm;
+using DvdSubOcr;
 
 namespace DvdSubExtractor;
+
 public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 {
     ExtractData data;
@@ -29,30 +30,30 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         this.data = data;
         this.dvdLabel.Text = CalculateSubFilename();
 
-        switch(Properties.Settings.Default.SubtitleStyle)
+        switch (Properties.Settings.Default.SubtitleStyle)
         {
-        case 0:
-            this.srtRadioButton.Checked = true;
-            break;
-        case 1:
-        default:
-            this.assRadioButton.Checked = true;
-            break;
+            case 0:
+                this.srtRadioButton.Checked = true;
+                break;
+            case 1:
+            default:
+                this.assRadioButton.Checked = true;
+                break;
         }
         this.subtitleStyle_SelectedIndexChanged(this, EventArgs.Empty);
 
-        switch(Properties.Settings.Default.PositionSubs)
+        switch (Properties.Settings.Default.PositionSubs)
         {
-        case 0:
-        default:
-            this.normalLinesButton.Checked = true;
-            break;
-        case 1:
-            this.dvdLineBreaksButton.Checked = true;
-            break;
-        case 2:
-            this.exactPositionButton.Checked = true;
-            break;
+            case 0:
+            default:
+                this.normalLinesButton.Checked = true;
+                break;
+            case 1:
+                this.dvdLineBreaksButton.Checked = true;
+                break;
+            case 2:
+                this.exactPositionButton.Checked = true;
+                break;
         }
 
         this.removeSdhSubsCheck.Checked = Properties.Settings.Default.RemoveSDHSet;
@@ -60,36 +61,36 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         bool selectedMatch = false;
         string matchFilePath = this.data.SelectedSubtitleBinaryFile ?? "";
         this.nextTitleButton.Enabled = false;
-        foreach(DvdTrackItem item in this.data.Programs)
+        foreach (DvdTrackItem item in this.data.Programs)
         {
             string filePath = Path.Combine(CalculateOutputDirectory(), this.data.ComputeSubtitleDataFileName(item));
-            if(File.Exists(filePath))
+            if (File.Exists(filePath))
             {
-                if(selectedMatch)
+                if (selectedMatch)
                 {
                     this.nextSubtitleBinaryFile = filePath;
                     this.nextTitleButton.Enabled = true;
                     break;
                 }
-                if(string.Compare(filePath, matchFilePath, true) == 0)
+                if (string.Compare(filePath, matchFilePath, true) == 0)
                 {
                     selectedMatch = true;
                 }
             }
         }
-        if(!selectedMatch && (this.data.SelectedSubtitleFiles != null))
+        if (!selectedMatch && (this.data.SelectedSubtitleFiles != null))
         {
-            foreach(string subtitlePath in this.data.SelectedSubtitleFiles)
+            foreach (string subtitlePath in this.data.SelectedSubtitleFiles)
             {
-                if(File.Exists(subtitlePath))
+                if (File.Exists(subtitlePath))
                 {
-                    if(selectedMatch)
+                    if (selectedMatch)
                     {
                         this.nextSubtitleBinaryFile = subtitlePath;
                         this.nextTitleButton.Enabled = true;
                         break;
                     }
-                    if(string.Compare(subtitlePath, matchFilePath, true) == 0)
+                    if (string.Compare(subtitlePath, matchFilePath, true) == 0)
                     {
                         selectedMatch = true;
                     }
@@ -102,12 +103,12 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
         SortedDictionary<long, double> posPtsMap = ParseD2v();
 
-        if(this.data.WorkingData.CellStarts.Count != 0)
+        if (this.data.WorkingData.CellStarts.Count != 0)
         {
             int subDataIndex = 0;
             double? previousBinPts = null;
             double? previousD2vPts = null;
-            foreach(CellStartInfo startInfo in this.data.WorkingData.CellStarts)
+            foreach (CellStartInfo startInfo in this.data.WorkingData.CellStarts)
             {
                 bool isFirstCell = ((startInfo.CellType & SaverCellType.First) == SaverCellType.First);
                 double audio = startInfo.FirstAudioPts - startInfo.FirstCellPts;
@@ -115,21 +116,21 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
                 double d2vVsBinPts = 0.0;
                 double binPts = startInfo.PtsOffset + startInfo.FirstVideoPts;
-                if(posPtsMap.Count != 0)
+                if (posPtsMap.Count != 0)
                 {
                     double? foundD2vPts = null;
-                    foreach(KeyValuePair<long, double> ptsEntry in posPtsMap)
+                    foreach (KeyValuePair<long, double> ptsEntry in posPtsMap)
                     {
-                        if(ptsEntry.Key >= startInfo.FilePosition)
+                        if (ptsEntry.Key >= startInfo.FilePosition)
                         {
                             foundD2vPts = ptsEntry.Value;
                             break;
                         }
                     }
 
-                    if(foundD2vPts.HasValue)
+                    if (foundD2vPts.HasValue)
                     {
-                        if(previousD2vPts.HasValue)
+                        if (previousD2vPts.HasValue)
                         {
                             d2vVsBinPts = (foundD2vPts.Value - previousD2vPts.Value) - (binPts - previousBinPts.Value);
                         }
@@ -140,7 +141,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                         previousD2vPts = null;
                     }
 
-                    if(previousBinPts.HasValue)
+                    if (previousBinPts.HasValue)
                     {
                         this.ptsOffsets[startInfo.PtsOffset + startInfo.FirstCellPts] = d2vVsBinPts;
                     }
@@ -152,9 +153,9 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                 }
                 else
                 {
-                    if(isFirstCell)
+                    if (isFirstCell)
                     {
-                        if(previousBinPts.HasValue)
+                        if (previousBinPts.HasValue)
                         {
                             this.ptsOffsets[startInfo.PtsOffset + startInfo.FirstCellPts] = Math.Min(42.0 - startInfo.MinimumAudioVideo, 0.0);
                         }
@@ -166,7 +167,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                 }
                 previousBinPts = binPts;
 
-                if(isFirstCell)
+                if (isFirstCell)
                 {
                     TimeSpan offsetTime = new TimeSpan(Convert.ToInt64(startInfo.PtsOffset + startInfo.FirstCellPts) * 10000);
                     this.sectionListTextBox.AppendText(
@@ -185,7 +186,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
             this.sectionListTextBox.Visible = false;
         }
 
-        if(this.data.WorkingData.VideoAttributes.VerticalResolution >= 1000)
+        if (this.data.WorkingData.VideoAttributes.VerticalResolution >= 1000)
         {
             this._1080pCheckBox.Visible = true;
             this._1080pCheckBox.Checked = true;
@@ -211,10 +212,10 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                 "files have font and positioning features.  This program creates a " +
                 "style common to many fansubbing groups but the normal editor for " +
                 "such files, AegiSub, can be used to further edit them after they are " +
-                "created here." + 
+                "created here." +
                 "\n\nIf you are going to crop the video, say 8 pixels off the top and 20 off the left, " +
                 "you should set the Left offset to -8 and Top offset to -20 so the subtitles are still aligned." +
-                "\n\nIf the style of these subtitles is \"Thought Bubbles\" where the text moves with the speaker " + 
+                "\n\nIf the style of these subtitles is \"Thought Bubbles\" where the text moves with the speaker " +
                 "as is common in closed captions, be sure to check Exactly Position Every Line." +
                 "\n\nFeature \"Remove SDH Subs\" attempts to removed text that indicates sounds or speakers, typically added " +
                 "for the hearing impaired. SDH text is typically surrounded by parentheses: () or []";
@@ -245,9 +246,9 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
     {
         SortedDictionary<long, double> positionPts = new SortedDictionary<long, double>();
 
-        string fileName = Path.Combine(Path.GetDirectoryName(this.data.SelectedSubtitleBinaryFile), 
+        string fileName = Path.Combine(Path.GetDirectoryName(this.data.SelectedSubtitleBinaryFile),
             Path.GetFileNameWithoutExtension(this.data.SelectedSubtitleBinaryFile) + ".d2v");
-        if(File.Exists(fileName))
+        if (File.Exists(fileName))
         {
             bool beforeHeader = true;
             bool afterHeader = false;
@@ -255,35 +256,35 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
             double pts = 0.0;
             double framePts = 1000.0 / 29.97;
             double repeatFieldFramePts = framePts * 1.5;
-            foreach(string line in d2vLines)
+            foreach (string line in d2vLines)
             {
                 string trimmed = line.Trim();
-                if(trimmed.Length == 0)
+                if (trimmed.Length == 0)
                 {
                     continue;
                 }
 
-                if(beforeHeader)
+                if (beforeHeader)
                 {
-                    if(trimmed.IndexOf('=') != -1)
+                    if (trimmed.IndexOf('=') != -1)
                     {
                         beforeHeader = false;
                     }
                     continue;
                 }
-                if(!afterHeader)
+                if (!afterHeader)
                 {
-                    if(trimmed.IndexOf('=') != -1)
+                    if (trimmed.IndexOf('=') != -1)
                     {
-                        if(trimmed.Substring(0, trimmed.IndexOf('=')).Trim() == "Frame_Rate")
+                        if (trimmed.Substring(0, trimmed.IndexOf('=')).Trim() == "Frame_Rate")
                         {
                             string rate = trimmed.Substring(trimmed.IndexOf('=') + 1);
-                            if(rate.IndexOf('(') != -1)
+                            if (rate.IndexOf('(') != -1)
                             {
                                 rate = rate.Substring(0, rate.IndexOf('(')).Trim();
                             }
                             double fps = Convert.ToDouble(Int32.Parse(rate)) / 1000.0;
-                            if(fps == 25.0)
+                            if (fps == 25.0)
                             {
                                 framePts = 1000.0 / fps;
                                 repeatFieldFramePts = framePts * 1.5;
@@ -301,15 +302,15 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                     long position = long.Parse(words[3]);
                     positionPts[position] = pts;
                     bool endOfStreamFound = false;
-                    for(int flagIndex = 7; flagIndex < words.Length; flagIndex++)
+                    for (int flagIndex = 7; flagIndex < words.Length; flagIndex++)
                     {
                         UInt16 flags = UInt16.Parse(words[flagIndex], NumberStyles.HexNumber);
-                        if(flags == 0xff)
+                        if (flags == 0xff)
                         {
                             endOfStreamFound = true;
                             break;
                         }
-                        if((flags & 1) != 0)
+                        if ((flags & 1) != 0)
                         {
                             pts += repeatFieldFramePts;
                         }
@@ -318,12 +319,12 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
                             pts += framePts;
                         }
                     }
-                    if(endOfStreamFound)
+                    if (endOfStreamFound)
                     {
                         break;
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     MessageBox.Show("D2V parse exception " + ex.Message);
                     positionPts.Clear();
@@ -337,10 +338,10 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
     string CalculateOutputDirectory()
     {
-        if(Properties.Settings.Default.StoreSupTextInSourceDir)
+        if (Properties.Settings.Default.StoreSupTextInSourceDir)
         {
             string binaryFileExt = Path.GetExtension(this.data.SelectedSubtitleBinaryFile).ToLowerInvariant();
-            if((binaryFileExt == ".sup") || (binaryFileExt == ".idx"))
+            if ((binaryFileExt == ".sup") || (binaryFileExt == ".idx"))
             {
                 return Path.GetDirectoryName(this.data.SelectedSubtitleBinaryFile);
             }
@@ -350,7 +351,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
     string CalculateSubFilename()
     {
-        if(Path.GetExtension(this.data.SelectedSubtitleBinaryFile).ToLowerInvariant() == ".sup")
+        if (Path.GetExtension(this.data.SelectedSubtitleBinaryFile).ToLowerInvariant() == ".sup")
         {
             return Path.GetFileNameWithoutExtension(this.data.SelectedSubtitleBinaryFile);
         }
@@ -375,25 +376,25 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
             RemoveSDH = (this.removeSdhSubsCheck.Visible && this.removeSdhSubsCheck.Checked) ? RemoveSDH.Normal : RemoveSDH.None,
         };
 
-        if(this.srtRadioButton.Checked)
+        if (this.srtRadioButton.Checked)
         {
             this.saveProgressBar.Value = 0;
             this.saveProgressBar.Maximum = 100;
             this.saveProgressBar.Show();
             Application.DoEvents();
-            if(CreateSrtFile.Create(this.data, this.ptsOffsets, options))
+            if (CreateSrtFile.Create(this.data, this.ptsOffsets, options))
             {
                 this.saveProgressBar.Value = 100;
                 //MessageBox.Show(this, "SubRip SRT File Created");
             }
         }
-        else if(this.assRadioButton.Checked)
+        else if (this.assRadioButton.Checked)
         {
             this.saveProgressBar.Value = 0;
             this.saveProgressBar.Maximum = 100;
             this.saveProgressBar.Show();
             Application.DoEvents();
-            if(CreateAssFile.Create(this.data, this.ptsOffsets, options))
+            if (CreateAssFile.Create(this.data, this.ptsOffsets, options))
             {
                 this.saveProgressBar.Value = 100;
                 //MessageBox.Show(this, "Advanced Substation Alpha Subtitle File Created");
@@ -407,21 +408,21 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         this.saveAsFileDialog.DefaultExt = Path.GetExtension(fileName).Substring(1);
         this.saveAsFileDialog.Filter = $"Subtitle files|*.{this.saveAsFileDialog.DefaultExt}|All files|*.*";
         this.saveAsFileDialog.FileName = fileName;
-        if(String.IsNullOrWhiteSpace(initialDirectory))
+        if (String.IsNullOrWhiteSpace(initialDirectory))
         {
             initialDirectory = CalculateOutputDirectory();
         }
         this.saveAsFileDialog.InitialDirectory = initialDirectory;
-        if(this.saveAsFileDialog.ShowDialog(this) == DialogResult.OK)
+        if (this.saveAsFileDialog.ShowDialog(this) == DialogResult.OK)
         {
             this.lastSavedFile = null;
             string fileFullPath = this.saveAsFileDialog.FileName;
             CreateSubtitle(Path.GetFileName(fileFullPath), Path.GetDirectoryName(fileFullPath));
             initialDirectory = Path.GetDirectoryName(fileFullPath);
-            if(File.Exists(fileFullPath))
+            if (File.Exists(fileFullPath))
             {
                 this.lastSavedFile = fileFullPath;
-                if(File.Exists(Properties.Settings.Default.SubtitleEditorPath))
+                if (File.Exists(Properties.Settings.Default.SubtitleEditorPath))
                 {
                     this.srtEditButton.Enabled = true;
                 }
@@ -441,10 +442,10 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         CreateSubtitle(fileName, outputDirectory);
 
         string fullPath = Path.Combine(outputDirectory, fileName);
-        if(File.Exists(fullPath))
+        if (File.Exists(fullPath))
         {
             this.subtitleFileLabel.Text = "(Overwrite) " + fileName;
-            if(File.Exists(Properties.Settings.Default.SubtitleEditorPath))
+            if (File.Exists(Properties.Settings.Default.SubtitleEditorPath))
             {
                 this.srtEditButton.Enabled = true;
             }
@@ -460,7 +461,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         get
         {
             string suffix;
-            if(this.srtRadioButton.Checked)
+            if (this.srtRadioButton.Checked)
             {
                 suffix = ".srt";
             }
@@ -480,7 +481,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         this.saveProgressBar.Value = 0;
         string fileName = this.SubtitleFileName;
         string fullPath = Path.Combine(CalculateOutputDirectory(), fileName);
-        if(File.Exists(fullPath))
+        if (File.Exists(fullPath))
         {
             this.subtitleFileLabel.Text = "(Overwrite) " + fileName;
         }
@@ -492,7 +493,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
         Properties.Settings.Default.SubtitleStyle = this.srtRadioButton.Checked ? 0 : 1;
         Properties.Settings.Default.Save();
 
-        if(this.srtRadioButton.Checked)
+        if (this.srtRadioButton.Checked)
         {
             this.disabledSrtOptions.ForEach(c => c.Enabled = false);
         }
@@ -501,7 +502,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
             this.disabledSrtOptions.ForEach(c => c.Enabled = true);
         }
 
-        if(File.Exists(Properties.Settings.Default.SubtitleEditorPath) && File.Exists(fullPath))
+        if (File.Exists(Properties.Settings.Default.SubtitleEditorPath) && File.Exists(fullPath))
         {
             this.srtEditButton.Enabled = true;
         }
@@ -514,10 +515,10 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
     private void openSubtitleFileInEditorButton_Click(object sender, EventArgs e)
     {
         string subEditorFile = Properties.Settings.Default.SubtitleEditorPath;
-        if(!string.IsNullOrEmpty(subEditorFile) && File.Exists(subEditorFile))
+        if (!string.IsNullOrEmpty(subEditorFile) && File.Exists(subEditorFile))
         {
             string fullPath;
-            if(String.IsNullOrEmpty(this.lastSavedFile))
+            if (String.IsNullOrEmpty(this.lastSavedFile))
             {
                 fullPath = Path.Combine(CalculateOutputDirectory(), this.SubtitleFileName);
             }
@@ -549,7 +550,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
     private void normalLinesButton_CheckedChanged(object sender, EventArgs e)
     {
-        if(this.normalLinesButton.Checked)
+        if (this.normalLinesButton.Checked)
         {
             Properties.Settings.Default.PositionSubs = 0;
             Properties.Settings.Default.Save();
@@ -558,7 +559,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
     private void dvdLineBreaksButton_CheckedChanged(object sender, EventArgs e)
     {
-        if(this.dvdLineBreaksButton.Checked)
+        if (this.dvdLineBreaksButton.Checked)
         {
             Properties.Settings.Default.PositionSubs = 1;
             Properties.Settings.Default.Save();
@@ -567,7 +568,7 @@ public partial class CreateSubtitleFileStep : UserControl, IWizardItem
 
     private void exactPositionButton_CheckedChanged(object sender, EventArgs e)
     {
-        if(this.exactPositionButton.Checked)
+        if (this.exactPositionButton.Checked)
         {
             Properties.Settings.Default.PositionSubs = 2;
             Properties.Settings.Default.Save();

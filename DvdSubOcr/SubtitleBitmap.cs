@@ -2,12 +2,13 @@ using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
 
 namespace DvdSubOcr;
+
 public class SubtitleBitmap : SubtitleInformation, IDisposable
 {
     bool isDisposed;
 
     public SubtitleBitmap(int left, int top, int width, int height, double pts, double duration,
-        Color[] paletteEntries, bool isForced) : base(left, top, width, height, 
+        Color[] paletteEntries, bool isForced) : base(left, top, width, height,
         pts, duration, paletteEntries, isForced)
     {
         this.Stride = (width + 3) / 4 * 4;
@@ -15,9 +16,9 @@ public class SubtitleBitmap : SubtitleInformation, IDisposable
         this.Bitmap = new Bitmap(width, height, this.Stride, PixelFormat.Format8bppIndexed, this.Data);
         this.Bitmap.SetResolution(96, 96);
         ColorPalette palette = this.Bitmap.Palette;
-        for(int index = 0; index < paletteEntries.Length; index++)
+        for (int index = 0; index < paletteEntries.Length; index++)
         {
-            if(paletteEntries[index].A > 0)
+            if (paletteEntries[index].A > 0)
             {
                 // you can get some funny blending if you let partially transparent colors into a windows bitmap
                 palette.Entries[index] = Color.FromArgb(255, paletteEntries[index]);
@@ -34,7 +35,7 @@ public class SubtitleBitmap : SubtitleInformation, IDisposable
     {
         base.RgbPalette = new List<Color>(paletteEntries).AsReadOnly();
         ColorPalette palette = this.Bitmap.Palette;
-        for(int index = 0; index < paletteEntries.Length; index++)
+        for (int index = 0; index < paletteEntries.Length; index++)
         {
             palette.Entries[index] = paletteEntries[index];
         }
@@ -47,7 +48,7 @@ public class SubtitleBitmap : SubtitleInformation, IDisposable
 
     public void Dispose()
     {
-        if(!this.isDisposed)
+        if (!this.isDisposed)
         {
             this.isDisposed = true;
             this.Bitmap.Dispose();
