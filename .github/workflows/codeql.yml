@@ -1,0 +1,59 @@
+name: CodeQL Security Scan
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run every Monday at 6:00 AM UTC
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  security-events: write
+  contents: read
+  actions: read
+
+jobs:
+  analyze:
+    name: Analyze
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'csharp' ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Restore dependencies
+        run: dotnet restore DvdSubOcr.sln
+
+      - name: Build
+        run: dotnet build DvdSubOcr.sln --configuration Release --no-restore
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+
+      - name: Security scan summary
+        if: success()
+        run: |
+          echo "### 🔒 Security Scan Complete" >> $env:GITHUB_STEP_SUMMARY
+          echo "CodeQL analysis completed successfully." >> $env:GITHUB_STEP_SUMMARY
+          echo "Check the Security tab for any detected vulnerabilities." >> $env:GITHUB_STEP_SUMMARY
