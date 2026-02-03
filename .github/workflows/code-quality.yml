@@ -1,0 +1,62 @@
+name: Code Quality
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+jobs:
+  lint:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore DvdSubOcr.sln
+
+      - name: Check code formatting
+        run: |
+          dotnet format DvdSubOcr.sln --verify-no-changes --verbosity diagnostic
+        continue-on-error: true
+        id: format-check
+
+      - name: Run .NET analyzers
+        run: |
+          dotnet build DvdSubOcr.sln --configuration Release /p:TreatWarningsAsErrors=false /p:RunAnalyzers=true /p:EnforceCodeStyleInBuild=true
+        continue-on-error: true
+        id: analyzer-check
+
+      - name: Code quality summary
+        run: |
+          echo "### Code Quality Results" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+
+          if ("${{ steps.format-check.outcome }}" -eq "success") {
+            echo "✅ **Formatting**: All files are properly formatted" >> $env:GITHUB_STEP_SUMMARY
+          } else {
+            echo "⚠️ **Formatting**: Some files need formatting. Run ``dotnet format`` locally." >> $env:GITHUB_STEP_SUMMARY
+          }
+
+          if ("${{ steps.analyzer-check.outcome }}" -eq "success") {
+            echo "✅ **Analyzers**: No code analysis warnings" >> $env:GITHUB_STEP_SUMMARY
+          } else {
+            echo "⚠️ **Analyzers**: Code analysis warnings detected" >> $env:GITHUB_STEP_SUMMARY
+          }
+
+      - name: Fail if issues found
+        if: steps.format-check.outcome == 'failure' || steps.analyzer-check.outcome == 'failure'
+        run: |
+          echo "Code quality checks failed. Please fix the issues above."
+          exit 1
