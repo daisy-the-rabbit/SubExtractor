@@ -85,4 +85,4 @@ This project is licensed under the [GNU General Public License v2.0](LICENSE), a
 
 - **Christopher R Meadowcroft** - Original author (SubExtractor 1.0, 2009-2012)
 - .NET 10 migration supported by [GitHub Copilot Application Modernization](https://learn.microsoft.com/en-us/dotnet/core/porting/github-copilot-app-modernization/overview)
-- Further development supported by [Claude Code](https://claude.ai/claude-code)
+- Further development supported by [Claude Code](https://claude.com/product/claude-code)
