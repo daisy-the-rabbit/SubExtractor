@@ -1,0 +1,38 @@
+name: Check branch name
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  check-branch-name:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login != 'dependabot[bot]'
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          PATTERN="^(feat|fix|docs|style|refactor|test|chore)/.+"
+
+          if [[ ! "$BRANCH" =~ $PATTERN ]]; then
+            echo "::error::Branch name '$BRANCH' does not follow naming convention."
+            echo ""
+            echo "Branch names must match: <type>/<description>"
+            echo ""
+            echo "Valid prefixes:"
+            echo "  feat/     - New features"
+            echo "  fix/      - Bug fixes"
+            echo "  docs/     - Documentation changes"
+            echo "  style/    - Formatting, no code change"
+            echo "  refactor/ - Code refactoring"
+            echo "  test/     - Adding or updating tests"
+            echo "  chore/    - Maintenance tasks"
+            echo ""
+            echo "Examples:"
+            echo "  feat/new-ocr-engine"
+            echo "  fix/crash-on-empty-subtitle"
+            echo "  docs/update-readme"
+            exit 1
+          fi
+
+          echo "Branch name '$BRANCH' follows naming convention."
