@@ -52,7 +52,7 @@
     <ProjectReference Include="..\DvdSubOcr\DvdSubOcr.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.2" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="10.0.3" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Resources\OcrMapOrig.bin">
