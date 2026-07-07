@@ -16,6 +16,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify tag matches project version
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}".TrimStart('v')
+          $csproj = "DvdSubExtractor/DvdSubExtractor.csproj"
+          $proj = ([xml](Get-Content $csproj -Raw)).Project.PropertyGroup.Version |
+            Where-Object { $_ } | Select-Object -First 1
+          if (-not $proj) {
+            Write-Error "No <Version> found in $csproj"
+            exit 1
+          }
+          if ($tag -ne $proj) {
+            Write-Error "Tag v$tag does not match <Version> ($proj) in $csproj. Update the csproj or retag."
+            exit 1
+          }
+          Write-Host "Tag v$tag matches project version $proj"
+
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
@@ -57,7 +74,8 @@ jobs:
           }
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
         with:
           files: SubExtractor-${{ github.ref_name }}.zip
           body_path: release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-') }}

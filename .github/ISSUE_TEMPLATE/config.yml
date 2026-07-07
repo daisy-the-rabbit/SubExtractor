@@ -1,2 +1,5 @@
 blank_issues_enabled: false
-contact_links: []
+contact_links:
+  - name: Documentation
+    url: https://github.com/daisy-the-rabbit/SubExtractor#readme
+    about: Check the README first. It covers installation, requirements, and the full extraction workflow.

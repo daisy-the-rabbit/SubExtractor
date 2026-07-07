@@ -1,0 +1,29 @@
+name: Dependabot auto-merge
+
+# Auto-merge the low-risk Dependabot PRs: patch-level bumps in any ecosystem and any
+# github-actions update. Minor and major bumps are left for manual review. Auto-merge only
+# completes once the required status checks pass, so those checks remain the gate.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    if: github.actor == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      - name: Enable auto-merge
+        if: >
+          steps.meta.outputs.update-type == 'version-update:semver-patch' ||
+          startsWith(github.head_ref, 'dependabot/github_actions/')
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}
