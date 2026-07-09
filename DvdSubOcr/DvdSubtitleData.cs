@@ -67,8 +67,18 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
     private static SubtitleInformation Decode(byte[] byteBuffer, double currentPts, IList<int> yuvPalette,
         bool onlyDecodeHeaderInformation)
     {
+        if (byteBuffer.Length < 4)
+        {
+            Debug.WriteLine($"SubPicture packet too small: {byteBuffer.Length} bytes");
+            return null;
+        }
         int dataLength = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(0));
         int controlSequenceOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(2));
+        if (dataLength > byteBuffer.Length)
+        {
+            Debug.WriteLine($"SubPicture dataLength {dataLength} exceeds packet length {byteBuffer.Length}");
+            return null;
+        }
         int[] paletteIndices;
 
         int startTime = 0, endTime = 0;
@@ -83,7 +93,9 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         {
             int time = (BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl)) * 1024 + 89) / 90;
             int afterNextControl = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl + 2));
-            if (afterNextControl == nextControl)
+            // The next-control pointer must advance forward. A self- or backward-reference
+            // (afterNextControl <= nextControl) would loop forever, so terminate instead.
+            if (afterNextControl <= nextControl)
             {
                 afterNextControl = dataLength;
             }
