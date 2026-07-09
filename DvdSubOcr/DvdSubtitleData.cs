@@ -67,8 +67,18 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
     private static SubtitleInformation Decode(byte[] byteBuffer, double currentPts, IList<int> yuvPalette,
         bool onlyDecodeHeaderInformation)
     {
+        if (byteBuffer.Length < 4)
+        {
+            Debug.WriteLine($"SubPicture packet too small: {byteBuffer.Length} bytes");
+            return null;
+        }
         int dataLength = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(0));
         int controlSequenceOffset = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(2));
+        if (dataLength > byteBuffer.Length)
+        {
+            Debug.WriteLine($"SubPicture dataLength {dataLength} exceeds packet length {byteBuffer.Length}");
+            return null;
+        }
         int[] paletteIndices;
 
         int startTime = 0, endTime = 0;
@@ -83,7 +93,9 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         {
             int time = (BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl)) * 1024 + 89) / 90;
             int afterNextControl = BinaryPrimitives.ReadUInt16BigEndian(byteBuffer.AsSpan(nextControl + 2));
-            if (afterNextControl == nextControl)
+            // The next-control pointer must advance forward. A self- or backward-reference
+            // (afterNextControl <= nextControl) would loop forever, so terminate instead.
+            if (afterNextControl <= nextControl)
             {
                 afterNextControl = dataLength;
             }
@@ -238,6 +250,17 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
             return null;
         }
 
+        // The RLE data regions are [topDataOffset, bottomDataOffset) and
+        // [bottomDataOffset, controlSequenceOffset). All three offsets come straight from
+        // the (untrusted) packet, so reject any ordering that would produce a negative-length
+        // region or read past the packet before the unsafe pointer walk below relies on them.
+        if ((topDataOffset > bottomDataOffset) || (bottomDataOffset > controlSequenceOffset) ||
+            (controlSequenceOffset > byteBuffer.Length))
+        {
+            Debug.WriteLine($"Invalid SubPicture data offsets: top {topDataOffset} bottom {bottomDataOffset} control {controlSequenceOffset} length {byteBuffer.Length}");
+            return null;
+        }
+
         //Debug.WriteLine(string.Format("StartTime {0} EndTime {1} pts {2}", startTime, endTime, currentPts));
 
         if (yuvPalette.Count != 16)
@@ -272,8 +295,12 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
         unsafe
         {
             //byte[] tempBuffer = new byte[buffer.Stride * buffer.Height];
-            byte[] topNibbles = new byte[(bottomDataOffset - topDataOffset) * 2];
-            byte[] bottomNibbles = new byte[(controlSequenceOffset - bottomDataOffset) * 2];
+            int topNibbleCount = (bottomDataOffset - topDataOffset) * 2;
+            int bottomNibbleCount = (controlSequenceOffset - bottomDataOffset) * 2;
+            // Pad by 8 so the 4-byte `*(uint*)` peek and the per-run nibble reads in the RLE
+            // loops below cannot read past the array end when the run guard trips at the tail.
+            byte[] topNibbles = new byte[topNibbleCount + 8];
+            byte[] bottomNibbles = new byte[bottomNibbleCount + 8];
 
             //Debug.WriteLine(string.Format("Top {0} bytes Bottom {1} bytes", topNibbles.Length,
             //	bottomNibbles.Length));
@@ -299,6 +326,8 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                 nibbledTop = ptrTop;
                 nibbledBottom = ptrBottom;
+                byte* nibbledTopEnd = ptrTop + topNibbleCount;
+                byte* nibbledBottomEnd = ptrBottom + bottomNibbleCount;
 
                 byte* lineStart = (byte*)buffer.Data.ToPointer();
                 //int* lineStart = (int*)outBuffer;
@@ -309,6 +338,12 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                     int colorIndex = 0;
                     while (bytesLeft != 0)
                     {
+                        // Stop if the (untrusted) RLE ran out of nibbles before filling the row,
+                        // rather than walking the pointer off the end of the buffer.
+                        if (nibbledTop >= nibbledTopEnd)
+                        {
+                            break;
+                        }
                         int count;
                         byte* savedNibbleTop = nibbledTop;
                         if ((*(uint*)(nibbledTop) & 0xc0f0f0f) == 0)
@@ -359,6 +394,13 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                         //int color = bmpPalette[colorIndex].ToArgb();
                         byte color = (byte)colorIndex;
+                        // Clamp the (untrusted) run length to what is left on this row so the
+                        // fill below can never write past the row, and bytesLeft cannot go
+                        // negative (which would make this loop never terminate).
+                        if (count > bytesLeft)
+                        {
+                            count = bytesLeft;
+                        }
                         bytesLeft -= count;
                         while (count != 0)
                         {
@@ -380,6 +422,10 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
                     colorIndex = 0;
                     while (bytesLeft != 0)
                     {
+                        if (nibbledBottom >= nibbledBottomEnd)
+                        {
+                            break;
+                        }
                         int count;
                         byte* savedNibbleBottom = nibbledBottom;
                         if ((*(uint*)(nibbledBottom) & 0xc0f0f0f) == 0)
@@ -430,6 +476,10 @@ public class DvdSubtitleData : SubtitleInformation, ISubtitleData
 
                         //int color = bmpPalette[colorIndex].ToArgb();
                         byte color = (byte)colorIndex;
+                        if (count > bytesLeft)
+                        {
+                            count = bytesLeft;
+                        }
                         bytesLeft -= count;
                         while (count != 0)
                         {
