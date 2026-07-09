@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-07-09
+
+### Security
+
+- Fixed an out-of-bounds write in the DVD subtitle RLE decoder where a crafted subtitle packet could corrupt memory.
+- Fixed an integer-overflow out-of-bounds write when decoding a Blu-ray (PGS) subtitle whose dimensions exceed supported limits.
+- Hardened the DVD subtitle packet parser against malformed headers and a control-sequence loop that could hang the application.
+
 ## [2.0.0] - 2026-02-03
 
 Major modernization of the codebase, bringing the application from .NET Framework to .NET 10 with extensive code and UI improvements.
@@ -56,6 +64,7 @@ Major modernization of the codebase, bringing the application from .NET Framewor
 
 Final release by Christopher R Meadowcroft on CodePlex. Targeted .NET Framework 4.0.
 
-[Unreleased]: https://github.com/daisy-the-rabbit/SubExtractor/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/daisy-the-rabbit/SubExtractor/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/daisy-the-rabbit/SubExtractor/releases/tag/v2.0.1
 [2.0.0]: https://github.com/daisy-the-rabbit/SubExtractor/releases/tag/v2.0.0
 [1.0.3.2-beta]: https://web.archive.org/web/20171224054057/http://subextractor.codeplex.com/
